@@ -59,7 +59,7 @@ The `example/` directory contains sample PDF and retrieval-evaluation resources.
 
 ## Requirements
 
-- Python 3.12 is recommended for the current development setup.
+- Python 3.14 is recommended for the current development setup.
 - The Python packages listed in `requirements.txt`.
 - Access to the local embedding and reranker model files.
 - An API endpoint and credentials compatible with the answer-generation code.
@@ -78,7 +78,7 @@ Create and activate a virtual environment.
 **Windows PowerShell:**
 
 ```powershell
-py -3.12 -m venv venv
+py -3.14 -m venv venv
 .\venv\Scripts\Activate.ps1
 ```
 
