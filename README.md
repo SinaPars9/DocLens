@@ -53,10 +53,9 @@ DocLens/
 │   ├── evaluation_questions.json
 │   ├── retrieval_evaluation_report.json
 │   └── test.pdf
-└── refrence/
 ```
 
-The `refrence/` directory contains reference materials. The `example/` directory contains sample PDF and retrieval-evaluation resources.
+The `example/` directory contains sample PDF and retrieval-evaluation resources.
 
 ## Requirements
 
