@@ -1,0 +1,10 @@
+gradio
+pymupdf
+pdfplumber
+langchain-core
+langchain-text-splitters
+chromadb
+onnxruntime
+tokenizers
+python-dotenv
+httpx

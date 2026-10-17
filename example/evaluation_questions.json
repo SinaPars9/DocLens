@@ -1,0 +1,342 @@
+[
+  {
+    "id": "Q19",
+    "level": "easy",
+    "question": "What was the average order value across all customer segments in 2025?",
+    "expected_answer": "£500.",
+    "expected_keywords": ["£500"],
+    "source_page": 6,
+    "required_evidence": [
+      "The customer segments table lists an average order value of £500 for the Total row."
+    ]
+  },
+  {
+    "id": "Q20",
+    "level": "easy",
+    "question": "How many people are on Northstar's customer service team?",
+    "expected_answer": "Eight advisors.",
+    "expected_keywords": ["eight advisors"],
+    "source_page": 9,
+    "required_evidence": [
+      "The customer service team consists of eight advisors who operate during UK business hours."
+    ]
+  },
+  {
+    "id": "Q21",
+    "level": "easy",
+    "question": "How many fulfilment staff does Northstar's warehouse employ?",
+    "expected_answer": "Twelve fulfilment staff.",
+    "expected_keywords": ["twelve fulfilment staff"],
+    "source_page": 8,
+    "required_evidence": [
+      "The warehouse operates five days a week and employs twelve fulfilment staff."
+    ]
+  },
+  {
+    "id": "Q22",
+    "level": "easy",
+    "question": "Into how many product categories does Northstar organise its catalogue?",
+    "expected_answer": "Five product categories.",
+    "expected_keywords": ["five product categories"],
+    "source_page": 4,
+    "required_evidence": [
+      "Northstar organises its catalogue into five product categories."
+    ]
+  },
+  {
+    "id": "Q23",
+    "level": "easy",
+    "question": "How many customer service channels are listed in the customer service table?",
+    "expected_answer": "Four channels: email, phone, web chat, and in-person.",
+    "expected_keywords": ["Email", "Phone", "Web chat", "In-person"],
+    "source_page": 9,
+    "required_evidence": [
+      "The customer service table lists four channels: Email, Phone, Web chat, and In-person."
+    ]
+  },
+  {
+    "id": "Q24",
+    "level": "easy",
+    "question": "What was the average order value for telephone orders in 2025?",
+    "expected_answer": "£143.",
+    "expected_keywords": ["Telephone", "£143"],
+    "source_page": 3,
+    "required_evidence": [
+      "Telephone orders had an average order value of £143."
+    ]
+  },
+  {
+    "id": "Q25",
+    "level": "easy",
+    "question": "What share of sales did the website channel account for in 2025?",
+    "expected_answer": "55%.",
+    "expected_keywords": ["Website", "55%"],
+    "source_page": 3,
+    "required_evidence": [
+      "The website channel account was 55% of total sales."
+    ]
+  },
+  {
+    "id": "Q26",
+    "level": "easy",
+    "question": "How many orders did the small businesses segment place in 2025?",
+    "expected_answer": "2,400 orders.",
+    "expected_keywords": ["2,400", "small businesses"],
+    "source_page": 6,
+    "required_evidence": [
+      "Small businesses placed 2,400 orders in 2025."
+    ]
+  },
+  {
+    "id": "Q27",
+    "level": "easy",
+    "question": "What was Northstar's revenue in the South region in 2025?",
+    "expected_answer": "£960,000.",
+    "expected_keywords": ["South", "£960,000"],
+    "source_page": 5,
+    "required_evidence": [
+      "The South region delivered £960,000 in revenue in 2025."
+    ]
+  },
+  {
+    "id": "Q28",
+    "level": "easy",
+    "question": "How many units of HP Black Toner were sold in 2025?",
+    "expected_answer": "2,000 units.",
+    "expected_keywords": ["HP Black Toner"],
+    "source_page": 7,
+    "required_evidence": [
+      "HP Black Toner sold 2,000 units in 2025."
+    ]
+  },
+  {
+    "id": "Q29",
+    "level": "easy",
+    "question": "What was Northstar's pick accuracy percentage in 2025?",
+    "expected_answer": "98.2%.",
+    "expected_keywords": ["98.2%", "pick accuracy"],
+    "source_page": 8,
+    "required_evidence": [
+      "Pick accuracy was 98.2% in 2025."
+    ]
+  },
+  {
+    "id": "Q30",
+    "level": "easy",
+    "question": "What was the on-time dispatch percentage in 2024?",
+    "expected_answer": "94.8%.",
+    "expected_keywords": ["94.8%", "on-time dispatch"],
+    "source_page": 8,
+    "required_evidence": [
+      "On-time dispatch was 94.8% in 2024."
+    ]
+  },
+  {
+    "id": "Q31",
+    "level": "easy",
+    "question": "What is the unit price of the Ballpoint Pen Black (12 pack)?",
+    "expected_answer": "£5.",
+    "expected_keywords": ["Ballpoint Pen Black"],
+    "source_page": 7,
+    "required_evidence": [
+      "The Ballpoint Pen Black (12 pack) had a unit price of £5."
+    ]
+  },
+  {
+    "id": "Q32",
+    "level": "easy",
+    "question": "What was Northstar's revenue in 2023?",
+    "expected_answer": "£1,850,000.",
+    "expected_keywords": ["£1,850,000"],
+    "source_page": 2,
+    "required_evidence": [
+      "2023 revenue was £1,850,000."
+    ]
+  },
+  {
+    "id": "Q33",
+    "level": "easy",
+    "question": "What was the operating expenses figure for 2025?",
+    "expected_answer": "£708,000.",
+    "expected_keywords": ["operating expenses", "£708,000"],
+    "source_page": 2,
+    "required_evidence": [
+      "Operating expenses were £708,000 in 2025."
+    ]
+  },
+  {
+    "id": "Q34",
+    "level": "easy",
+    "question": "What was Northstar's return rate percentage in 2025?",
+    "expected_answer": "2.1%.",
+    "expected_keywords": ["2.1%", "return rate"],
+    "source_page": 8,
+    "required_evidence": [
+      "The 2025 return rate was 2.1%."
+    ]
+  },
+  {
+    "id": "Q35",
+    "level": "easy",
+    "question": "What was the average parcel weight in 2025?",
+    "expected_answer": "2.4 kg.",
+    "expected_keywords": ["average parcel weight", "2.4"],
+    "source_page": 8,
+    "required_evidence": [
+      "The average parcel weight in 2025 was 2.4 kg."
+    ]
+  },
+  {
+    "id": "Q36",
+    "level": "medium",
+    "question": "Which channel had a higher average order value, email or telephone, and by how much?",
+    "expected_answer": "Telephone had the higher average order value (£143 versus £116 for email), £27 higher.",
+    "expected_keywords": ["Telephone", "£143", "Email", "£116"],
+    "source_page": 3,
+    "required_evidence": [
+      "Telephone orders had an average order value of £143.",
+      "Email orders had an average order value of £116."
+    ]
+  },
+  {
+    "id": "Q37",
+    "level": "medium",
+    "question": "Which region generated more revenue in 2025, the North or the South?",
+    "expected_answer": "The South region generated more revenue (£960,000 versus £720,000 for the North).",
+    "expected_keywords": ["South", "£960,000", "North", "£720,000"],
+    "source_page": 5,
+    "required_evidence": [
+      "The South region delivered £960,000 in revenue in 2025.",
+      "The North region generated £720,000 in 2025."
+    ]
+  },
+  {
+    "id": "Q38",
+    "level": "medium",
+    "question": "Which product category generated more revenue in 2025, paper products or printer supplies?",
+    "expected_answer": "Paper products generated more revenue (£960,000 versus £720,000 for printer supplies).",
+    "expected_keywords": ["Paper products", "£960,000", "Printer supplies", "£720,000"],
+    "source_page": 4,
+    "required_evidence": [
+      "Paper products revenue was £960,000 in 2025.",
+      "Printer supplies revenue was £720,000 in 2025."
+    ]
+  },
+  {
+    "id": "Q39",
+    "level": "medium",
+    "question": "Which customer service channel was the fastest based on response time?",
+    "expected_answer": "Web chat was the fastest channel, with a response time of less than one minute.",
+    "expected_keywords": ["Web chat"],
+    "source_page": 9,
+    "required_evidence": [
+      "Web chat had a response time of less than one minute, the fastest among the channels."
+    ]
+  },
+  {
+    "id": "Q40",
+    "level": "medium",
+    "question": "How much higher was the independent professionals' average order value than the home offices' average order value?",
+    "expected_answer": "£400 higher (£800 for independent professionals versus £400 for home offices).",
+    "expected_keywords": ["independent professionals", "£800", "home offices", "£400"],
+    "source_page": 6,
+    "required_evidence": [
+      "Independent professionals achieved an average order value of £800.",
+      "Home offices had an average order value of £400."
+    ]
+  },
+  {
+    "id": "Q41",
+    "level": "hard",
+    "question": "By how much did cost of goods sold increase from 2023 to 2025?",
+    "expected_answer": "£306,000 (from £1,110,000 to £1,416,000).",
+    "expected_keywords": ["cost of goods sold", "£1,110,000", "£1,416,000"],
+    "source_page": 2,
+    "required_evidence": [
+      "Cost of goods sold was £1,110,000 in 2023 and £1,416,000 in 2025."
+    ]
+  },
+  {
+    "id": "Q42",
+    "level": "hard",
+    "question": "What was the combined revenue from the three best-selling products in 2025?",
+    "expected_answer": "£255,000 (£100,000 + £80,000 + £75,000).",
+    "expected_keywords": ["£100,000", "£80,000", "£75,000"],
+    "source_page": 7,
+    "required_evidence": [
+      "A4 Copy Paper revenue was £100,000, HP Black Toner £80,000, and Ballpoint Pen Black £75,000."
+    ]
+  },
+  {
+    "id": "Q43",
+    "level": "hard",
+    "question": "What was the combined 2025 revenue of the printer supplies and writing instruments categories?",
+    "expected_answer": "£1,080,000 (£720,000 + £360,000).",
+    "expected_keywords": ["printer supplies", "£720,000", "writing instruments", "£360,000"],
+    "source_page": 4,
+    "required_evidence": [
+      "Printer supplies revenue was £720,000 in 2025.",
+      "Writing instruments revenue was £360,000 in 2025."
+    ]
+  },
+  {
+    "id": "Q44",
+    "level": "challenging",
+    "question": "Northstar processed 4,800 orders in 2025. How many of those came from customers other than small businesses?",
+    "expected_answer": "2,400 orders (4,800 total minus 2,400 from small businesses).",
+    "expected_keywords": ["4,800", "2,400", "small businesses"],
+    "source_page": 6,
+    "required_evidence": [
+      "Total orders in 2025 were 4,800.",
+      "Small businesses placed 2,400 of those orders."
+    ]
+  },
+  {
+    "id": "Q45",
+    "level": "hard",
+    "question": "What was Northstar's operating expenses as a percentage of its 2025 revenue?",
+    "expected_answer": "29.5% (£708,000 / £2,400,000).",
+    "expected_keywords": ["operating expenses", "£708,000", "£2,400,000"],
+    "source_page": 2,
+    "required_evidence": [
+      "Operating expenses were £708,000 in 2025.",
+      "Total 2025 revenue was £2,400,000."
+    ]
+  },
+  {
+    "id": "Q46",
+    "level": "hard",
+    "question": "Marketing spend was £300,000 in 2025. What percentage of total revenue does this represent?",
+    "expected_answer": "12.5% of total revenue.",
+    "expected_keywords": ["marketing", "£300,000", "12.5%"],
+    "source_page": 9,
+    "required_evidence": [
+      "Northstar spent £300,000 on marketing and advertising during 2025.",
+      "Total 2025 revenue was £2,400,000."
+    ]
+  },
+  {
+    "id": "Q47",
+    "level": "unanswerable",
+    "answerable": false,
+    "question": "What was Northstar's projected revenue for 2026?",
+    "expected_answer": "The report does not provide any revenue projection for 2026.",
+    "expected_keywords": [],
+    "source_page": null,
+    "required_evidence": [
+      "The report contains no revenue projection for 2026."
+    ]
+  },
+  {
+    "id": "Q48",
+    "level": "unanswerable",
+    "answerable": false,
+    "question": "How many individual suppliers does Northstar list as working with the company in this report?",
+    "expected_answer": "The report does not state the number of suppliers Northstar works with.",
+    "expected_keywords": [],
+    "source_page": null,
+    "required_evidence": [
+      "The report does not name or count the individual suppliers it works with."
+    ]
+  }
+]
