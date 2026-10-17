@@ -1,164 +1,165 @@
 # DocLens — PDF RAG Assistant
 
-DocLens is an educational Retrieval-Augmented Generation (RAG) project that allows users to ask questions about PDF documents and receive answers grounded in the document's content.
+DocLens is an educational Retrieval-Augmented Generation (RAG) project that lets users upload a PDF, retrieve relevant passages, and ask questions about its content through a conversational interface.
 
-The project focuses on exploring document processing, embedding models, vector search, query rewriting, reranking, and LLM-based answer generation in a practical application.
+The project focuses on exploring the core components of a document-based RAG pipeline, including PDF text and table extraction, chunking, embeddings, vector search, query rewriting, reranking, and answer generation.
 
 ## Features
 
-- **PDF Processing:** Extracts text and detects tables from PDF documents.
-- **Table-Aware Extraction:** Converts detected tables into structured text to help preserve relationships between labels and values.
-- **Document Chunking:** Splits extracted content into smaller pieces for retrieval.
-- **Local Embeddings:** Uses the Bekko embedding model through ONNX Runtime.
-- **Vector Database:** Stores and retrieves document chunks using ChromaDB.
-- **Query Rewriting:** Resolves follow-up questions and expands queries to improve retrieval.
-- **Reranking:** Reranks retrieved chunks using an ONNX-based reranker.
-- **Context-Aware Answers:** Generates answers using retrieved document content and conversation history.
-- **Gradio Interface:** Provides a web-based interface for uploading PDFs, asking questions, and inspecting retrieved context.
+- **PDF ingestion:** Extracts text and tables from PDF documents.
+- **Configurable chunking:** Splits extracted content into chunks for retrieval.
+- **Local embeddings:** Uses the `hotchpotch/bekko-embedding-v1-a8m` embedding model.
+- **Vector storage:** Stores and retrieves document chunks using ChromaDB.
+- **Query rewriting:** Resolves follow-up questions and expands queries to improve retrieval.
+- **Reranking:** Reorders retrieved passages using a local ONNX reranker.
+- **Context-aware answers:** Generates answers using retrieved document context.
+- **Interactive interface:** Provides a Gradio UI for uploading PDFs, asking questions, and inspecting retrieved chunks.
+- **Retrieval evaluation:** Includes example scripts and evaluation data for testing retrieval quality.
 
 ## Architecture
 
-The application follows a modular pipeline:
+The pipeline follows these main steps:
 
-1. Extract text and tables from a PDF.
-2. Split the extracted content into chunks.
-3. Generate embeddings for the chunks.
-4. Store the embeddings and associated metadata in ChromaDB.
-5. Process the user's question and rewrite or expand it when necessary.
-6. Retrieve relevant chunks from the vector database.
-7. Rerank the retrieved chunks.
-8. Generate an answer using the selected context.
-9. Display the answer and retrieved chunks in the Gradio interface.
+1. **PDF loading:** Extract text and tables from the uploaded PDF.
+2. **Chunking:** Split document content into manageable chunks while preserving useful context.
+3. **Embedding:** Convert chunks into vector representations using a local embedding model.
+4. **Vector storage:** Store embeddings and metadata in ChromaDB.
+5. **Query processing:** Rewrite or expand the user's question when needed.
+6. **Retrieval:** Search the vector database for relevant chunks.
+7. **Reranking:** Reorder retrieved chunks according to relevance.
+8. **Answer generation:** Generate a response using the retrieved context.
+9. **Inspection:** Display the retrieved chunks in the interface for easier debugging and evaluation.
 
 ## Project Structure
 
 ```text
 DocLens/
-├── app.py              # Gradio user interface
-├── embedding.py        # Embedding generation
-├── chunk_pdf.py        # PDF chunking utilities
-├── vector_store.py     # ChromaDB operations
-├── retriever.py        # Document retrieval
-├── query_rewriter.py   # Query rewriting and expansion
-├── reranker.py         # Result reranking
-├── generate.py         # LLM answer generation
-├── pipeline.py         # RAG pipeline orchestration
-├── inspect_pdf.py      # PDF extraction and inspection
+├── app.py
+├── chunk_pdf.py
+├── embedding.py
+├── generate.py
+├── inspect_pdf.py
+├── pipeline.py
+├── query_rewriter.py
+├── reranker.py
+├── retriever.py
+├── vector_store.py
+├── requirements.txt
+├── README.md
+├── .gitignore
 ├── example/
 │   ├── create_pdf.py
 │   ├── evaluate_retrieval.py
-│   └── evaluation_questions.json
-├── .env.example        # Environment variable template
-├── .gitignore
-└── README.md
+│   ├── evaluation_questions.json
+│   ├── retrieval_evaluation_report.json
+│   └── test.pdf
+└── refrence/
 ```
+
+The `refrence/` directory contains reference materials. The `example/` directory contains sample PDF and retrieval-evaluation resources.
+
 ## Requirements
 
-- Python
-- A compatible LLM API endpoint
-- An API key for the configured provider
-- The embedding and reranker model files
-- The Python dependencies required by the project
-
-The embedding and reranking components use ONNX Runtime, while ChromaDB handles vector storage and similarity search.
+- Python 3.12 is recommended for the current development setup.
+- The Python packages listed in `requirements.txt`.
+- Access to the local embedding and reranker model files.
+- An API endpoint and credentials compatible with the answer-generation code.
 
 ## Installation
 
-### 1. Clone the repository
+Clone the repository:
 
 ```bash
 git clone https://github.com/SinaPars9/DocLens.git
 cd DocLens
 ```
 
-Replace `YOUR_USERNAME/DocLens` with the actual repository URL.
+Create and activate a virtual environment.
 
-### 2. Create a virtual environment
-
-```bash
-python -m venv venv
-```
-
-Activate it on Windows:
+**Windows PowerShell:**
 
 ```powershell
+py -3.12 -m venv venv
 .\venv\Scripts\Activate.ps1
 ```
 
-### 3. Install dependencies
-
-Install the dependencies used by the project:
+Install the dependencies:
 
 ```bash
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-A `requirements.txt` file should be maintained with the project's actual dependencies.
+## Configuration
 
-### 4. Configure environment variables
+DocLens uses local model files for embedding and reranking. Configure their paths to match your environment.
 
-Create a .env file in the project root and add the API configuration required by your LLM provider, including the API endpoint, model name, and API key.
+If answer generation requires an API key, configure it using the environment-variable names expected by the code. Keep credentials in your local `.env` file or environment, and **never commit secrets to GitHub**.
 
-**Never commit your `.env` file or API keys to version control.**
+Before running the project, verify that:
 
-### 5. Configure model paths
+- The embedding model path is correct.
+- The reranker model and tokenizer paths are correct.
+- The API endpoint, model name, and credentials are configured.
+- The configured model and API are accessible.
 
-Download the embedding and reranker models separately and configure their local paths as required by the project.
+## Running the Application
 
-Model files are not included in this repository.
-
-## Usage
-
-Run the application:
+Start the Gradio interface:
 
 ```bash
 python app.py
 ```
 
-Then:
+Open the local URL printed in the terminal.
 
-1. Upload a PDF document.
-2. Click **Build Database** and wait for processing to finish.
-3. Ask questions about the document.
-4. Review the generated answer.
-5. Inspect the retrieved chunks displayed alongside the conversation.
+Upload a PDF, build the vector database, ask a question, and inspect the retrieved chunks alongside the generated answer.
 
-The answers depend on the quality of the PDF extraction, retrieval results, reranking, and the configured language model.
+## Retrieval Evaluation
 
-## Evaluation
+The `example/` directory includes:
 
-The `example/` directory contains utilities for generating a sample PDF and evaluating retrieval performance.
+- `create_pdf.py` — creates a sample PDF for testing.
+- `evaluate_retrieval.py` — evaluates retrieval against a set of questions.
+- `evaluation_questions.json` — contains the evaluation questions.
+- `retrieval_evaluation_report.json` — contains a sample evaluation report.
+- `test.pdf` — the sample PDF used in the example workflow.
 
-The evaluation workflow can be used to investigate how well the retriever finds relevant document chunks for a set of predefined questions.
+To run the evaluation script:
 
-Retrieval quality and answer quality are separate concerns: retrieving a relevant chunk does not guarantee that the generated answer will be correct.
+```bash
+python example/evaluate_retrieval.py
+```
+
+Check the script for any required arguments or configuration before running it.
 
 ## Limitations
 
-- Designed as a learning project, not a production-ready document intelligence system.
-- Extraction quality depends on PDF structure and table layout.
-- Scanned PDFs may require OCR, which is not currently guaranteed.
-- Retrieval and reranking can miss relevant information.
-- Language-model responses may still contain errors.
-- Processing time depends on the hardware, model sizes, and configured API provider.
-- Local model files and API access must be configured separately.
+DocLens is an educational project and is not intended as a production-ready document-analysis system.
 
-## Technologies
+- Retrieval quality depends on PDF extraction, chunk boundaries, embeddings, and reranking.
+- Complex tables and unusual PDF layouts may not be extracted perfectly.
+- Generated answers can be incorrect or unsupported by the source document.
+- Model initialization and inference can be slow on CPU-only or low-memory systems.
+- Model paths and API configuration may require manual setup.
+- The included evaluation resources are intended for experimentation, not as a comprehensive benchmark.
+
+## Tech Stack
 
 - Python
+- Gradio
 - PyMuPDF
 - pdfplumber
-- LangChain document abstractions
+- LangChain text utilities
 - ChromaDB
 - ONNX Runtime
-- Hugging Face / ONNX tokenization tools
-- Gradio
-- LLM API integration
+- Tokenizers
+- HTTPX
 
 ## Project Status
 
-DocLens is an ongoing educational project exploring practical RAG system design, retrieval evaluation, and document question answering.
+DocLens is an ongoing learning project focused on understanding and improving document-based RAG systems through practical experimentation.
 
 ## License
 
-No license has been specified yet. Add a license before explicitly permitting others to reuse, modify, or distribute the project.
+No license has been added yet. Unless a license is added to the repository, others should not assume they have permission to redistribute or reuse the project.
