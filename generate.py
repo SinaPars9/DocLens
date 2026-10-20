@@ -5,9 +5,9 @@ from openai import OpenAI
 
 load_dotenv()
 
-API_KEY = os.getenv("KILOCODE_API_KEY")
-BASE_URL = "https://api.kilo.ai/api/gateway"
-MODEL = "kilo-auto/free"
+API_KEY = os.getenv("AVALAI_API_KEY")
+BASE_URL = "https://api.avalai.ir/v1"
+MODEL = "gpt-4o-mini"
 
 
 def generate_answer(question, chunks, chat_history=None):
@@ -28,6 +28,7 @@ Instructions:
 - If the available information is insufficient to answer, clearly state what is missing.
 - If the documents contain conflicting information, mention the conflict.
 - Answer directly and concisely. Do not list unrelated information unless requested.
+- CRITICAL: Pay strict attention to years and dates. If the user asks for a specific year (e.g., 2023), and that year is NOT explicitly stated in the context with the requested metric, you MUST say "The information for that year is not in the provided context." DO NOT use data from other years (like 2024 or 2025) as a substitute.
 """
     context = "\n\n".join(
         chunk["text"] for chunk in chunks
