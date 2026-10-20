@@ -1,5 +1,7 @@
 import os
 import json
+import hashlib
+from diskcache import Cache
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -16,9 +18,20 @@ client = OpenAI(
     timeout=90.0
 )
 
+cache = Cache("llm_cache")
+
+def get_cache_key(prefix, *args):
+    data = prefix + str(args)
+    return hashlib.md5(data.encode()).hexdigest()
+
 def resolve_and_expand(question, chat_history):
     if not API_KEY:
-        raise ValueError("KILOCODE_API_KEY was not found in the .env file.")
+        raise ValueError("AVALAI_API_KEY was not found in the .env file.")
+
+    cache_key = get_cache_key("resolve", question, str(chat_history))
+    if cache_key in cache:
+        print("[Cache Hit] Resolve + Expand")
+        return cache[cache_key]
 
     history_text = "\n".join(
         f"{m['role']}: {m['content']}" for m in chat_history
@@ -69,32 +82,38 @@ Latest question:
     content = response.choices[0].message.content
 
     if not content:
-        return {
+        result = {
             "status": "resolved",
             "standalone": question,
             "ambiguous_queries": [],
             "expanded": [],
             "needs_clarification": False
         }
+    else:
+        try:
+            result = json.loads(content)
+        except json.JSONDecodeError:
+            result = {
+                "status": "resolved",
+                "standalone": question,
+                "ambiguous_queries": [],
+                "expanded": [],
+                "needs_clarification": False
+            }
 
-    try:
-        result = json.loads(content)
-    except json.JSONDecodeError:
-        return {
-            "status": "resolved",
-            "standalone": question,
-            "ambiguous_queries": [],
-            "expanded": [],
-            "needs_clarification": False
-        }
-
+    cache[cache_key] = result
     return result
 
 
 def create_rerank_query(original_question, queries, chunks):
     if not API_KEY:
-        raise ValueError("KILOCODE_API_KEY was not found in the .env file.")
+        raise ValueError("AVALAI_API_KEY was not found in the .env file.")
         
+    cache_key = get_cache_key("rerank_query", original_question, str(queries), str(chunks))
+    if cache_key in cache:
+        print("[Cache Hit] Rerank Query")
+        return cache[cache_key]
+
     system_prompt = f"""
 You are a query rewriting assistant for a RAG system.
 
@@ -121,6 +140,9 @@ Return only the query text. No explanations.
     content = response.choices[0].message.content
 
     if not content:
-        return original_question
-        
-    return content.strip()
+        result = original_question
+    else:
+        result = content.strip()
+
+    cache[cache_key] = result
+    return result

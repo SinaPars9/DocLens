@@ -12,6 +12,7 @@ The project focuses on exploring the core components of a document-based RAG pip
 - **Vector storage:** Stores and retrieves document chunks using ChromaDB.
 - **Query rewriting:** Resolves follow-up questions and expands queries to improve retrieval.
 - **Single-call Query Analysis:** Optimized latency by combining query resolution and expansion into a single LLM call.
+- **Persistent LLM Caching:** Implemented `diskcache` for local caching of query rewrites and generated answers. This reduces latency to near-zero for repeated questions and saves API costs.
 - **Reranking:** Reorders retrieved passages using a local ONNX reranker.
 - **Context-aware answers:** Generates answers using retrieved document context.
 - **Interactive interface:** Provides a Gradio UI for uploading PDFs, asking questions, and inspecting retrieved chunks.
@@ -107,7 +108,7 @@ Before running the project, verify that:
 ## Running the Application
 
 Start the Gradio interface:
-
+*Note: The system automatically creates an `llm_cache/` folder to store previous responses. If you want to clear the cache and force the system to fetch fresh answers from the API, simply delete this folder.*
 ```bash
 python app.py
 ```

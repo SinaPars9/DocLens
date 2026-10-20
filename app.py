@@ -216,7 +216,7 @@ with gr.Blocks(title="DocLens") as demo:
                 max_lines=24,
                 interactive=False,
                 buttons=["copy"]
-            )
+                )
 
     build_button.click(
         fn=build_index,
