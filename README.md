@@ -11,9 +11,11 @@ The project focuses on exploring the core components of a document-based RAG pip
 - **Local embeddings:** Uses the `hotchpotch/bekko-embedding-v1-a8m` embedding model.
 - **Vector storage:** Stores and retrieves document chunks using ChromaDB.
 - **Query rewriting:** Resolves follow-up questions and expands queries to improve retrieval.
+- **Single-call Query Analysis:** Optimized latency by combining query resolution and expansion into a single LLM call.
 - **Reranking:** Reorders retrieved passages using a local ONNX reranker.
 - **Context-aware answers:** Generates answers using retrieved document context.
 - **Interactive interface:** Provides a Gradio UI for uploading PDFs, asking questions, and inspecting retrieved chunks.
+- **Transparent UI:** Displays retrieved chunks with page numbers and rerank scores for full explainability, featuring a dark-mode compatible layout.
 - **Retrieval evaluation:** Includes example scripts and evaluation data for testing retrieval quality.
 
 ## Architecture
@@ -137,12 +139,13 @@ Check the script for any required arguments or configuration before running it.
 DocLens is an educational project and is not intended as a production-ready document-analysis system.
 
 - Retrieval quality depends on PDF extraction, chunk boundaries, embeddings, and reranking.
+- Table Retrieval: While increasing `top_k_retrieve` has improved table-based query results, the system currently relies solely on vector search. Future iterations will implement Hybrid Search (BM25 + Vector) for more robust numeric and table-based retrieval.
 - Complex tables and unusual PDF layouts may not be extracted perfectly.
 - Generated answers can be incorrect or unsupported by the source document.
 - Model initialization and inference can be slow on CPU-only or low-memory systems.
 - Model paths and API configuration may require manual setup.
 - The included evaluation resources are intended for experimentation, not as a comprehensive benchmark.
-
+- Latency: Further improvements can be made by implementing response streaming and caching.
 ## Tech Stack
 
 - Python
