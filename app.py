@@ -6,8 +6,6 @@ EXAMPLE_QUESTIONS = [
     "What is this document about?",
     "Summarize the main points.",
     "What are the key numbers or figures?",
-    "Are there any dates or deadlines mentioned?",
-    "What actions or recommendations does it suggest?",
     "Who is this document for?",
 ]
 
@@ -20,10 +18,11 @@ def format_chunks(chunks):
         meta = chunk.get("metadata", {})
         score = chunk.get("rerank_score", 0.0)
         parts.append(
-            f"### [{i}]  Page {meta.get('page', '?')}  -  {meta.get('type', '?')}  "
-            f"-  score {score:+.2f}\n\n{chunk['text']}\n\n---"
+            f"[{i}] Page {meta.get('page', '?')} - {meta.get('type', '?')} - score {score:+.2f}\n"
+            f"{'-' * 50}\n"
+            f"{chunk['text']}"
         )
-    return "\n\n".join(parts)
+    return "\n\n\n".join(parts)
 
 
 def build_index(pdf_file, rag_state):
@@ -129,7 +128,9 @@ def chat(message, history, rag):
 
     except Exception as exc:
         err = str(exc).lower()
-        if "502" in err or "provider" in err or "bad gateway" in err:
+        if "403" in err or "forbidden" in err:
+            msg = "Access denied by the AI provider. This may be due to regional restrictions or an invalid API key."
+        elif "502" in err or "provider" in err or "bad gateway" in err:
             msg = "AI provider is temporarily unavailable. Please retry in a moment."
         elif "429" in err or "rate" in err:
             msg = "Too many requests. Please wait a few seconds."
@@ -208,13 +209,13 @@ with gr.Blocks(title="DocLens") as demo:
                 )
 
         with gr.Column(scale=2, min_width=380):
-            gr.Markdown("### Retrieved Context")
-            retrieved = gr.Markdown(
-                value=(
-                    "Chunks used to answer your question will appear here.\n\n"
-                    "Each chunk shows its **page number**, **type** (text or table), "
-                    "and **rerank score**."
-                ),
+            retrieved = gr.Textbox(
+                label="Retrieved Context",
+                value="Chunks used to answer your question will appear here.",
+                lines=24,             
+                max_lines=24,
+                interactive=False,
+                buttons=["copy"]
             )
 
     build_button.click(
