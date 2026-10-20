@@ -13,7 +13,7 @@ from tokenizers import Tokenizer
 # ---------- Configuration ----------
 
 BASE_DIR = Path(__file__).resolve().parent
-QUESTIONS_PATH = BASE_DIR / "evaluation_questions_v2.json"
+QUESTIONS_PATH = BASE_DIR / "evaluation_questions.json"
 REPORT_PATH = BASE_DIR / "retrieval_evaluation_report.json"
 
 
