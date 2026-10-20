@@ -23,7 +23,7 @@ cache/
 *.pt
 *.pth
 *.safetensors
-
+llm_cache/
 # ChromaDB vector database
 chroma_db/
 

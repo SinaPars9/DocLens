@@ -8,3 +8,4 @@ onnxruntime
 tokenizers
 python-dotenv
 httpx
+diskcache
