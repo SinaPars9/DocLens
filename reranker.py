@@ -1,10 +1,7 @@
-
 from pathlib import Path
-
 import numpy as np
 import onnxruntime as ort
 from tokenizers import Tokenizer
-
 
 class Reranker:
     def __init__(self, model_dir=r"E:\models\reranker"):
@@ -13,63 +10,50 @@ class Reranker:
         self.onnx_path = model_dir / "onnx" / "model.onnx"
         self.tokenizer_path = model_dir / "tokenizer.json"
 
-        self.tokenizer = Tokenizer.from_file(
-            str(self.tokenizer_path)
-        )
+        self.tokenizer = Tokenizer.from_file(str(self.tokenizer_path))
         self.tokenizer.enable_truncation(max_length=512)
-        self.tokenizer.enable_padding(
-            pad_id=0,
-            pad_token="[PAD]"
-        )
+        self.tokenizer.enable_padding(pad_id=0, pad_token="[PAD]")
+
+        sess_options = ort.SessionOptions()
+        sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+        sess_options.intra_op_num_threads = 4
 
         self.session = ort.InferenceSession(
             str(self.onnx_path),
+            sess_options=sess_options,
             providers=["CPUExecutionProvider"]
         )
 
-        self.input_names = {
-            item.name for item in self.session.get_inputs()
-        }
+        self.input_names = {item.name for item in self.session.get_inputs()}
 
-    def rerank(self, question, chunks, top_k=5):
+    def rerank(self, question, chunks, top_k=5, batch_size=8):
         if not chunks:
             return []
 
+        pairs = [(question, chunk["text"]) for chunk in chunks]
+        all_scores = []
 
-        pairs = [
-            (question, chunk["text"])
-            for chunk in chunks
-        ]
+        for i in range(0, len(pairs), batch_size):
+            batch_pairs = pairs[i:i + batch_size]
+            encodings = self.tokenizer.encode_batch(batch_pairs)
 
-        encodings = self.tokenizer.encode_batch(pairs)
+            input_ids = np.array([item.ids for item in encodings], dtype=np.int64)
+            attention_mask = np.array([item.attention_mask for item in encodings], dtype=np.int64)
+            token_type_ids = np.array([item.type_ids for item in encodings], dtype=np.int64)
 
-        input_ids = np.array(
-            [item.ids for item in encodings],
-            dtype=np.int64
-        )
-        attention_mask = np.array(
-            [item.attention_mask for item in encodings],
-            dtype=np.int64
-        )
-        token_type_ids = np.array(
-            [item.type_ids for item in encodings],
-            dtype=np.int64
-        )
+            inputs = {}
+            if "input_ids" in self.input_names:
+                inputs["input_ids"] = input_ids
+            if "attention_mask" in self.input_names:
+                inputs["attention_mask"] = attention_mask
+            if "token_type_ids" in self.input_names:
+                inputs["token_type_ids"] = token_type_ids
 
-        inputs = {}
+            outputs = self.session.run(None, inputs)
+            batch_scores = np.asarray(outputs[0]).reshape(-1)
+            all_scores.extend(batch_scores)
 
-        if "input_ids" in self.input_names:
-            inputs["input_ids"] = input_ids
-
-        if "attention_mask" in self.input_names:
-            inputs["attention_mask"] = attention_mask
-
-        if "token_type_ids" in self.input_names:
-            inputs["token_type_ids"] = token_type_ids
-
-        outputs = self.session.run(None, inputs)
-        scores = np.asarray(outputs[0]).reshape(-1)
-
+        scores = np.array(all_scores)
         ranked_chunks = []
 
         for chunk, score in zip(chunks, scores):
