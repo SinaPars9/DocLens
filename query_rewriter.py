@@ -1,6 +1,7 @@
 import os
 import json
 import hashlib
+from typing import Dict, Any, List, cast
 from diskcache import Cache
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -12,7 +13,7 @@ BASE_URL = "https://api.avalai.ir/v1"
 MODEL = "gpt-4o-mini"
 
 client = OpenAI(
-    api_key=API_KEY,
+    api_key=API_KEY or "missing_key",
     base_url=BASE_URL,
     max_retries=3,
     timeout=90.0
@@ -20,18 +21,18 @@ client = OpenAI(
 
 cache = Cache("llm_cache")
 
-def get_cache_key(prefix, *args):
+def get_cache_key(prefix: str, *args: Any) -> str:
     data = prefix + str(args)
     return hashlib.md5(data.encode()).hexdigest()
 
-def resolve_and_expand(question, chat_history):
+def resolve_and_expand(question: str, chat_history: List[Dict[str, str]]) -> Dict[str, Any]:
     if not API_KEY:
         raise ValueError("AVALAI_API_KEY was not found in the .env file.")
 
     cache_key = get_cache_key("resolve", question, str(chat_history))
     if cache_key in cache:
         print("[Cache Hit] Resolve + Expand")
-        return cache[cache_key]
+        return cast(Dict[str, Any], cache[cache_key])
 
     history_text = "\n".join(
         f"{m['role']}: {m['content']}" for m in chat_history
@@ -81,38 +82,38 @@ Latest question:
 
     content = response.choices[0].message.content
 
+    default_result: Dict[str, Any] = {
+        "status": "resolved",
+        "standalone": question,
+        "ambiguous_queries": [],
+        "expanded": [],
+        "needs_clarification": False
+    }
+
     if not content:
-        result = {
-            "status": "resolved",
-            "standalone": question,
-            "ambiguous_queries": [],
-            "expanded": [],
-            "needs_clarification": False
-        }
+        result = default_result
     else:
         try:
-            result = json.loads(content)
+            parsed = json.loads(content)
+            if isinstance(parsed, dict):
+                result = parsed
+            else:
+                result = default_result
         except json.JSONDecodeError:
-            result = {
-                "status": "resolved",
-                "standalone": question,
-                "ambiguous_queries": [],
-                "expanded": [],
-                "needs_clarification": False
-            }
+            result = default_result
 
     cache[cache_key] = result
     return result
 
 
-def create_rerank_query(original_question, queries, chunks):
+def create_rerank_query(original_question: str, queries: List[str], chunks: List[Dict[str, Any]]) -> str:
     if not API_KEY:
         raise ValueError("AVALAI_API_KEY was not found in the .env file.")
         
     cache_key = get_cache_key("rerank_query", original_question, str(queries), str(chunks))
     if cache_key in cache:
         print("[Cache Hit] Rerank Query")
-        return cache[cache_key]
+        return cast(str, cache[cache_key])
 
     system_prompt = f"""
 You are a query rewriting assistant for a RAG system.
@@ -138,11 +139,7 @@ Return only the query text. No explanations.
     )
     
     content = response.choices[0].message.content
-
-    if not content:
-        result = original_question
-    else:
-        result = content.strip()
+    result = content.strip() if content else original_question
 
     cache[cache_key] = result
     return result
