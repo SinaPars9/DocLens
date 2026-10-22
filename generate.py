@@ -12,17 +12,16 @@ BASE_URL = "https://api.avalai.ir/v1"
 MODEL = "gpt-4o-mini"
 
 client = OpenAI(
-    api_key=API_KEY or "missing_key",
-    base_url=BASE_URL,
-    max_retries=3,
-    timeout=90.0
+    api_key=API_KEY or "missing_key", base_url=BASE_URL, max_retries=3, timeout=90.0
 )
 
 cache = Cache("llm_cache")
 
+
 def get_cache_key(prefix: str, *args: Any) -> str:
     data = prefix + str(args)
     return hashlib.md5(data.encode()).hexdigest()
+
 
 SYSTEM_PROMPT = """
 You are a document analysis assistant.
@@ -42,13 +41,18 @@ Instructions:
 - CRITICAL: Pay strict attention to years and dates. If the user asks for a specific year (e.g., 2023), and that year is NOT explicitly stated in the context with the requested metric, you MUST say "The information for that year is not in the provided context." DO NOT use data from other years (like 2024 or 2025) as a substitute.
 """
 
-def generate_answer(question: str, chunks: List[Dict[str, Any]], chat_history: Optional[List[Dict[str, str]]] = None) -> str:
+
+def generate_answer(
+    question: str,
+    chunks: List[Dict[str, Any]],
+    chat_history: Optional[List[Dict[str, str]]] = None,
+) -> str:
     if not API_KEY:
         raise ValueError("AVALAI_API_KEY was not found in the .env file.")
 
     context = "\n\n".join(chunk["text"] for chunk in chunks)
     cache_key = get_cache_key("generate", question, context, str(chat_history))
-    
+
     if cache_key in cache:
         print("[Cache Hit] Generate Answer")
         return cast(str, cache[cache_key])
@@ -56,28 +60,30 @@ def generate_answer(question: str, chunks: List[Dict[str, Any]], chat_history: O
     messages: List[Dict[str, str]] = [{"role": "system", "content": SYSTEM_PROMPT}]
     if chat_history:
         messages.extend(chat_history)
-    messages.append({
-        "role": "user",
-        "content": f"Document context:\n{context}\n\nQuestion:\n{question}",
-    })
+    messages.append(
+        {
+            "role": "user",
+            "content": f"Document context:\n{context}\n\nQuestion:\n{question}",
+        }
+    )
 
     response = client.chat.completions.create(
         model=MODEL,
-        messages=messages, # type: ignore
+        messages=messages,  # type: ignore
         temperature=0.2,
     )
-    
+
     content = response.choices[0].message.content
     result = content if content else "No answer was produced."
-    
+
     cache[cache_key] = result
     return result
 
 
 def generate_answer_stream(
-    question: str, 
-    chunks: List[Dict[str, Any]], 
-    chat_history: Optional[List[Dict[str, str]]] = None
+    question: str,
+    chunks: List[Dict[str, Any]],
+    chat_history: Optional[List[Dict[str, str]]] = None,
 ) -> Generator[str, None, None]:
     if not API_KEY:
         raise ValueError("AVALAI_API_KEY was not found in the .env file.")
@@ -93,23 +99,25 @@ def generate_answer_stream(
     messages: List[Dict[str, str]] = [{"role": "system", "content": SYSTEM_PROMPT}]
     if chat_history:
         messages.extend(chat_history)
-    messages.append({
-        "role": "user",
-        "content": f"Document context:\n{context}\n\nQuestion:\n{question}",
-    })
+    messages.append(
+        {
+            "role": "user",
+            "content": f"Document context:\n{context}\n\nQuestion:\n{question}",
+        }
+    )
 
     response = client.chat.completions.create(
         model=MODEL,
-        messages=messages, # type: ignore
+        messages=messages,  # type: ignore
         temperature=0.2,
         stream=True,
     )
-    
+
     full_response = ""
     for chunk in response:
         if not chunk.choices:
             continue
-            
+
         delta = chunk.choices[0].delta
         if delta and delta.content:
             content = delta.content

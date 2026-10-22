@@ -3,6 +3,7 @@ import numpy as np
 import onnxruntime as ort
 from tokenizers import Tokenizer
 
+
 class Reranker:
     def __init__(self, model_dir=r"E:\models\reranker"):
         model_dir = Path(model_dir)
@@ -15,13 +16,15 @@ class Reranker:
         self.tokenizer.enable_padding(pad_id=0, pad_token="[PAD]")
 
         sess_options = ort.SessionOptions()
-        sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+        sess_options.graph_optimization_level = (
+            ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+        )
         sess_options.intra_op_num_threads = 4
 
         self.session = ort.InferenceSession(
             str(self.onnx_path),
             sess_options=sess_options,
-            providers=["CPUExecutionProvider"]
+            providers=["CPUExecutionProvider"],
         )
 
         self.input_names = {item.name for item in self.session.get_inputs()}
@@ -34,12 +37,16 @@ class Reranker:
         all_scores = []
 
         for i in range(0, len(pairs), batch_size):
-            batch_pairs = pairs[i:i + batch_size]
+            batch_pairs = pairs[i : i + batch_size]
             encodings = self.tokenizer.encode_batch(batch_pairs)
 
             input_ids = np.array([item.ids for item in encodings], dtype=np.int64)
-            attention_mask = np.array([item.attention_mask for item in encodings], dtype=np.int64)
-            token_type_ids = np.array([item.type_ids for item in encodings], dtype=np.int64)
+            attention_mask = np.array(
+                [item.attention_mask for item in encodings], dtype=np.int64
+            )
+            token_type_ids = np.array(
+                [item.type_ids for item in encodings], dtype=np.int64
+            )
 
             inputs = {}
             if "input_ids" in self.input_names:
@@ -61,9 +68,6 @@ class Reranker:
             item["rerank_score"] = float(score)
             ranked_chunks.append(item)
 
-        ranked_chunks.sort(
-            key=lambda item: item["rerank_score"],
-            reverse=True
-        )
+        ranked_chunks.sort(key=lambda item: item["rerank_score"], reverse=True)
 
         return ranked_chunks[:top_k]

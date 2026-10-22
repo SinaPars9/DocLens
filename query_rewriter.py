@@ -13,19 +13,20 @@ BASE_URL = "https://api.avalai.ir/v1"
 MODEL = "gpt-4o-mini"
 
 client = OpenAI(
-    api_key=API_KEY or "missing_key",
-    base_url=BASE_URL,
-    max_retries=3,
-    timeout=90.0
+    api_key=API_KEY or "missing_key", base_url=BASE_URL, max_retries=3, timeout=90.0
 )
 
 cache = Cache("llm_cache")
+
 
 def get_cache_key(prefix: str, *args: Any) -> str:
     data = prefix + str(args)
     return hashlib.md5(data.encode()).hexdigest()
 
-def resolve_and_expand(question: str, chat_history: List[Dict[str, str]]) -> Dict[str, Any]:
+
+def resolve_and_expand(
+    question: str, chat_history: List[Dict[str, str]]
+) -> Dict[str, Any]:
     if not API_KEY:
         raise ValueError("AVALAI_API_KEY was not found in the .env file.")
 
@@ -34,9 +35,7 @@ def resolve_and_expand(question: str, chat_history: List[Dict[str, str]]) -> Dic
         print("[Cache Hit] Resolve + Expand")
         return cast(Dict[str, Any], cache[cache_key])
 
-    history_text = "\n".join(
-        f"{m['role']}: {m['content']}" for m in chat_history
-    )
+    history_text = "\n".join(f"{m['role']}: {m['content']}" for m in chat_history)
 
     system_prompt = """
 You are a query analysis component for a conversational RAG system.
@@ -87,7 +86,7 @@ Latest question:
         "standalone": question,
         "ambiguous_queries": [],
         "expanded": [],
-        "needs_clarification": False
+        "needs_clarification": False,
     }
 
     if not content:
@@ -106,11 +105,15 @@ Latest question:
     return result
 
 
-def create_rerank_query(original_question: str, queries: List[str], chunks: List[Dict[str, Any]]) -> str:
+def create_rerank_query(
+    original_question: str, queries: List[str], chunks: List[Dict[str, Any]]
+) -> str:
     if not API_KEY:
         raise ValueError("AVALAI_API_KEY was not found in the .env file.")
-        
-    cache_key = get_cache_key("rerank_query", original_question, str(queries), str(chunks))
+
+    cache_key = get_cache_key(
+        "rerank_query", original_question, str(queries), str(chunks)
+    )
     if cache_key in cache:
         print("[Cache Hit] Rerank Query")
         return cast(str, cache[cache_key])
@@ -137,7 +140,7 @@ Return only the query text. No explanations.
         messages=[{"role": "system", "content": system_prompt}],
         temperature=0,
     )
-    
+
     content = response.choices[0].message.content
     result = content.strip() if content else original_question
 

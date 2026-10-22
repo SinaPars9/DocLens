@@ -4,18 +4,13 @@ import pdfplumber
 from langchain_core.documents import Document
 
 
-
-
 def table_to_text(table, page_number):
     """Convert a detected table into generic structured text."""
 
     if not table or len(table) < 2:
         return ""
 
-    headers = [
-        str(header).strip() if header is not None else ""
-        for header in table[0]
-    ]
+    headers = [str(header).strip() if header is not None else "" for header in table[0]]
 
     lines = [f"Table (Page {page_number})"]
 
@@ -23,10 +18,7 @@ def table_to_text(table, page_number):
         if not row:
             continue
 
-        if all(
-            value is None or not str(value).strip()
-            for value in row
-        ):
+        if all(value is None or not str(value).strip() for value in row):
             continue
 
         item_name = (
@@ -85,7 +77,6 @@ def extract_page_content(pymupdf_page, plumber_page, page_number):
     table_bboxes = []
     tables = []
 
-    
     for table_obj in table_objects:
         table_bboxes.append(table_obj.bbox)
 
@@ -95,7 +86,6 @@ def extract_page_content(pymupdf_page, plumber_page, page_number):
         if converted_text:
             tables.append(converted_text)
 
-    
     text_blocks = pymupdf_page.get_text("blocks")
 
     text_elements = []
@@ -108,8 +98,7 @@ def extract_page_content(pymupdf_page, plumber_page, page_number):
             continue
 
         belongs_to_table = any(
-            block_overlaps_table(block, bbox)
-            for bbox in table_bboxes
+            block_overlaps_table(block, bbox) for bbox in table_bboxes
         )
 
         if belongs_to_table:
@@ -117,12 +106,9 @@ def extract_page_content(pymupdf_page, plumber_page, page_number):
 
         text_elements.append((y0, x0, text))
 
-
     text_elements.sort(key=lambda element: (element[0], element[1]))
 
-    text_content = "\n\n".join(
-        element[2] for element in text_elements
-    )
+    text_content = "\n\n".join(element[2] for element in text_elements)
 
     return text_content, tables
 
@@ -137,22 +123,17 @@ def load_pdf_documents(pdf_path):
 
     documents = []
 
-    with pymupdf.open(pdf_path) as pdf_text, \
-            pdfplumber.open(pdf_path) as pdf_tables:
+    with pymupdf.open(pdf_path) as pdf_text, pdfplumber.open(pdf_path) as pdf_tables:
 
         if len(pdf_text) != len(pdf_tables.pages):
-            raise ValueError(
-                "The PDF readers returned different page counts."
-            )
+            raise ValueError("The PDF readers returned different page counts.")
 
         for page_index, pymupdf_page in enumerate(pdf_text):
             page_number = page_index + 1
             plumber_page = pdf_tables.pages[page_index]
 
             text_content, tables = extract_page_content(
-                pymupdf_page,
-                plumber_page,
-                page_number
+                pymupdf_page, plumber_page, page_number
             )
 
             # ---- Document for the page's ordinary text ----
@@ -165,7 +146,7 @@ def load_pdf_documents(pdf_path):
                             "page": page_number,
                             "type": "text",
                             "table_count": len(tables),
-                        }
+                        },
                     )
                 )
 
@@ -179,10 +160,8 @@ def load_pdf_documents(pdf_path):
                             "page": page_number,
                             "type": "table",
                             "table_index": table_index,
-                        }
+                        },
                     )
                 )
 
     return documents
-
-
