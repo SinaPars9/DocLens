@@ -9,3 +9,4 @@ tokenizers
 python-dotenv
 httpx
 diskcache
+rank_bm25

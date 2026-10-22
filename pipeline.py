@@ -1,4 +1,4 @@
-from typing import Optional, List, Dict, Any, Generator
+from typing import Optional, List, Dict, Any, Generator, cast
 
 from vector_store import VectorStore
 from retriever import Retriever
@@ -18,18 +18,21 @@ class RAGPipeline:
         self.reranker = Reranker()
 
         self.is_built: bool = self.vector_store.collection.count() > 0
-
         print(
-            f"Pipeline ready. "
-            f"Vector store: {self.vector_store.collection.count()} chunks."
+            f"Pipeline ready. Vector store: {self.vector_store.collection.count()} chunks."
         )
 
     def build(self, pdf_path: str) -> int:
         self.vector_store.build(pdf_path)
         self.retriever.collection = self.vector_store.get_collection()
+        self.retriever._build_bm25_index()
 
         count = self.vector_store.collection.count()
         self.is_built = count > 0
+        if not self.is_built:
+            raise ValueError(
+                "Vector store build failed or resulted in an empty collection."
+            )
         return count
 
     def answer(
@@ -43,7 +46,7 @@ class RAGPipeline:
             raise RuntimeError("Pipeline has no data. Call build(pdf_path) first.")
 
         history = chat_history or []
-        result = resolve_and_expand(question, history)
+        result = cast(Dict[str, Any], resolve_and_expand(question, history))
 
         if result.get("needs_clarification") or result.get("status") == "unclear":
             return {
@@ -59,16 +62,18 @@ class RAGPipeline:
         chunks: List[Dict[str, Any]] = []
         queries: List[str] = []
         rerank_query: str = question
-        
+
         if result.get("status") == "resolved":
-            standalone_query = result.get("standalone", question)
-            queries = [standalone_query] + result.get("expanded", [])
+            standalone_query = str(result.get("standalone", question))
+            expanded = result.get("expanded", [])
+            queries = [standalone_query] + [str(q) for q in expanded]
             rerank_query = standalone_query
             chunks = self.retriever.retrieve_many(queries, top_k=top_k_retrieve)
         else:
-            queries = result.get("ambiguous_queries", [])
+            ambiguous = result.get("ambiguous_queries", [])
+            queries = [str(q) for q in ambiguous]
             chunks = self.retriever.retrieve_many(queries, top_k=top_k_retrieve)
-            rerank_query = create_rerank_query(question, queries, chunks)
+            rerank_query = str(create_rerank_query(question, queries, chunks))
 
         ranked_chunks = self.reranker.rerank(rerank_query, chunks, top_k=top_k_final)
 
@@ -83,7 +88,6 @@ class RAGPipeline:
             }
 
         final_answer = generate_answer(question, ranked_chunks, history)
-
         return {
             "answer": final_answer,
             "status": result.get("status", "resolved"),
@@ -105,13 +109,13 @@ class RAGPipeline:
             return
 
         history = chat_history or []
-        result = resolve_and_expand(question, history)
+        result = cast(Dict[str, Any], resolve_and_expand(question, history))
 
         if result.get("needs_clarification") or result.get("status") == "unclear":
             yield {
                 "type": "error",
                 "message": "I need more clarity. Which did you mean?",
-                "queries": result.get("ambiguous_queries", [])
+                "queries": result.get("ambiguous_queries", []),
             }
             return
 
@@ -120,21 +124,26 @@ class RAGPipeline:
         rerank_query: str = question
 
         if result.get("status") == "resolved":
-            standalone_query = result.get("standalone", question)
-            queries = [standalone_query] + result.get("expanded", [])
+            standalone_query = str(result.get("standalone", question))
+            expanded = result.get("expanded", [])
+            queries = [standalone_query] + [str(q) for q in expanded]
             rerank_query = standalone_query
             chunks = self.retriever.retrieve_many(queries, top_k=top_k_retrieve)
         else:
-            queries = result.get("ambiguous_queries", [])
+            ambiguous = result.get("ambiguous_queries", [])
+            queries = [str(q) for q in ambiguous]
             chunks = self.retriever.retrieve_many(queries, top_k=top_k_retrieve)
-            rerank_query = create_rerank_query(question, queries, chunks)
+            rerank_query = str(create_rerank_query(question, queries, chunks))
 
         ranked_chunks = self.reranker.rerank(rerank_query, chunks, top_k=top_k_final)
 
         yield {"type": "chunks", "chunks": ranked_chunks}
 
         if not ranked_chunks:
-            yield {"type": "text", "content": "No relevant information found in the document."}
+            yield {
+                "type": "text",
+                "content": "No relevant information found in the document.",
+            }
             return
 
         for token in generate_answer_stream(question, ranked_chunks, history):

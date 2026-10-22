@@ -1,11 +1,9 @@
-
 from pathlib import Path
 import time
 
 import numpy as np
 import onnxruntime as ort
 from tokenizers import Tokenizer
-
 
 MODEL_DIR = Path(r"E:\models\bekko-embedding-v1-a8m")
 ONNX_PATH = MODEL_DIR / "onnx" / "model.onnx"
@@ -40,9 +38,7 @@ class Embeddings:
         )
         self.tokenizer.enable_truncation(max_length=MAX_LENGTH)
 
-        self.input_names = [
-            item.name for item in self.session.get_inputs()
-        ]
+        self.input_names = [item.name for item in self.session.get_inputs()]
 
         print(f"Model loaded in {time.time() - start:.1f}s")
 
@@ -53,7 +49,7 @@ class Embeddings:
         all_vectors = []
 
         for start in range(0, len(texts), EMBED_BATCH_SIZE):
-            batch = texts[start:start + EMBED_BATCH_SIZE]
+            batch = texts[start : start + EMBED_BATCH_SIZE]
             encodings = self.tokenizer.encode_batch(batch)
 
             input_ids = np.array(

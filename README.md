@@ -6,32 +6,20 @@ The project focuses on exploring the core components of a document-based RAG pip
 
 ## Features
 
-- **PDF ingestion:** Extracts text and tables from PDF documents.
-- **Configurable chunking:** Splits extracted content into chunks for retrieval.
-- **Local embeddings:** Uses the `hotchpotch/bekko-embedding-v1-a8m` embedding model.
-- **Vector storage:** Stores and retrieves document chunks using ChromaDB.
-- **Query rewriting:** Resolves follow-up questions and expands queries to improve retrieval.
-- **Single-call Query Analysis:** Optimized latency by combining query resolution and expansion into a single LLM call.
-- **Persistent LLM Caching:** Implemented `diskcache` for local caching of query rewrites and generated answers. This reduces latency to near-zero for repeated questions and saves API costs.
-- **Reranking:** Reorders retrieved passages using a local ONNX reranker.
-- **Context-aware answers:** Generates answers using retrieved document context.
-- **Interactive interface:** Provides a Gradio UI for uploading PDFs, asking questions, and inspecting retrieved chunks.
-- **Transparent UI:** Displays retrieved chunks with page numbers and rerank scores for full explainability, featuring a dark-mode compatible layout.
-- **Retrieval evaluation:** Includes example scripts and evaluation data for testing retrieval quality.
+- **Hybrid Search (BM25 + Vector):** Combines semantic vector search with keyword-based BM25 (using Reciprocal Rank Fusion) to drastically improve retrieval accuracy for numeric data, specific entities, and tables.
+- **Streaming Responses:** Generates answers token-by-token, providing a ChatGPT-like user experience with near-zero perceived latency.
+- **Persistent LLM Caching:** Utilizes `diskcache` to locally store query rewrites and generated answers, saving API costs and delivering instant responses for repeated questions.
+- **Batched Processing:** Optimizes local ONNX model inference by processing embeddings and reranking in batches, preventing memory spikes on low-spec hardware.
+- **Transparent UI:** Built with Gradio, displaying retrieved chunks, page numbers, and rerank scores in a dedicated context panel for full explainability.
+- **Local Embedding & Reranking:** Uses ONNX Runtime for fast, local CPU inference of the `bekko-embedding` and `ms-marco-MiniLM` models.
 
 ## Architecture
 
-The pipeline follows these main steps:
-
-1. **PDF loading:** Extract text and tables from the uploaded PDF.
-2. **Chunking:** Split document content into manageable chunks while preserving useful context.
-3. **Embedding:** Convert chunks into vector representations using a local embedding model.
-4. **Vector storage:** Store embeddings and metadata in ChromaDB.
-5. **Query processing:** Rewrite or expand the user's question when needed.
-6. **Retrieval:** Search the vector database for relevant chunks.
-7. **Reranking:** Reorder retrieved chunks according to relevance.
-8. **Answer generation:** Generate a response using the retrieved context.
-9. **Inspection:** Display the retrieved chunks in the interface for easier debugging and evaluation.
+1. **Query Processing:** Resolves follow-up questions using chat history and generates multiple expanded queries.
+2. **Hybrid Retrieval:** Fetches candidates using both Vector Search (ChromaDB) and BM25.
+3. **Fusion:** Combines results using Reciprocal Rank Fusion (RRF).
+4. **Reranking:** Scores the fused candidates using a local Cross-Encoder ONNX model.
+5. **Generation:** Streams the final answer using an LLM based strictly on the retrieved cont
 
 ## Project Structure
 
@@ -137,16 +125,10 @@ Check the script for any required arguments or configuration before running it.
 
 ## Limitations
 
-DocLens is an educational project and is not intended as a production-ready document-analysis system.
 
-- Retrieval quality depends on PDF extraction, chunk boundaries, embeddings, and reranking.
-- Table Retrieval: While increasing `top_k_retrieve` has improved table-based query results, the system currently relies solely on vector search. Future iterations will implement Hybrid Search (BM25 + Vector) for more robust numeric and table-based retrieval.
-- Complex tables and unusual PDF layouts may not be extracted perfectly.
-- Generated answers can be incorrect or unsupported by the source document.
-- Model initialization and inference can be slow on CPU-only or low-memory systems.
-- Model paths and API configuration may require manual setup.
-- The included evaluation resources are intended for experimentation, not as a comprehensive benchmark.
-- Latency: Further improvements can be made by implementing response streaming and caching.
+Complex PDF Layouts: Multi-column PDFs or those with highly irregular table structures may still pose extraction challenges.
+
+Multilingual Support: The current pipeline is optimized for English. Future iterations will focus on Persian/Arabic RTL support, requiring different embedding models (e.g., BGE-M3) and text normalization.
 ## Tech Stack
 
 - Python

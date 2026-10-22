@@ -1,4 +1,3 @@
-
 from pathlib import Path
 import time
 
@@ -7,7 +6,6 @@ import chromadb
 from chunk_pdf import load_chunks
 from embedding import Embeddings
 
-
 BASE_DIR = Path(__file__).resolve().parent
 CHROMA_DIR = BASE_DIR / "chroma_db"
 COLLECTION_NAME = "vector_db"
@@ -15,9 +13,7 @@ COLLECTION_NAME = "vector_db"
 
 class VectorStore:
     def __init__(self):
-        self.client = chromadb.PersistentClient(
-            path=str(CHROMA_DIR)
-        )
+        self.client = chromadb.PersistentClient(path=str(CHROMA_DIR))
 
         self.collection = self.client.get_or_create_collection(
             name=COLLECTION_NAME,
@@ -26,13 +22,12 @@ class VectorStore:
 
         self.embedding_model = Embeddings()
 
-    def build(self,pdf_path):
+    def build(self, pdf_path):
         chunks = load_chunks(pdf_path)
 
         if not chunks:
             raise ValueError("No chunks found in the source PDF.")
 
-        
         self.client.delete_collection(COLLECTION_NAME)
         self.collection = self.client.create_collection(
             name=COLLECTION_NAME,
@@ -53,7 +48,6 @@ class VectorStore:
             metadata = dict(chunk.metadata)
             metadata["chunk_index"] = i
 
-            
             clean_metadata = {
                 key: value
                 for key, value in metadata.items()
@@ -81,5 +75,3 @@ class VectorStore:
 
     def get_collection(self):
         return self.collection
-
-
