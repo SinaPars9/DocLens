@@ -3,8 +3,8 @@ from typing import Optional, List, Dict, Any, Generator, cast
 from vector_store import VectorStore
 from retriever import Retriever
 from reranker import Reranker
-from query_rewriter import resolve_and_expand, create_rerank_query
-from generate import generate_answer, generate_answer_stream
+from query_rewriter import resolve_and_expand
+from generate import generate_answer_stream
 
 
 class RAGPipeline:
@@ -18,9 +18,7 @@ class RAGPipeline:
         self.reranker = Reranker()
 
         self.is_built: bool = self.vector_store.collection.count() > 0
-        print(
-            f"Pipeline ready. Vector store: {self.vector_store.collection.count()} chunks."
-        )
+        print(f"Pipeline ready. Vector store: {self.vector_store.collection.count()} chunks.")
 
     def build(self, pdf_path: str) -> int:
         self.vector_store.build(pdf_path)
@@ -30,120 +28,36 @@ class RAGPipeline:
         count = self.vector_store.collection.count()
         self.is_built = count > 0
         if not self.is_built:
-            raise ValueError(
-                "Vector store build failed or resulted in an empty collection."
-            )
+            raise ValueError("Vector store build failed or resulted in an empty collection.")
         return count
-
-    def answer(
-        self,
-        question: str,
-        chat_history: Optional[List[Dict[str, str]]] = None,
-        top_k_retrieve: int = 15,
-        top_k_final: int = 5,
-    ) -> Dict[str, Any]:
-        if not self.is_built:
-            raise RuntimeError("Pipeline has no data. Call build(pdf_path) first.")
-
-        history = chat_history or []
-        result = cast(Dict[str, Any], resolve_and_expand(question, history))
-
-        if result.get("needs_clarification") or result.get("status") == "unclear":
-            return {
-                "answer": None,
-                "status": "unclear",
-                "needs_clarification": True,
-                "clarification_queries": result.get("ambiguous_queries", []),
-                "queries": [],
-                "rerank_query": None,
-                "chunks": [],
-            }
-
-        chunks: List[Dict[str, Any]] = []
-        queries: List[str] = []
-        rerank_query: str = question
-
-        if result.get("status") == "resolved":
-            standalone_query = str(result.get("standalone", question))
-            expanded = result.get("expanded", [])
-            queries = [standalone_query] + [str(q) for q in expanded]
-            rerank_query = standalone_query
-            chunks = self.retriever.retrieve_many(queries, top_k=top_k_retrieve)
-        else:
-            ambiguous = result.get("ambiguous_queries", [])
-            queries = [str(q) for q in ambiguous]
-            chunks = self.retriever.retrieve_many(queries, top_k=top_k_retrieve)
-            rerank_query = str(create_rerank_query(question, queries, chunks))
-
-        ranked_chunks = self.reranker.rerank(rerank_query, chunks, top_k=top_k_final)
-
-        if not ranked_chunks:
-            return {
-                "answer": "No relevant information found in the document.",
-                "status": result.get("status", "unknown"),
-                "needs_clarification": False,
-                "queries": queries,
-                "rerank_query": rerank_query,
-                "chunks": [],
-            }
-
-        final_answer = generate_answer(question, ranked_chunks, history)
-        return {
-            "answer": final_answer,
-            "status": result.get("status", "resolved"),
-            "needs_clarification": False,
-            "queries": queries,
-            "rerank_query": rerank_query,
-            "chunks": ranked_chunks,
-        }
 
     def answer_stream(
         self,
         question: str,
         chat_history: Optional[List[Dict[str, str]]] = None,
         top_k_retrieve: int = 15,
-        top_k_final: int = 5,
+        top_k_final: int = 8,
     ) -> Generator[Dict[str, Any], None, None]:
         if not self.is_built:
             yield {"type": "error", "message": "Pipeline has no data."}
             return
 
         history = chat_history or []
+        
         result = cast(Dict[str, Any], resolve_and_expand(question, history))
-
-        if result.get("needs_clarification") or result.get("status") == "unclear":
-            yield {
-                "type": "error",
-                "message": "I need more clarity. Which did you mean?",
-                "queries": result.get("ambiguous_queries", []),
-            }
-            return
-
-        chunks: List[Dict[str, Any]] = []
-        queries: List[str] = []
-        rerank_query: str = question
-
-        if result.get("status") == "resolved":
-            standalone_query = str(result.get("standalone", question))
-            expanded = result.get("expanded", [])
-            queries = [standalone_query] + [str(q) for q in expanded]
-            rerank_query = standalone_query
-            chunks = self.retriever.retrieve_many(queries, top_k=top_k_retrieve)
-        else:
-            ambiguous = result.get("ambiguous_queries", [])
-            queries = [str(q) for q in ambiguous]
-            chunks = self.retriever.retrieve_many(queries, top_k=top_k_retrieve)
-            rerank_query = str(create_rerank_query(question, queries, chunks))
-
-        ranked_chunks = self.reranker.rerank(rerank_query, chunks, top_k=top_k_final)
+        
+        standalone_query = str(result.get("standalone", question))
+        expanded = result.get("expanded", [])
+        
+        queries = [standalone_query] + [str(q) for q in expanded]
+        chunks = self.retriever.retrieve_many(queries, top_k=top_k_retrieve)
+        
+        ranked_chunks = self.reranker.rerank(standalone_query, chunks, top_k=top_k_final)
 
         yield {"type": "chunks", "chunks": ranked_chunks}
 
         if not ranked_chunks:
-            yield {
-                "type": "text",
-                "content": "No relevant information found in the document.",
-            }
+            yield {"type": "text", "content": "No relevant information found in the document."}
             return
 
         for token in generate_answer_stream(question, ranked_chunks, history):

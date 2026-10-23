@@ -1,51 +1,44 @@
-# DocLens — PDF RAG Assistant
+# DocLens — Advanced PDF RAG Assistant
 
-DocLens is an educational Retrieval-Augmented Generation (RAG) project that lets users upload a PDF, retrieve relevant passages, and ask questions about its content through a conversational interface.
+DocLens is an end-to-end Retrieval-Augmented Generation (RAG) system that lets users upload a PDF, retrieve relevant passages, and ask questions about its content through a conversational interface. 
 
-The project focuses on exploring the core components of a document-based RAG pipeline, including PDF text and table extraction, chunking, embeddings, vector search, query rewriting, reranking, and answer generation.
+This project focuses on building a **production-ready** document analysis pipeline. It goes beyond basic RAG by implementing Hybrid Search, Smart Table Reranking, Streaming, and local ONNX model inference to run efficiently even on low-spec hardware.
 
 ## Features
 
-- **Hybrid Search (BM25 + Vector):** Combines semantic vector search with keyword-based BM25 (using Reciprocal Rank Fusion) to drastically improve retrieval accuracy for numeric data, specific entities, and tables.
-- **Streaming Responses:** Generates answers token-by-token, providing a ChatGPT-like user experience with near-zero perceived latency.
+- **Hybrid Search (BM25 + Vector):** Combines semantic vector search (ChromaDB) with keyword-based BM25 (using Reciprocal Rank Fusion) to drastically improve retrieval accuracy for numeric data, specific entities, and tables.
+- **Smart Table Boost:** The Cross-Encoder reranker is enhanced to automatically boost the scores of table chunks when the user's question contains numbers or financial symbols, ensuring tabular data is never ignored.
+- **Streaming Responses:** Built with Streamlit, generating answers token-by-token for a ChatGPT-like user experience with near-zero perceived latency.
 - **Persistent LLM Caching:** Utilizes `diskcache` to locally store query rewrites and generated answers, saving API costs and delivering instant responses for repeated questions.
-- **Batched Processing:** Optimizes local ONNX model inference by processing embeddings and reranking in batches, preventing memory spikes on low-spec hardware.
-- **Transparent UI:** Built with Gradio, displaying retrieved chunks, page numbers, and rerank scores in a dedicated context panel for full explainability.
-- **Local Embedding & Reranking:** Uses ONNX Runtime for fast, local CPU inference of the `bekko-embedding` and `ms-marco-MiniLM` models.
+- **Batched ONNX Inference:** Optimizes local CPU inference for both embedding (`bekko-embedding`) and reranking (`ms-marco-MiniLM`) models, preventing memory spikes.
+- **Domain-Agnostic Prompts:** LLM prompts are generalized to handle financial reports, academic papers, or technical manuals with equal accuracy.
+- **Transparent UI:** Displays retrieved chunks, page numbers, and rerank scores in a dedicated context panel for full explainability.
 
-## Architecture
+## Architecture Pipeline
 
-1. **Query Processing:** Resolves follow-up questions using chat history and generates multiple expanded queries.
-2. **Hybrid Retrieval:** Fetches candidates using both Vector Search (ChromaDB) and BM25.
+1. **Query Processing:** Resolves follow-up questions using chat history (e.g., resolving pronouns and missing years) and generates multiple expanded queries.
+2. **Hybrid Retrieval:** Fetches candidates using both Vector Search and BM25.
 3. **Fusion:** Combines results using Reciprocal Rank Fusion (RRF).
-4. **Reranking:** Scores the fused candidates using a local Cross-Encoder ONNX model.
-5. **Generation:** Streams the final answer using an LLM based strictly on the retrieved cont
+4. **Smart Reranking:** Scores the fused candidates using a local Cross-Encoder ONNX model, with conditional boosting for table data.
+5. **Generation:** Streams the final answer using an LLM based strictly on the retrieved context.
 
 ## Project Structure
 
 ```text
 DocLens/
-├── app.py
-├── chunk_pdf.py
-├── embedding.py
-├── generate.py
-├── inspect_pdf.py
-├── pipeline.py
-├── query_rewriter.py
-├── reranker.py
-├── retriever.py
-├── vector_store.py
+├── app.py                 # Streamlit UI
+├── chunk_pdf.py           # Text splitting logic
+├── embedding.py           # ONNX Embedding model wrapper
+├── generate.py            # LLM streaming generation
+├── inspect_pdf.py         # PyMuPDF + pdfplumber extraction
+├── pipeline.py            # Main RAG orchestrator
+├── query_rewriter.py      # Query resolution and expansion
+├── reranker.py            # ONNX Cross-Encoder wrapper with Smart Boost
+├── retriever.py           # Hybrid Search (Vector + BM25) & RRF
+├── vector_store.py        # ChromaDB management
 ├── requirements.txt
-├── README.md
-├── .gitignore
-├── example/
-│   ├── create_pdf.py
-│   ├── evaluate_retrieval.py
-│   ├── evaluation_questions.json
-│   ├── retrieval_evaluation_report.json
-│   └── test.pdf
+└── example/               # Retrieval evaluation scripts and sample PDF
 ```
-
 The `example/` directory contains sample PDF and retrieval-evaluation resources.
 
 ## Requirements
@@ -64,22 +57,13 @@ git clone https://github.com/SinaPars9/DocLens.git
 cd DocLens
 ```
 
-Create and activate a virtual environment.
-
-**Windows PowerShell:**
-
-```powershell
-py -3.14 -m venv venv
-.\venv\Scripts\Activate.ps1
-```
-
 Install the dependencies:
 
 ```bash
-python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
-
+## Download Local Models:
+Ensure the ONNX models are placed in your local directory (e.g., E:\models\). Update the paths in embedding.py and reranker.py if necessary
 ## Configuration
 
 DocLens uses local model files for embedding and reranking. Configure their paths to match your environment.
@@ -98,7 +82,7 @@ Before running the project, verify that:
 Start the Gradio interface:
 *Note: The system automatically creates an `llm_cache/` folder to store previous responses. If you want to clear the cache and force the system to fetch fresh answers from the API, simply delete this folder.*
 ```bash
-python app.py
+streamlit run app.py
 ```
 
 Open the local URL printed in the terminal.
@@ -125,26 +109,19 @@ Check the script for any required arguments or configuration before running it.
 
 ## Limitations
 
+Multi-hop Reasoning on Follow-ups: While the retrieval system correctly identifies the relevant tables, smaller LLMs (like gpt-4o-mini) may sometimes take "shortcuts" during follow-up questions (e.g., returning 2025 data instead of calculating 2024 data). Future iterations will explore stronger LLMs or fine-tuning for better multi-hop reasoning.
 
-Complex PDF Layouts: Multi-column PDFs or those with highly irregular table structures may still pose extraction challenges.
+Complex PDF Layouts: Multi-column PDFs or highly irregular table structures may still pose extraction challenges.
 
-Multilingual Support: The current pipeline is optimized for English. Future iterations will focus on Persian/Arabic RTL support, requiring different embedding models (e.g., BGE-M3) and text normalization.
+Multilingual Support: The current pipeline is optimized for English. Future iterations will focus on Persian/Arabic RTL support, requiring different embedding models (e.g., BGE-M3).
 ## Tech Stack
 
 - Python
-- Gradio
-- PyMuPDF
-- pdfplumber
+- streamlit
+- PDF Processing: PyMuPDF, pdfplumber
+- Keyword Search: rank_bm25
 - LangChain text utilities
-- ChromaDB
-- ONNX Runtime
-- Tokenizers
-- HTTPX
+- Vector Store: ChromaDB
+- Local Inference: ONNX Runtime, Tokenizers
+- LLM & Caching: OpenAI SDK, diskcache
 
-## Project Status
-
-DocLens is an ongoing learning project focused on understanding and improving document-based RAG systems through practical experimentation.
-
-## License
-
-No license has been added yet. Unless a license is added to the repository, others should not assume they have permission to redistribute or reuse the project.

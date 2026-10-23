@@ -9,7 +9,7 @@ load_dotenv()
 
 API_KEY = os.getenv("HORMOZ_API_KEY")
 BASE_URL = "https://api.hormouz.net/v1"
-MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free"
+MODEL = "openai/gpt-4o-mini"
 
 client = OpenAI(
     api_key=API_KEY or "missing_key", base_url=BASE_URL, max_retries=3, timeout=90.0
@@ -17,68 +17,26 @@ client = OpenAI(
 
 cache = Cache("llm_cache")
 
-
 def get_cache_key(prefix: str, *args: Any) -> str:
     data = prefix + str(args)
     return hashlib.md5(data.encode()).hexdigest()
 
-
 SYSTEM_PROMPT = """
-You are a document analysis assistant.
+You are an expert document analysis assistant.
+
+CRITICAL RULES:
+1. Pay strict attention to the chat history. If the user asks a follow-up question, the time period, subject, or condition from their previous question is STILL the active topic. DO NOT use data from different contexts.
+2. If the user asks for a derived value or calculation (e.g., a ratio, difference, or percentage) and the context provides the raw data, YOU MUST perform the calculation yourself. Show your step-by-step reasoning.
+3. Look at the provided text and tables carefully. Extract the specific values requested and calculate if needed.
+
+Example:
+If the history is about "Year 2022", and the user asks "what about the total?", you MUST calculate the total for 2022, NOT any other year.
 
 Instructions:
-- Answer the user's latest question using the document context and chat history.
-- Use chat history to resolve references to earlier topics, entities, and metrics.
-- If the user asks a follow-up question, preserve the subject and metric from the previous relevant exchange unless the user changes them.
-- Do not ask for clarification if the intended question can reasonably be inferred from the conversation.
-- If the answer requires calculations, calculate them using the available data.
-- Show the calculation when relevant.
-- Distinguish explicitly stated facts from calculated results.
-- Never invent facts or unsupported numbers.
-- If the available information is insufficient to answer, clearly state what is missing.
-- If the documents contain conflicting information, mention the conflict.
-- Answer directly and concisely. Do not list unrelated information unless requested.
-- CRITICAL: Pay strict attention to years and dates. If the user asks for a specific year (e.g., 2023), and that year is NOT explicitly stated in the context with the requested metric, you MUST say "The information for that year is not in the provided context." DO NOT use data from other years (like 2024 or 2025) as a substitute.
+- Answer using ONLY the provided context and chat history.
+- Never invent facts or numbers.
+- Be concise and show calculations when relevant.
 """
-
-
-def generate_answer(
-    question: str,
-    chunks: List[Dict[str, Any]],
-    chat_history: Optional[List[Dict[str, str]]] = None,
-) -> str:
-    if not API_KEY:
-        raise ValueError("AVALAI_API_KEY was not found in the .env file.")
-
-    context = "\n\n".join(chunk["text"] for chunk in chunks)
-    cache_key = get_cache_key("generate", question, context, str(chat_history))
-
-    if cache_key in cache:
-        print("[Cache Hit] Generate Answer")
-        return cast(str, cache[cache_key])
-
-    messages: List[Dict[str, str]] = [{"role": "system", "content": SYSTEM_PROMPT}]
-    if chat_history:
-        messages.extend(chat_history)
-    messages.append(
-        {
-            "role": "user",
-            "content": f"Document context:\n{context}\n\nQuestion:\n{question}",
-        }
-    )
-
-    response = client.chat.completions.create(
-        model=MODEL,
-        messages=messages,  # type: ignore
-        temperature=0.2,
-    )
-
-    content = response.choices[0].message.content
-    result = content if content else "No answer was produced."
-
-    cache[cache_key] = result
-    return result
-
 
 def generate_answer_stream(
     question: str,
@@ -89,7 +47,7 @@ def generate_answer_stream(
         raise ValueError("API_KEY was not found in the .env file.")
 
     context = "\n\n".join(chunk["text"] for chunk in chunks)
-    cache_key = get_cache_key("generate", question, context, str(chat_history))
+    cache_key = get_cache_key("generate_v6", question, context, str(chat_history))
 
     if cache_key in cache:
         print("[Cache Hit] Generate Answer (Stream)")
@@ -109,7 +67,7 @@ def generate_answer_stream(
     response = client.chat.completions.create(
         model=MODEL,
         messages=messages,  # type: ignore
-        temperature=0.2,
+        temperature=0.1,
         stream=True,
     )
 
@@ -117,7 +75,6 @@ def generate_answer_stream(
     for chunk in response:
         if not chunk.choices:
             continue
-
         delta = chunk.choices[0].delta
         if delta and delta.content:
             content = delta.content
