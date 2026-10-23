@@ -10,27 +10,27 @@ load_dotenv()
 
 API_KEY = os.getenv("HORMOZ_API_KEY")
 BASE_URL = "https://api.hormouz.net/v1"
-MODEL = "nvidia/nemotron-3.5-lightning:free"
+MODEL = "openai/gpt-4o-mini" 
 
 client = OpenAI(
-    api_key=API_KEY or "missing_key", base_url=BASE_URL, max_retries=3, timeout=90.0
+    api_key=API_KEY or "missing_key",
+    base_url=BASE_URL,
+    max_retries=3,
+    timeout=90.0
 )
 
 cache = Cache("llm_cache")
-
 
 def get_cache_key(prefix: str, *args: Any) -> str:
     data = prefix + str(args)
     return hashlib.md5(data.encode()).hexdigest()
 
-
-def resolve_and_expand(
-    question: str, chat_history: List[Dict[str, str]]
-) -> Dict[str, Any]:
+def resolve_and_expand(question: str, chat_history: List[Dict[str, str]]) -> Dict[str, Any]:
     if not API_KEY:
         raise ValueError("API_KEY was not found in the .env file.")
 
-    cache_key = get_cache_key("resolve", question, str(chat_history))
+    cache_key = get_cache_key("resolve_v6", question, str(chat_history))
+    
     if cache_key in cache:
         print("[Cache Hit] Resolve + Expand")
         return cast(Dict[str, Any], cache[cache_key])
@@ -38,37 +38,37 @@ def resolve_and_expand(
     history_text = "\n".join(f"{m['role']}: {m['content']}" for m in chat_history)
 
     system_prompt = """
-You are a query analysis component for a conversational RAG system.
-Given the conversation history and the latest user question, do TWO things simultaneously:
+You are a query resolution assistant for a conversational RAG system.
 
-1. RESOLVE: Rewrite the question as a standalone query using the chat history.
-2. EXPAND: Generate 3 alternative search queries with different wording to improve retrieval.
+CRITICAL TASK: Resolve the user's latest question using the chat history.
+If the user asks a follow-up question, you MUST look at the PREVIOUS user question to find the missing context (like the Subject, Time Period, or Condition) and include it in the standalone query.
 
-Rules for RESOLVE:
-- Use chat history to resolve references ("it", "what about 2023").
-- If the question is already standalone, return it unchanged.
-- If it is genuinely ambiguous (multiple distinct interpretations), set status to "ambiguous" and list them.
+Example 1:
+History: User asked "What is the value of X in 2023?"
+Latest: "what about 2024?"
+Standalone Output: "What is the value of X in 2024?"
 
-Rules for EXPAND:
-- Generate exactly 3 alternative phrasings that preserve the meaning.
+Example 2:
+History: User asked "Tell me about the Alpha component in System A."
+Latest: "What about System B?"
+Standalone Output: "Tell me about the Alpha component in System B."
 
-Return ONLY a valid JSON object with this exact schema:
+Example 3:
+History: User asked "What are the side effects of Drug Y?"
+Latest: "What is the dosage?"
+Standalone Output: "What is the dosage for Drug Y?"
+
+Rule: ALWAYS output the resolved standalone query with the missing context included. 
+Generate 3 alternative search queries based on the resolved query to improve retrieval.
+
+Return ONLY a valid JSON object with this exact structure:
 {
-  "status": "resolved" | "ambiguous" | "unclear",
-  "standalone": "<the resolved query, if status is resolved>",
-  "ambiguous_queries": ["<q1>", "<q2>"],
-  "expanded": ["<variant1>", "<variant2>", "<variant3>"],
-  "needs_clarification": true | false
+  "standalone": "<the resolved query>",
+  "expanded": ["<var1>", "<var2>", "<var3>"]
 }
 """
 
-    user_prompt = f"""
-Conversation history:
-{history_text or "(No previous conversation)"}
-
-Latest question:
-{question}
-"""
+    user_prompt = f"Conversation history:\n{history_text or '(None)'}\n\nLatest question:\n{question}"
 
     response = client.chat.completions.create(
         model=MODEL,
@@ -80,69 +80,16 @@ Latest question:
     )
 
     content = response.choices[0].message.content
-
-    default_result: Dict[str, Any] = {
-        "status": "resolved",
-        "standalone": question,
-        "ambiguous_queries": [],
-        "expanded": [],
-        "needs_clarification": False,
-    }
+    default_result = {"standalone": question, "expanded": []}
 
     if not content:
         result = default_result
     else:
         try:
             parsed = json.loads(content)
-            if isinstance(parsed, dict):
-                result = parsed
-            else:
-                result = default_result
+            result = parsed if "standalone" in parsed else default_result
         except json.JSONDecodeError:
             result = default_result
-
-    cache[cache_key] = result
-    return result
-
-
-def create_rerank_query(
-    original_question: str, queries: List[str], chunks: List[Dict[str, Any]]
-) -> str:
-    if not API_KEY:
-        raise ValueError("AVALAI_API_KEY was not found in the .env file.")
-
-    cache_key = get_cache_key(
-        "rerank_query", original_question, str(queries), str(chunks)
-    )
-    if cache_key in cache:
-        print("[Cache Hit] Rerank Query")
-        return cast(str, cache[cache_key])
-
-    system_prompt = f"""
-You are a query rewriting assistant for a RAG system.
-
-Create ONE standalone query for reranking retrieved document chunks.
-
-Original user question:
-{original_question}
-
-Possible interpretations:
-{queries}
-
-Retrieved document chunks:
-{chunks}
-
-Return only the query text. No explanations.
-"""
-
-    response = client.chat.completions.create(
-        model=MODEL,
-        messages=[{"role": "system", "content": system_prompt}],
-        temperature=0,
-    )
-
-    content = response.choices[0].message.content
-    result = content.strip() if content else original_question
 
     cache[cache_key] = result
     return result

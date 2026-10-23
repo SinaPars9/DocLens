@@ -1,218 +1,143 @@
-import gradio as gr
+import streamlit as st
 from typing import List, Dict, Any
+
 from pipeline import RAGPipeline
 
-EXAMPLE_QUESTIONS = [
-    "What is this document about?",
-    "Summarize the main points.",
-    "What are the key numbers or figures?",
-    "Who is this document for?",
-]
+st.set_page_config(page_title="DocLens", page_icon="📄", layout="wide")
 
+st.markdown("""
+<style>
+    .block-container { padding-top: 1.5rem !important; padding-bottom: 1.5rem !important; padding-left: 2rem !important; padding-right: 2rem !important; }
+    html, body, [class*="css"] { font-size: 0.85rem !important; }
+    p, li { font-size: 0.85rem !important; line-height: 1.4 !important; }
+    h1 { font-size: 1.4rem !important; margin-bottom: 0.5rem !important; }
+    h2 { font-size: 1.1rem !important; margin-bottom: 0.5rem !important; }
+    h3 { font-size: 0.95rem !important; margin-bottom: 0.5rem !important; }
+    [data-testid="stChatMessage"] { padding: 0.4rem 0.8rem !important; margin-bottom: 0.4rem !important; }
+    .stButton>button { padding: 0.2rem 0.6rem !important; font-size: 0.8rem !important; }
+    .stVerticalBlock { gap: 0.4rem !important; }
+</style>
+""", unsafe_allow_html=True)
+
+@st.cache_resource(show_spinner=False)
+def get_rag_pipeline() -> RAGPipeline:
+    return RAGPipeline()
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+if "latest_chunks" not in st.session_state:
+    st.session_state.latest_chunks = []
+if "rag_built" not in st.session_state:
+    st.session_state.rag_built = False
+if "current_file_name" not in st.session_state:
+    st.session_state.current_file_name = None
 
 def format_chunks(chunks: List[Dict[str, Any]]) -> str:
     if not chunks:
         return "No relevant chunks found."
-    parts = []
+    markdown_text = ""
     for i, chunk in enumerate(chunks, 1):
         meta = chunk.get("metadata", {})
         score = chunk.get("rerank_score", 0.0)
-        parts.append(
-            f"[{i}] Page {meta.get('page', '?')} - {meta.get('type', '?')} - score {score:+.2f}\n"
-            f"{'-' * 50}\n"
-            f"{chunk['text']}"
-        )
-    return "\n\n\n".join(parts)
+        markdown_text += f"<span style='font-size:0.75rem; color:gray;'>[{i}] Page {meta.get('page', '?')} | {meta.get('type', '?')} | score {score:+.2f}</span>\n\n"
+        markdown_text += f"<div style='font-size:0.8rem;'>{chunk['text']}</div>\n\n---\n\n"
+    return markdown_text
 
+def stream_adapter(rag: RAGPipeline, prompt: str, history: List[Dict[str, str]], chunks_list: List[Dict[str, Any]]):
+    for event in rag.answer_stream(prompt, chat_history=history):
+        if event["type"] == "chunks":
+            chunks_list.extend(event["chunks"])
+        elif event["type"] == "text":
+            yield event["content"]
+        elif event["type"] == "error":
+            yield f"\n\n**Error:** {event['message']}"
 
-def build_index(pdf_file: Any, rag_state: Any) -> Any:
-    if not pdf_file:
-        yield (
-            rag_state,
-            "Please select a PDF file first.",
-            [],
-            gr.update(interactive=True),
-            gr.update(interactive=True),
-            gr.update(interactive=True),
-            "No document loaded.",
-        )
-        return
+with st.sidebar:
+    st.title("📄 DocLens")
+    st.caption("Upload a PDF and ask questions.")
+    
+    pdf_file = st.file_uploader("Choose PDF", type=["pdf"], label_visibility="collapsed")
+    
+    if pdf_file is None:
+        if st.session_state.rag_built:
+            st.session_state.rag_built = False
+            st.session_state.current_file_name = None
+    else:
+        if st.session_state.current_file_name != pdf_file.name:
+            st.session_state.rag_built = False
+            st.session_state.current_file_name = pdf_file.name
 
-    yield (
-        rag_state,
-        "Building database from PDF...",
-        [],
-        gr.update(interactive=True),
-        gr.update(interactive=True),
-        gr.update(interactive=False),
-        "Extracting text, creating chunks, generating embeddings...",
-    )
+    build_disabled = st.session_state.rag_built or pdf_file is None
+    
+    if st.button("Build Database", type="primary", use_container_width=True, disabled=build_disabled):
+        if pdf_file is not None:
+            with st.status("Building database...", expanded=True) as status:
+                rag = get_rag_pipeline()
+                
+                st.write("Processing PDF...")
+                temp_path = f"temp_{pdf_file.name}"
+                with open(temp_path, "wb") as f:
+                    f.write(pdf_file.getbuffer())
+                
+                try:
+                    count = rag.build(temp_path)
+                    st.session_state.rag_built = True
+                    st.session_state.messages = []
+                    st.session_state.latest_chunks = []
+                    status.update(label=f"Ready! {count} chunks.", state="complete", expanded=False)
+                    st.rerun()
+                except Exception as e:
+                    status.update(label=f"Error: {e}", state="error", expanded=True)
 
-    try:
-        rag = RAGPipeline()
-        count = rag.build(pdf_file)
-        yield (
-            rag,
-            f"Ready - **{count} chunks** indexed",
-            [],
-            gr.update(interactive=True),
-            gr.update(interactive=True),
-            gr.update(interactive=True),
-            "Ask a question to see the retrieved chunks here.",
-        )
-    except Exception as exc:
-        yield (
-            rag_state,
-            f"Build failed: {exc}",
-            [],
-            gr.update(interactive=True),
-            gr.update(interactive=True),
-            gr.update(interactive=True),
-            "Build failed. Check the file and try again.",
-        )
+    if st.button("Clear Chat", use_container_width=True):
+        st.session_state.messages = []
+        st.session_state.latest_chunks = []
+        st.rerun()
 
+    st.divider()
+    if st.session_state.rag_built:
+        st.success("🟢 Document loaded and ready.")
+    else:
+        st.info("⚪ Waiting for document...")
 
-def chat(message: str, history: List[Dict[str, str]], rag: Any) -> Any:
-    history = list(history or [])
+col1, col2 = st.columns([3, 2])
 
-    if rag is None or not rag.is_built:
-        if message and message.strip():
-            help_msg = "**No document loaded yet.**\n\nPlease upload a PDF file and click **Build Database** first."
-            yield history + [
-                {"role": "user", "content": message},
-                {"role": "assistant", "content": help_msg},
-            ], "", "Upload a PDF and click Build Database to start."
+with col1:
+    st.subheader("💬 Chat")
+    
+    chat_container = st.container(height=500)
+    with chat_container:
+        for msg in st.session_state.messages:
+            with st.chat_message(msg["role"]):
+                st.markdown(msg["content"])
+
+    if prompt := st.chat_input("Ask a question..."):
+        if not st.session_state.rag_built:
+            st.warning("Please build the database first.")
         else:
-            yield history, "", "Upload a PDF first."
-        return
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            with chat_container:
+                with st.chat_message("user"):
+                    st.markdown(prompt)
 
-    if not message or not message.strip():
-        yield history, "", ""
-        return
-
-    history.append({"role": "user", "content": message})
-    history.append({"role": "assistant", "content": "Searching..."})
-    yield history, "", "Retrieving relevant chunks..."
-
-    try:
-        current_chunks = []
-        for event in rag.answer_stream(message, chat_history=history[:-2]):
-            if event["type"] == "chunks":
-                current_chunks = event["chunks"]
-                history[-1]["content"] = "Generating answer..."
-                yield history, "", format_chunks(current_chunks)
-
-            elif event["type"] == "text":
-                if history[-1]["content"] in ["Searching...", "Generating answer..."]:
-                    history[-1]["content"] = ""
-                history[-1]["content"] += event["content"]
-                yield history, "", format_chunks(current_chunks)
-
-            elif event["type"] == "error":
-                history[-1]["content"] = event["message"]
-                if "queries" in event and event["queries"]:
-                    history[-1]["content"] += "\n\n" + "\n".join(
-                        f"- {q}" for q in event["queries"]
+                with st.chat_message("assistant"):
+                    rag = get_rag_pipeline()
+                    current_chunks: List[Dict[str, Any]] = []
+                    history = st.session_state.messages[:-1]
+                    
+                    response = st.write_stream(
+                        stream_adapter(rag, prompt, history, current_chunks)
                     )
-                yield history, "", "Question needs clarification."
-                return
+                    
+                    st.session_state.messages.append({"role": "assistant", "content": response})
+                    st.session_state.latest_chunks = current_chunks
+                    st.rerun()
 
-    except Exception as exc:
-        err = str(exc).lower()
-        if "502" in err or "provider" in err or "bad gateway" in err:
-            msg = "AI provider is temporarily unavailable. Please retry in a moment."
-        elif "429" in err or "rate" in err:
-            msg = "Too many requests. Please wait a few seconds."
-        elif "timeout" in err:
-            msg = "Request timed out. Please try again."
+with col2:
+    st.subheader("🔎 Context")
+    context_container = st.container(height=500)
+    with context_container:
+        if st.session_state.latest_chunks:
+            st.markdown(format_chunks(st.session_state.latest_chunks), unsafe_allow_html=True)
         else:
-            msg = f"Error: {exc}"
-
-        history[-1]["content"] = msg
-        yield history, "", msg
-
-
-with gr.Blocks(title="DocLens") as demo:
-    rag_state = gr.State(None)
-
-    gr.Markdown(
-        "# DocLens\nAsk questions about any PDF document. Upload a file, click **Build**, then start chatting."
-    )
-
-    with gr.Row(equal_height=True):
-        with gr.Column(scale=4):
-            pdf_file = gr.File(
-                label="PDF File", file_types=[".pdf"], type="filepath", height=100
-            )
-        with gr.Column(scale=1, min_width=180):
-            build_button = gr.Button("Build Database", variant="primary", size="lg")
-            status = gr.Markdown("No document loaded.")
-
-    gr.Markdown("---")
-
-    with gr.Row(equal_height=True):
-        with gr.Column(scale=3, min_width=480):
-            gr.Markdown("### Chat")
-            chatbot = gr.Chatbot(
-                height=560,
-                placeholder="Upload a PDF and click **Build Database** to start.",
-            )
-            with gr.Row():
-                message = gr.Textbox(
-                    placeholder="Ask a question about the document...",
-                    show_label=False,
-                    lines=2,
-                    interactive=True,
-                    scale=5,
-                )
-                send_button = gr.Button(
-                    "Send", variant="primary", interactive=True, scale=1, size="lg"
-                )
-            with gr.Row():
-                gr.Examples(
-                    examples=[[q] for q in EXAMPLE_QUESTIONS],
-                    inputs=[message],
-                    label="Try one of these",
-                )
-                clear_button = gr.Button("New chat", variant="secondary", size="sm")
-
-        with gr.Column(scale=2, min_width=380):
-            gr.Markdown("### Retrieved Context")
-            retrieved = gr.Textbox(
-                label="Retrieved Context",
-                value="Chunks will appear here.",
-                lines=24,
-                max_lines=24,
-                interactive=False,
-            )
-
-    build_button.click(
-        fn=build_index,
-        inputs=[pdf_file, rag_state],
-        outputs=[
-            rag_state,
-            status,
-            chatbot,
-            message,
-            send_button,
-            build_button,
-            retrieved,
-        ],
-    )
-    send_button.click(
-        fn=chat,
-        inputs=[message, chatbot, rag_state],
-        outputs=[chatbot, message, retrieved],
-    )
-    message.submit(
-        fn=chat,
-        inputs=[message, chatbot, rag_state],
-        outputs=[chatbot, message, retrieved],
-    )
-    clear_button.click(
-        fn=lambda: ([], "", "Chunks will appear here after you ask a question."),
-        outputs=[chatbot, message, retrieved],
-    )
-
-if __name__ == "__main__":
-    demo.queue().launch()
+            st.caption("Retrieved chunks will appear here.")
