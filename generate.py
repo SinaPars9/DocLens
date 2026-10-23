@@ -86,7 +86,7 @@ def generate_answer_stream(
     chat_history: Optional[List[Dict[str, str]]] = None,
 ) -> Generator[str, None, None]:
     if not API_KEY:
-        raise ValueError("AVALAI_API_KEY was not found in the .env file.")
+        raise ValueError("API_KEY was not found in the .env file.")
 
     context = "\n\n".join(chunk["text"] for chunk in chunks)
     cache_key = get_cache_key("generate", question, context, str(chat_history))

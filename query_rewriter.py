@@ -28,7 +28,7 @@ def resolve_and_expand(
     question: str, chat_history: List[Dict[str, str]]
 ) -> Dict[str, Any]:
     if not API_KEY:
-        raise ValueError("AVALAI_API_KEY was not found in the .env file.")
+        raise ValueError("API_KEY was not found in the .env file.")
 
     cache_key = get_cache_key("resolve", question, str(chat_history))
     if cache_key in cache:
