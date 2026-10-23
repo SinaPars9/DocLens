@@ -7,9 +7,9 @@ from openai import OpenAI
 
 load_dotenv()
 
-API_KEY = os.getenv("AVALAI_API_KEY")
-BASE_URL = "https://api.avalai.ir/v1"
-MODEL = "gpt-4o-mini"
+API_KEY = os.getenv("HORMOZ_API_KEY")
+BASE_URL = "https://api.hormouz.net/v1"
+MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free"
 
 client = OpenAI(
     api_key=API_KEY or "missing_key", base_url=BASE_URL, max_retries=3, timeout=90.0
