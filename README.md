@@ -8,19 +8,21 @@ This project focuses on building a **experimental / learning project** document 
 
 - **Hybrid Search (BM25 + Vector):** Combines semantic vector search (ChromaDB) with keyword-based BM25 (using Reciprocal Rank Fusion) to drastically improve retrieval accuracy for numeric data, specific entities, and tables.
 - **Smart Table Boost:** The Cross-Encoder reranker is enhanced to automatically boost the scores of table chunks when the user's question contains numbers or financial symbols, ensuring tabular data is never ignored.
+- **Semantic Chunking:** Instead of arbitrary character limits, text is split based on semantic similarity (topic shifts), ensuring each chunk contains a complete, coherent concept. Table structures are strictly preserved.
 - **Streaming Responses:** Built with Streamlit, generating answers token-by-token for a ChatGPT-like user experience with near-zero perceived latency.
 - **Persistent LLM Caching:** Utilizes `diskcache` to locally store query rewrites and generated answers, saving API costs and delivering instant responses for repeated questions.
 - **Batched ONNX Inference:** Optimizes local CPU inference for both embedding (`bekko-embedding`) and reranking (`ms-marco-MiniLM`) models, preventing memory spikes.
 - **Domain-Agnostic Prompts:** LLM prompts are generalized to handle financial reports, academic papers, or technical manuals with equal accuracy.
 - **Transparent UI:** Displays retrieved chunks, page numbers, and rerank scores in a dedicated context panel for full explainability.
 
-## Architecture Pipeline
+## 🏗️ Architecture Pipeline
 
-1. **Query Processing:** Resolves follow-up questions using chat history (e.g., resolving pronouns and missing years) and generates multiple expanded queries.
-2. **Hybrid Retrieval:** Fetches candidates using both Vector Search and BM25.
-3. **Fusion:** Combines results using Reciprocal Rank Fusion (RRF).
-4. **Smart Reranking:** Scores the fused candidates using a local Cross-Encoder ONNX model, with conditional boosting for table data.
-5. **Generation:** Streams the final answer using an LLM based strictly on the retrieved context.
+1. **Document Ingestion:** Extracts text and tables separately (via PyMuPDF + pdfplumber). Applies **Semantic Chunking** to text blocks to preserve topic integrity, while keeping tables intact.
+2. **Query Processing:** Resolves follow-up questions using chat history and generates multiple expanded queries.
+3. **Hybrid Retrieval:** Fetches candidates using both Vector Search (ChromaDB) and BM25.
+4. **Fusion:** Combines results using Reciprocal Rank Fusion (RRF).
+5. **Smart Reranking:** Scores the fused candidates using a local Cross-Encoder ONNX model, with conditional boosting for table data.
+6. **Generation:** Streams the final answer using an LLM based strictly on the retrieved context.
 
 ## Project Structure
 
@@ -71,6 +73,7 @@ Ensure the ONNX models are placed in your local directory (e.g., E:\models\). Up
 DocLens uses local model files for embedding and reranking. Configure their paths to match your environment.
 
 If answer generation requires an API key, configure it using the environment-variable names expected by the code. Keep credentials in your local `.env` file or environment, and **never commit secrets to GitHub**.
+Open `config.py` to update model paths, chunking thresholds (`SEMANTIC_THRESHOLD_PERCENTILE`), and retrieval limits (`TOP_K_RETRIEVE`).
 
 Before running the project, verify that:
 
