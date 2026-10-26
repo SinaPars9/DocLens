@@ -9,7 +9,7 @@ load_dotenv()
 
 API_KEY = os.getenv("1XAI_API_KEY")
 BASE_URL = "https://1xai.ir/v1"
-MODEL = "gpt-4o-mini" 
+MODEL = "gpt-4o-mini"
 
 client = OpenAI(
     api_key=API_KEY or "missing_key", base_url=BASE_URL, max_retries=3, timeout=90.0
@@ -17,9 +17,11 @@ client = OpenAI(
 
 cache = Cache("llm_cache")
 
+
 def get_cache_key(prefix: str, *args: Any) -> str:
     data = prefix + str(args)
     return hashlib.md5(data.encode()).hexdigest()
+
 
 SYSTEM_PROMPT = """
 You are an expert document analysis assistant.
@@ -37,6 +39,7 @@ Instructions:
 - Never invent facts or numbers.
 - Be concise and show calculations when relevant.
 """
+
 
 def generate_answer_stream(
     question: str,

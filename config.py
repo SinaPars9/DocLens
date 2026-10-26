@@ -10,8 +10,8 @@ RERANKER_MODEL_DIR = Path(r"E:\models\reranker")
 # RAG & Chunking Settings
 # ==========================================
 
-SEMANTIC_BUFFER_SIZE = 2          
-SEMANTIC_THRESHOLD_PERCENTILE = 70 
+SEMANTIC_BUFFER_SIZE = 2
+SEMANTIC_THRESHOLD_PERCENTILE = 70
 
 
 FALLBACK_CHUNK_SIZE = 1000
