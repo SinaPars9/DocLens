@@ -28,7 +28,7 @@ This project focuses on building a **experimental / learning project** document 
 DocLens/
 ├── app.py                 # Streamlit UI
 ├── chunk_pdf.py           # Text splitting logic
-├── config.py              # local model exapmle +chunk size+ chunk overlap
+├── config.py              # local model example +chunk size+ chunk overlap
 ├── embedding.py           # ONNX Embedding model wrapper
 ├── generate.py            # LLM streaming generation
 ├── inspect_pdf.py         # PyMuPDF + pdfplumber extraction
@@ -39,6 +39,7 @@ DocLens/
 ├── vector_store.py        # ChromaDB management
 ├── requirements.txt
 └── example/               # Retrieval evaluation scripts and sample PDF
+└── .streamlit             # for dark mode switch in streamlit
 ```
 The `example/` directory contains sample PDF and retrieval-evaluation resources.
 
@@ -64,7 +65,7 @@ Install the dependencies:
 pip install -r requirements.txt
 ```
 ## Download Local Models:
-Ensure the ONNX models are placed in your local directory (e.g., E:\models\). Update the paths in embedding.py and reranker.py if necessary
+Ensure the ONNX models are placed in your local directory (e.g., E:\models\). Update the paths in config.py if necessary
 ## Configuration
 
 DocLens uses local model files for embedding and reranking. Configure their paths to match your environment.
@@ -80,7 +81,7 @@ Before running the project, verify that:
 
 ## Running the Application
 
-Start the Gradio interface:
+Start the Streamlit interface:
 *Note: The system automatically creates an `llm_cache/` folder to store previous responses. If you want to clear the cache and force the system to fetch fresh answers from the API, simply delete this folder.*
 ```bash
 streamlit run app.py
