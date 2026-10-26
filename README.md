@@ -2,7 +2,7 @@
 
 DocLens is an end-to-end Retrieval-Augmented Generation (RAG) system that lets users upload a PDF, retrieve relevant passages, and ask questions about its content through a conversational interface. 
 
-This project focuses on building a **production-ready** document analysis pipeline. It goes beyond basic RAG by implementing Hybrid Search, Smart Table Reranking, Streaming, and local ONNX model inference to run efficiently even on low-spec hardware.
+This project focuses on building a **experimental / learning project** document analysis pipeline. It goes beyond basic RAG by implementing Hybrid Search, Smart Table Reranking, Streaming, and local ONNX model inference to run efficiently even on low-spec hardware.
 
 ## Features
 
