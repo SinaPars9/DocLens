@@ -10,27 +10,28 @@ load_dotenv()
 
 API_KEY = os.getenv("1XAI_API_KEY")
 BASE_URL = "https://1xai.ir/v1"
-MODEL = "gpt-4o-mini" 
+MODEL = "gpt-4o-mini"
 
 client = OpenAI(
-    api_key=API_KEY or "missing_key",
-    base_url=BASE_URL,
-    max_retries=3,
-    timeout=90.0
+    api_key=API_KEY or "missing_key", base_url=BASE_URL, max_retries=3, timeout=90.0
 )
 
 cache = Cache("llm_cache")
+
 
 def get_cache_key(prefix: str, *args: Any) -> str:
     data = prefix + str(args)
     return hashlib.md5(data.encode()).hexdigest()
 
-def resolve_and_expand(question: str, chat_history: List[Dict[str, str]]) -> Dict[str, Any]:
+
+def resolve_and_expand(
+    question: str, chat_history: List[Dict[str, str]]
+) -> Dict[str, Any]:
     if not API_KEY:
         raise ValueError("API_KEY was not found in the .env file.")
 
     cache_key = get_cache_key("resolve_v6", question, str(chat_history))
-    
+
     if cache_key in cache:
         print("[Cache Hit] Resolve + Expand")
         return cast(Dict[str, Any], cache[cache_key])

@@ -78,9 +78,18 @@ def extract_page_content(pymupdf_page, plumber_page, page_number):
     tables = []
 
     for table_obj in table_objects:
-        table_bboxes.append(table_obj.bbox)
-
         raw_table = table_obj.extract()
+        if not raw_table or not raw_table[0] or len(raw_table[0]) < 2:
+            continue
+        total_words = sum(
+            len(str(cell).split()) for row in raw_table if row for cell in row if cell
+        )
+        total_cells = sum(len(row) for row in raw_table if row)
+
+        if total_cells > 0 and (total_words / total_cells) > 6:
+            continue
+
+        table_bboxes.append(table_obj.bbox)
         converted_text = table_to_text(raw_table, page_number)
 
         if converted_text:
@@ -128,8 +137,9 @@ def load_pdf_documents(pdf_path):
         if len(pdf_text) != len(pdf_tables.pages):
             raise ValueError("The PDF readers returned different page counts.")
 
-        for page_index, pymupdf_page in enumerate(pdf_text):
+        for page_index in range(len(pdf_text)):
             page_number = page_index + 1
+            pymupdf_page = pdf_text[page_index]
             plumber_page = pdf_tables.pages[page_index]
 
             text_content, tables = extract_page_content(

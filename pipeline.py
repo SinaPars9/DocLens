@@ -5,7 +5,8 @@ from retriever import Retriever
 from reranker import Reranker
 from query_rewriter import resolve_and_expand
 from generate import generate_answer_stream
-from config import TOP_K_FINAL,TOP_K_RETRIEVE
+from config import TOP_K_FINAL, TOP_K_RETRIEVE
+
 
 class RAGPipeline:
     def __init__(self) -> None:
@@ -18,7 +19,9 @@ class RAGPipeline:
         self.reranker = Reranker()
 
         self.is_built: bool = self.vector_store.collection.count() > 0
-        print(f"Pipeline ready. Vector store: {self.vector_store.collection.count()} chunks.")
+        print(
+            f"Pipeline ready. Vector store: {self.vector_store.collection.count()} chunks."
+        )
 
     def build(self, pdf_path: str) -> int:
         self.vector_store.build(pdf_path)
@@ -28,7 +31,9 @@ class RAGPipeline:
         count = self.vector_store.collection.count()
         self.is_built = count > 0
         if not self.is_built:
-            raise ValueError("Vector store build failed or resulted in an empty collection.")
+            raise ValueError(
+                "Vector store build failed or resulted in an empty collection."
+            )
         return count
 
     def answer_stream(
@@ -43,21 +48,26 @@ class RAGPipeline:
             return
 
         history = chat_history or []
-        
+
         result = cast(Dict[str, Any], resolve_and_expand(question, history))
-        
+
         standalone_query = str(result.get("standalone", question))
         expanded = result.get("expanded", [])
-        
+
         queries = [standalone_query] + [str(q) for q in expanded]
         chunks = self.retriever.retrieve_many(queries, top_k=top_k_retrieve)
-        
-        ranked_chunks = self.reranker.rerank(standalone_query, chunks, top_k=top_k_final)
+
+        ranked_chunks = self.reranker.rerank(
+            standalone_query, chunks, top_k=top_k_final
+        )
 
         yield {"type": "chunks", "chunks": ranked_chunks}
 
         if not ranked_chunks:
-            yield {"type": "text", "content": "No relevant information found in the document."}
+            yield {
+                "type": "text",
+                "content": "No relevant information found in the document.",
+            }
             return
 
         for token in generate_answer_stream(question, ranked_chunks, history):
