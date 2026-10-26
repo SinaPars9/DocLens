@@ -28,6 +28,7 @@ This project focuses on building a **experimental / learning project** document 
 DocLens/
 ├── app.py                 # Streamlit UI
 ├── chunk_pdf.py           # Text splitting logic
+├── config.py              # local model exapmle +chunk size+ chunk overlap
 ├── embedding.py           # ONNX Embedding model wrapper
 ├── generate.py            # LLM streaming generation
 ├── inspect_pdf.py         # PyMuPDF + pdfplumber extraction
