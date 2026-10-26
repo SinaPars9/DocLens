@@ -8,9 +8,9 @@ from openai import OpenAI
 
 load_dotenv()
 
-API_KEY = os.getenv("HORMOZ_API_KEY")
-BASE_URL = "https://api.hormouz.net/v1"
-MODEL = "openai/gpt-4o-mini" 
+API_KEY = os.getenv("1XAI_API_KEY")
+BASE_URL = "https://1xai.ir/v1"
+MODEL = "gpt-4o-mini" 
 
 client = OpenAI(
     api_key=API_KEY or "missing_key",

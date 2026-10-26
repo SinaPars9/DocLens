@@ -5,7 +5,7 @@ from retriever import Retriever
 from reranker import Reranker
 from query_rewriter import resolve_and_expand
 from generate import generate_answer_stream
-
+from config import TOP_K_FINAL,TOP_K_RETRIEVE
 
 class RAGPipeline:
     def __init__(self) -> None:
@@ -35,8 +35,8 @@ class RAGPipeline:
         self,
         question: str,
         chat_history: Optional[List[Dict[str, str]]] = None,
-        top_k_retrieve: int = 15,
-        top_k_final: int = 8,
+        top_k_retrieve: int = TOP_K_RETRIEVE,
+        top_k_final: int = TOP_K_FINAL,
     ) -> Generator[Dict[str, Any], None, None]:
         if not self.is_built:
             yield {"type": "error", "message": "Pipeline has no data."}

@@ -1,6 +1,6 @@
 import streamlit as st
 from typing import List, Dict, Any
-
+import os
 from pipeline import RAGPipeline
 
 st.set_page_config(page_title="DocLens", page_icon="📄", layout="wide")
@@ -85,8 +85,12 @@ with st.sidebar:
                     st.session_state.messages = []
                     st.session_state.latest_chunks = []
                     status.update(label=f"Ready! {count} chunks.", state="complete", expanded=False)
+                    if os.path.exists(temp_path):
+                        os.remove(temp_path)
                     st.rerun()
                 except Exception as e:
+                    if os.path.exists(temp_path):
+                        os.remove(temp_path)                   
                     status.update(label=f"Error: {e}", state="error", expanded=True)
 
     if st.button("Clear Chat", use_container_width=True):

@@ -4,10 +4,10 @@ import time
 import numpy as np
 import onnxruntime as ort
 from tokenizers import Tokenizer
-
+from config import EMBEDDING_MODEL_DIR
 MODEL_DIR = Path(r"E:\models\bekko-embedding-v1-a8m")
-ONNX_PATH = MODEL_DIR / "onnx" / "model.onnx"
-TOKENIZER_PATH = MODEL_DIR / "tokenizer.json"
+ONNX_PATH = EMBEDDING_MODEL_DIR / "onnx" / "model.onnx"
+TOKENIZER_PATH = EMBEDDING_MODEL_DIR / "tokenizer.json"
 
 MAX_LENGTH = 1024
 EMBED_BATCH_SIZE = 16
