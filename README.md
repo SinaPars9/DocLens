@@ -8,7 +8,7 @@ This project focuses on building a **experimental / learning project** document 
 
 - **Hybrid Search (BM25 + Vector):** Combines semantic vector search (ChromaDB) with keyword-based BM25 (using Reciprocal Rank Fusion) to drastically improve retrieval accuracy for numeric data, specific entities, and tables.
 - **Smart Table Boost:** The Cross-Encoder reranker is enhanced to automatically boost the scores of table chunks when the user's question contains numbers or financial symbols, ensuring tabular data is never ignored.
-- **Semantic Chunking:** Instead of arbitrary character limits, text is split based on semantic similarity (topic shifts), ensuring each chunk contains a complete, coherent concept. Table structures are strictly preserved.
+- **Semantic Chunking & Robust Parsing:** Text is split based on semantic topic shifts (rather than arbitrary character limits), while a custom word-count filter prevents 2-column PDF layouts from being falsely detected as tables.
 - **Streaming Responses:** Built with Streamlit, generating answers token-by-token for a ChatGPT-like user experience with near-zero perceived latency.
 - **Persistent LLM Caching:** Utilizes `diskcache` to locally store query rewrites and generated answers, saving API costs and delivering instant responses for repeated questions.
 - **Batched ONNX Inference:** Optimizes local CPU inference for both embedding (`bekko-embedding`) and reranking (`ms-marco-MiniLM`) models, preventing memory spikes.
@@ -17,7 +17,7 @@ This project focuses on building a **experimental / learning project** document 
 
 ## 🏗️ Architecture Pipeline
 
-1. **Document Ingestion:** Extracts text and tables separately (via PyMuPDF + pdfplumber). Applies **Semantic Chunking** to text blocks to preserve topic integrity, while keeping tables intact.
+1. **Document Ingestion & Semantic Chunking:** Extracts text and tables (via PyMuPDF + pdfplumber). Filters out false-positive tables (like 2-column text) and applies Semantic Chunking to text blocks to preserve topic integrity, while keeping actual tables intact.
 2. **Query Processing:** Resolves follow-up questions using chat history and generates multiple expanded queries.
 3. **Hybrid Retrieval:** Fetches candidates using both Vector Search (ChromaDB) and BM25.
 4. **Fusion:** Combines results using Reciprocal Rank Fusion (RRF).
