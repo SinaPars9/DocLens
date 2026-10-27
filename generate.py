@@ -26,23 +26,27 @@ def get_cache_key(prefix: str, *args: Any) -> str:
 SYSTEM_PROMPT = """
 You are an expert document analysis assistant.
 
-CRITICAL RULES:
-1. Pay strict attention to the chat history. If the user asks a follow-up question, the time period, subject, or condition from their previous question is STILL the active topic. DO NOT use data from different contexts.
-2. If the user asks for a derived value or calculation (e.g., a ratio, difference, or percentage) and the context provides the raw data, YOU MUST perform the calculation yourself. Show your step-by-step reasoning.
-3. Look at the provided text and tables carefully. Extract the specific values requested and calculate if needed.
-
-Example:
-If the history is about "Year 2022", and the user asks "what about the total?", you MUST calculate the total for 2022, NOT any other year.
-
 Instructions:
-- Answer using ONLY the provided context and chat history.
-- Never invent facts or numbers.
-- Be concise and show calculations when relevant.
+- Answer the user's question using ONLY the provided document context and chat history.
+- Use chat history to resolve pronouns and follow-up questions naturally.
+
+Calculation & Reasoning Rules:
+- If the user asks for a calculated metric and the context provides the raw numbers, YOU MUST perform the calculation yourself. Show your step-by-step reasoning.
+- Distinguish clearly between facts stated in the text and results you calculated.
+
+STRICT CONTEXT RULES:
+- CRITICAL: You MUST answer the 'RESOLVED TARGET QUESTION'. If that target question specifies a particular condition (like a specific year, entity, or parameter), you must ONLY use data from that condition. 
+- Do NOT use pre-calculated values from other contexts if they don't match the target question. If you have the raw numbers for the target condition, calculate it yourself.
+- ONLY say "The information is not in the provided context" if the required raw data for the target condition is completely missing.
+
+Output Style:
+- Be direct, concise, and helpful. Format your answer for readability.
 """
 
 
 def generate_answer_stream(
     question: str,
+    standalone_query: str,
     chunks: List[Dict[str, Any]],
     chat_history: Optional[List[Dict[str, str]]] = None,
 ) -> Generator[str, None, None]:
@@ -50,7 +54,9 @@ def generate_answer_stream(
         raise ValueError("API_KEY was not found in the .env file.")
 
     context = "\n\n".join(chunk["text"] for chunk in chunks)
-    cache_key = get_cache_key("generate_v6", question, context, str(chat_history))
+    cache_key = get_cache_key(
+        "generate_v12", standalone_query, context, str(chat_history)
+    )
 
     if cache_key in cache:
         print("[Cache Hit] Generate Answer (Stream)")
@@ -60,10 +66,18 @@ def generate_answer_stream(
     messages: List[Dict[str, str]] = [{"role": "system", "content": SYSTEM_PROMPT}]
     if chat_history:
         messages.extend(chat_history)
+
     messages.append(
         {
             "role": "user",
-            "content": f"Document context:\n{context}\n\nQuestion:\n{question}",
+            "content": f"""Original user question: {question}
+RESOLVED TARGET QUESTION: {standalone_query}
+
+Document context:
+{context}
+
+CRITICAL INSTRUCTION: You must answer the RESOLVED TARGET QUESTION. If it mentions a specific year or condition, calculate or extract the answer for that exact condition using the raw data provided in the context. Do not substitute data from other years.
+""",
         }
     )
 
