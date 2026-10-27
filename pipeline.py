@@ -5,7 +5,7 @@ from retriever import Retriever
 from reranker import Reranker
 from query_rewriter import resolve_and_expand
 from generate import generate_answer_stream
-from config import TOP_K_FINAL, TOP_K_RETRIEVE
+from config import TOP_K_RETRIEVE, TOP_K_FINAL
 
 
 class RAGPipeline:
@@ -53,6 +53,11 @@ class RAGPipeline:
 
         standalone_query = str(result.get("standalone", question))
         expanded = result.get("expanded", [])
+        yield {
+            "type": "query_info",
+            "standalone": standalone_query,
+            "expanded": expanded,
+        }
 
         queries = [standalone_query] + [str(q) for q in expanded]
         chunks = self.retriever.retrieve_many(queries, top_k=top_k_retrieve)
@@ -69,6 +74,10 @@ class RAGPipeline:
                 "content": "No relevant information found in the document.",
             }
             return
-
-        for token in generate_answer_stream(question, ranked_chunks, history):
+        for token in generate_answer_stream(
+            question=question,
+            standalone_query=standalone_query,
+            chunks=ranked_chunks,
+            chat_history=history,
+        ):
             yield {"type": "text", "content": token}

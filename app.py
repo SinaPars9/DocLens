@@ -1,6 +1,7 @@
+import os
 import streamlit as st
 from typing import List, Dict, Any
-import os
+
 from pipeline import RAGPipeline
 
 st.set_page_config(page_title="DocLens", page_icon="📄", layout="wide")
@@ -52,21 +53,6 @@ def format_chunks(chunks: List[Dict[str, Any]]) -> str:
     return markdown_text
 
 
-def stream_adapter(
-    rag: RAGPipeline,
-    prompt: str,
-    history: List[Dict[str, str]],
-    chunks_list: List[Dict[str, Any]],
-):
-    for event in rag.answer_stream(prompt, chat_history=history):
-        if event["type"] == "chunks":
-            chunks_list.extend(event["chunks"])
-        elif event["type"] == "text":
-            yield event["content"]
-        elif event["type"] == "error":
-            yield f"\n\n**Error:** {event['message']}"
-
-
 with st.sidebar:
     st.title("📄 DocLens")
     st.caption("Upload a PDF and ask questions.")
@@ -111,8 +97,10 @@ with st.sidebar:
                         state="complete",
                         expanded=False,
                     )
+
                     if os.path.exists(temp_path):
                         os.remove(temp_path)
+
                     st.rerun()
                 except Exception as e:
                     if os.path.exists(temp_path):
@@ -140,6 +128,17 @@ with col1:
         for msg in st.session_state.messages:
             with st.chat_message(msg["role"]):
                 st.markdown(msg["content"])
+                if (
+                    msg["role"] == "assistant"
+                    and msg.get("standalone_query")
+                    and msg["standalone_query"] != msg.get("original_question")
+                ):
+                    with st.expander("🔍 View Resolved Standalone Query"):
+                        st.info(f"**Target Query:** {msg['standalone_query']}")
+                        if msg.get("expanded_queries"):
+                            st.write("**Expanded Queries:**")
+                            for q in msg["expanded_queries"]:
+                                st.write(f"- {q}")
 
     if prompt := st.chat_input("Ask a question..."):
         if not st.session_state.rag_built:
@@ -155,12 +154,40 @@ with col1:
                     current_chunks: List[Dict[str, Any]] = []
                     history = st.session_state.messages[:-1]
 
-                    response = st.write_stream(
-                        stream_adapter(rag, prompt, history, current_chunks)
-                    )
+                    standalone_q = prompt
+                    expanded_qs = []
+
+                    response_placeholder = st.empty()
+                    full_response = ""
+
+                    for event in rag.answer_stream(prompt, chat_history=history):
+                        if event["type"] == "query_info":
+                            standalone_q = event["standalone"]
+                            expanded_qs = event["expanded"]
+                        elif event["type"] == "chunks":
+                            current_chunks = event["chunks"]
+                        elif event["type"] == "text":
+                            full_response += event["content"]
+                            response_placeholder.markdown(full_response + "▌")
+
+                    response_placeholder.markdown(full_response)
+
+                    if standalone_q and standalone_q != prompt:
+                        with st.expander("🔍 View Resolved Standalone Query"):
+                            st.info(f"**Target Query:** {standalone_q}")
+                            if expanded_qs:
+                                st.write("**Expanded Queries:**")
+                                for q in expanded_qs:
+                                    st.write(f"- {q}")
 
                     st.session_state.messages.append(
-                        {"role": "assistant", "content": response}
+                        {
+                            "role": "assistant",
+                            "content": full_response,
+                            "standalone_query": standalone_q,
+                            "expanded_queries": expanded_qs,
+                            "original_question": prompt,
+                        }
                     )
                     st.session_state.latest_chunks = current_chunks
                     st.rerun()

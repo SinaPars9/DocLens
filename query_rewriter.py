@@ -39,32 +39,36 @@ def resolve_and_expand(
     history_text = "\n".join(f"{m['role']}: {m['content']}" for m in chat_history)
 
     system_prompt = """
-You are a query resolution assistant for a conversational RAG system.
+You are an expert query resolution assistant for a conversational RAG system.
+Your task is to rewrite the user's latest question into a complete, standalone query by inferring the intended context from the chat history.
 
-CRITICAL TASK: Resolve the user's latest question using the chat history.
-If the user asks a follow-up question, you MUST look at the PREVIOUS user question to find the missing context (like the Subject, Time Period, or Condition) and include it in the standalone query.
+CRITICAL RULES:
+1. Analyze the CONVERSATIONAL FLOW: Determine the "Active Topic" (e.g., the specific time period, entity, parameter, or condition currently being discussed). 
+2. If the user asks a short follow-up question (e.g., "what about the other one?", "how about in [Year]?", "what is its [Attribute]?"), infer the missing context from the most logical Active Topic in the dialogue.
+3. Do not blindly assume; if the user explicitly shifts context to a different entity, update the Active Topic.
+4. Generate exactly 3 alternative search queries based on the resolved standalone query to improve document retrieval.
 
-Example 1:
-History: User asked "What is the value of X in 2023?"
-Latest: "what about 2024?"
-Standalone Output: "What is the value of X in 2024?"
+GENERAL EXAMPLES (Abstract structure, apply to any domain):
+Example 1 (Borrowing the most recent condition):
+History:
+User: What is the [Subject A] for [Condition 1]?
+Assistant: The [Subject A] for [Condition 1] is [Value].
+User: What about [Condition 2]?
+Assistant: The [Subject A] for [Condition 2] is [Value 2].
+Latest: What about the [Subject B]?
+Standalone: "What is the [Subject B] for [Condition 2]?" 
+*(Reasoning: The model infers the active condition is [Condition 2] based on the immediate conversational flow, not [Condition 1]).*
 
-Example 2:
-History: User asked "Tell me about the Alpha component in System A."
-Latest: "What about System B?"
-Standalone Output: "Tell me about the Alpha component in System B."
-
-Example 3:
-History: User asked "What are the side effects of Drug Y?"
-Latest: "What is the dosage?"
-Standalone Output: "What is the dosage for Drug Y?"
-
-Rule: ALWAYS output the resolved standalone query with the missing context included. 
-Generate 3 alternative search queries based on the resolved query to improve retrieval.
+Example 2 (Entity shift):
+History:
+User: Tell me about [Entity 1].
+Assistant: [Entity 1] has [Attribute].
+Latest: What about [Entity 2]?
+Standalone: "Tell me about [Entity 2]."
 
 Return ONLY a valid JSON object with this exact structure:
 {
-  "standalone": "<the resolved query>",
+  "standalone": "<the fully resolved standalone query>",
   "expanded": ["<var1>", "<var2>", "<var3>"]
 }
 """
