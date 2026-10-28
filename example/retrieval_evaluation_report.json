@@ -1,41 +1,7 @@
 {
   "config": {
-    "embedding_model": "bekko-embedding-v1-a8m",
-    "provider": "local-onnx",
-    "top_k": 4,
-    "total_chunks": 34,
-    "total_questions": 30,
-    "keyword_mrr_at_k": 0.7554563492063491,
-    "mean_keyword_coverage": 0.8839285714285714,
-    "multi_hop_success_rate": 0.8,
-    "mean_top1_similarity_answerable": 0.6381867059639522,
-    "mean_top1_similarity_unanswerable": 0.6111059784889221
-  },
-  "by_level": {
-    "easy": {
-      "count": 17,
-      "mean_mrr": 0.7647058823529411,
-      "mean_coverage": 0.8823529411764706,
-      "multi_hop_rate": 1.0
-    },
-    "medium": {
-      "count": 5,
-      "mean_mrr": 0.8583333333333334,
-      "mean_coverage": 0.95,
-      "multi_hop_rate": 0.75
-    },
-    "hard": {
-      "count": 5,
-      "mean_mrr": 0.6055555555555556,
-      "mean_coverage": 0.8,
-      "multi_hop_rate": 0.6
-    },
-    "challenging": {
-      "count": 1,
-      "mean_mrr": 0.8333333333333334,
-      "mean_coverage": 1.0,
-      "multi_hop_rate": 0.0
-    }
+    "mrr": 0.8221513605442176,
+    "coverage": 0.9404761904761906
   },
   "questions": [
     {
@@ -46,8 +12,7 @@
       "keyword_mrr_at_k": 0.0,
       "keyword_coverage": 0.0,
       "multi_hop_success": null,
-      "top1_similarity": 0.7029,
-      "tables_in_top_k": 1,
+      "top1_similarity": 6.2388,
       "keyword_details": [
         {
           "keyword": "£500",
@@ -59,35 +24,67 @@
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.7029,
+          "similarity": 6.2388,
           "page": 6,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "7. Customer Segments\n\nNorthstar classifies its customers into four segments based on order volume and purchasing behaviour.\nUnderstanding these segments helps the company tailor its pricing, service l"
+          "text_preview": "Northstar classifies its customers into four segments based on order volume and purchasing behaviour. Understanding these segments helps the company tailor its pricing, service levels, and marketing. "
         },
         {
           "rank": 2,
-          "similarity": 0.6347,
+          "similarity": 4.2284,
+          "page": 6,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "of everyday items such as paper and pens. Schools placed 720 orders in 2025, generating £432,000 in revenue. Although their order count was lower,\ntheir average order value of £600 was above the compa"
+        },
+        {
+          "rank": 3,
+          "similarity": 3.952,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "The figures in this section describe different measures. Revenue represents the total sales value for a\nchannel, while average order value represents the average amount spent per order within that cha"
+        },
+        {
+          "rank": 4,
+          "similarity": 3.7438,
+          "page": 11,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Combined revenue from the Website and Email channels was £1,920,000, representing 80% of the\ncompany's total 2025 revenue. The Website channel alone generated £1,320,000 (55%) and the Email\nchannel ge"
+        },
+        {
+          "rank": 5,
+          "similarity": 2.9345,
           "page": 3,
           "type": "text",
           "matched_keywords": [],
           "text_preview": "The company processed 4,800 orders during 2025. Of these, 1,920 orders came from returning\ncustomers, representing 40% of all orders. Management views repeat purchasing as an important\nindicator of cu"
         },
         {
-          "rank": 3,
-          "similarity": 0.5443,
-          "page": 6,
+          "rank": 6,
+          "similarity": 2.84,
+          "page": 3,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "Independent professionals, such as freelancers and consultants, placed the fewest orders at 240 but\nachieved the highest average order value of £800. They often buy specialised or premium products and"
+          "text_preview": "Sales Channel Analysis\n\nNorthstar received orders through three primary channels in 2025: its website, email, and telephone. The\nwebsite was the largest channel by revenue, accounting for 55% of total"
         },
         {
-          "rank": 4,
-          "similarity": 0.5264,
-          "page": 8,
-          "type": "table",
+          "rank": 7,
+          "similarity": 2.3885,
+          "page": 5,
+          "type": "text",
           "matched_keywords": [],
-          "text_preview": "Table (Page 8)\n\nOrders fulfilled:\n2025 result: 4,800\n2024 result: 4,200\nTarget: 5,000\n\nAverage pick time (minutes):\n2025 result: 12.5\n2024 result: 14.2\nTarget: 12.0\n\nOn-time dispatch %:\n2025 result: 9"
+          "text_preview": "years was steady but slower than the South, partly because the customer base skews toward larger\ncorporate accounts with longer procurement cycles. The East and West regions together contributed 25% o"
+        },
+        {
+          "rank": 8,
+          "similarity": 2.1649,
+          "page": 9,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Email was the most used customer service channel in 2025, handling 1,440 inquiries. The average\nresponse time was 3.2 hours, and the customer satisfaction rating was 4.6 out of 5. Most email inquiries"
         }
       ]
     },
@@ -96,53 +93,84 @@
       "level": "easy",
       "question": "How many people are on Northstar's customer service team?",
       "answerable": true,
-      "keyword_mrr_at_k": 0.5,
+      "keyword_mrr_at_k": 1.0,
       "keyword_coverage": 1.0,
       "multi_hop_success": null,
-      "top1_similarity": 0.5038,
-      "tables_in_top_k": 0,
+      "top1_similarity": 5.0788,
       "keyword_details": [
         {
           "keyword": "eight advisors",
-          "first_rank": 2,
-          "reciprocal_rank": 0.5,
+          "first_rank": 1,
+          "reciprocal_rank": 1.0,
           "found": true
         }
       ],
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.5038,
-          "page": 9,
-          "type": "text",
-          "matched_keywords": [],
-          "text_preview": "12. Marketing and Advertising\n\nNorthstar spent £300,000 on marketing and advertising during 2025. This represents 12.5% of total\nrevenue. The marketing budget is allocated across several channels to r"
-        },
-        {
-          "rank": 2,
-          "similarity": 0.4815,
+          "similarity": 5.0788,
           "page": 8,
           "type": "text",
           "matched_keywords": [
             "eight advisors"
           ],
-          "text_preview": "Pick accuracy, the percentage of orders packed without errors, improved to 98.2% in 2025 from 96.5% in\n2024. The company reduced incorrect items sent to customers by introducing additional packing che"
+          "text_preview": "Customer Service Metrics\n\nCustomer service is provided through the company's website chat, email, and telephone lines. The\ncustomer service team consists of eight advisors who operate during UK busine"
         },
         {
-          "rank": 3,
-          "similarity": 0.4813,
+          "rank": 2,
+          "similarity": 4.5945,
           "page": 2,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "1. Company Overview\n\nNorthstar Office Supplies is a fictional office-products retailer based in Manchester, United Kingdom.\nEstablished in 2018, the company serves small businesses, home offices, scho"
+          "text_preview": "1. Company Overview\n\nNorthstar Office Supplies is a fictional office-products retailer based in Manchester, United Kingdom. Established in 2018, the company serves small businesses, home offices, scho"
         },
         {
-          "rank": 4,
-          "similarity": 0.4544,
+          "rank": 3,
+          "similarity": 0.787,
           "page": 6,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "7. Customer Segments\n\nNorthstar classifies its customers into four segments based on order volume and purchasing behaviour.\nUnderstanding these segments helps the company tailor its pricing, service l"
+          "text_preview": "Northstar classifies its customers into four segments based on order volume and purchasing behaviour. Understanding these segments helps the company tailor its pricing, service levels, and marketing. "
+        },
+        {
+          "rank": 4,
+          "similarity": 0.155,
+          "page": 8,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Northstar fulfilled all 4,800 orders during 2025 from its single warehouse in Manchester. The warehouse\noperates five days a week and employs twelve fulfilment staff. This section summarises the key\no"
+        },
+        {
+          "rank": 5,
+          "similarity": -1.8995,
+          "page": 5,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Northstar sells throughout the United Kingdom and organises its distribution into four regions plus an\nonline-only segment. Each region is supported by a dedicated territory manager who works with loc"
+        },
+        {
+          "rank": 6,
+          "similarity": -1.9237,
+          "page": 9,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Marketing and Advertising\n\nNorthstar spent £300,000 on marketing and advertising during 2025. This represents 12.5% of total\nrevenue. The marketing budget is allocated across several channels to reach"
+        },
+        {
+          "rank": 7,
+          "similarity": -3.2803,
+          "page": 1,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Northstar Office Supplies\n\nAnnual Business Review 2025\n\nA fictional business report covering financial performance, sales channels, customer activity, and\noperational priorities. All company names and"
+        },
+        {
+          "rank": 8,
+          "similarity": -3.5413,
+          "page": 10,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Northstar Office Supplies | Annual Review 2025\nPage 10"
         }
       ]
     },
@@ -151,53 +179,84 @@
       "level": "easy",
       "question": "How many fulfilment staff does Northstar's warehouse employ?",
       "answerable": true,
-      "keyword_mrr_at_k": 0.5,
+      "keyword_mrr_at_k": 1.0,
       "keyword_coverage": 1.0,
       "multi_hop_success": null,
-      "top1_similarity": 0.6333,
-      "tables_in_top_k": 0,
+      "top1_similarity": 7.2472,
       "keyword_details": [
         {
           "keyword": "twelve fulfilment staff",
-          "first_rank": 2,
-          "reciprocal_rank": 0.5,
+          "first_rank": 1,
+          "reciprocal_rank": 1.0,
           "found": true
         }
       ],
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.6333,
-          "page": 2,
-          "type": "text",
-          "matched_keywords": [],
-          "text_preview": "1. Company Overview\n\nNorthstar Office Supplies is a fictional office-products retailer based in Manchester, United Kingdom.\nEstablished in 2018, the company serves small businesses, home offices, scho"
-        },
-        {
-          "rank": 2,
-          "similarity": 0.5417,
+          "similarity": 7.2472,
           "page": 8,
           "type": "text",
           "matched_keywords": [
             "twelve fulfilment staff"
           ],
-          "text_preview": "The HP Black Toner and Ballpoint Pen Black were the second and third best sellers respectively. Together\nthey generated £155,000 in revenue. Printer supplies and writing instruments are among the most"
+          "text_preview": "Northstar fulfilled all 4,800 orders during 2025 from its single warehouse in Manchester. The warehouse\noperates five days a week and employs twelve fulfilment staff. This section summarises the key\no"
         },
         {
-          "rank": 3,
-          "similarity": 0.5081,
+          "rank": 2,
+          "similarity": 4.7481,
           "page": 2,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "Operating expenses reached £708,000 in 2025 and included staff costs, warehouse expenses, software\nsubscriptions, marketing, and administration. After these operating expenses were deducted from gross"
+          "text_preview": "1. Company Overview\n\nNorthstar Office Supplies is a fictional office-products retailer based in Manchester, United Kingdom. Established in 2018, the company serves small businesses, home offices, scho"
+        },
+        {
+          "rank": 3,
+          "similarity": -2.9303,
+          "page": 5,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Northstar sells throughout the United Kingdom and organises its distribution into four regions plus an\nonline-only segment. Each region is supported by a dedicated territory manager who works with loc"
         },
         {
           "rank": 4,
-          "similarity": 0.4905,
-          "page": 1,
+          "similarity": -3.0621,
+          "page": 8,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "Northstar Office Supplies\n\nAnnual Business Review 2025\n\nA fictional business report covering financial performance, sales channels, customer activity, and\noperational priorities. All company names and"
+          "text_preview": "Customer Service Metrics\n\nCustomer service is provided through the company's website chat, email, and telephone lines. The\ncustomer service team consists of eight advisors who operate during UK busine"
+        },
+        {
+          "rank": 5,
+          "similarity": -5.1345,
+          "page": 4,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Revenue rose from £555,000 to £720,000 between 2023 and\n\nNorthstar Office Supplies | Annual Review 2025\nPage 4"
+        },
+        {
+          "rank": 6,
+          "similarity": -5.663,
+          "page": 11,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Northstar Office Supplies | Annual Review 2025\nPage 11"
+        },
+        {
+          "rank": 7,
+          "similarity": -5.6787,
+          "page": 10,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Northstar Office Supplies | Annual Review 2025\nPage 10"
+        },
+        {
+          "rank": 8,
+          "similarity": -5.6844,
+          "page": 5,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Northstar Office Supplies | Annual Review 2025\nPage 5"
         }
       ]
     },
@@ -206,53 +265,84 @@
       "level": "easy",
       "question": "Into how many product categories does Northstar organise its catalogue?",
       "answerable": true,
-      "keyword_mrr_at_k": 0.5,
+      "keyword_mrr_at_k": 1.0,
       "keyword_coverage": 1.0,
       "multi_hop_success": null,
-      "top1_similarity": 0.5959,
-      "tables_in_top_k": 0,
+      "top1_similarity": 9.0056,
       "keyword_details": [
         {
           "keyword": "five product categories",
-          "first_rank": 2,
-          "reciprocal_rank": 0.5,
+          "first_rank": 1,
+          "reciprocal_rank": 1.0,
           "found": true
         }
       ],
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.5959,
-          "page": 2,
-          "type": "text",
-          "matched_keywords": [],
-          "text_preview": "1. Company Overview\n\nNorthstar Office Supplies is a fictional office-products retailer based in Manchester, United Kingdom.\nEstablished in 2018, the company serves small businesses, home offices, scho"
-        },
-        {
-          "rank": 2,
-          "similarity": 0.5954,
+          "similarity": 9.0056,
           "page": 4,
           "type": "text",
           "matched_keywords": [
             "five product categories"
           ],
-          "text_preview": "4. Key Financial Definitions\n\nRevenue: The total value of sales generated during a reporting period before deducting business\nexpenses.\n\nCost of goods sold: The direct cost associated with the product"
+          "text_preview": "Product Category Performance\n\nNorthstar organises its catalogue into five product categories. Tracking these categories helps\nmanagement see which products are driving growth and which may need more p"
+        },
+        {
+          "rank": 2,
+          "similarity": 3.7671,
+          "page": 2,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "1. Company Overview\n\nNorthstar Office Supplies is a fictional office-products retailer based in Manchester, United Kingdom. Established in 2018, the company serves small businesses, home offices, scho"
         },
         {
           "rank": 3,
-          "similarity": 0.5883,
-          "page": 1,
+          "similarity": 2.2745,
+          "page": 6,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "Northstar Office Supplies\n\nAnnual Business Review 2025\n\nA fictional business report covering financial performance, sales channels, customer activity, and\noperational priorities. All company names and"
+          "text_preview": "Northstar classifies its customers into four segments based on order volume and purchasing behaviour. Understanding these segments helps the company tailor its pricing, service levels, and marketing. "
         },
         {
           "rank": 4,
-          "similarity": 0.5499,
-          "page": 9,
+          "similarity": 2.0885,
+          "page": 5,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "12. Marketing and Advertising\n\nNorthstar spent £300,000 on marketing and advertising during 2025. This represents 12.5% of total\nrevenue. The marketing budget is allocated across several channels to r"
+          "text_preview": "Northstar sells throughout the United Kingdom and organises its distribution into four regions plus an\nonline-only segment. Each region is supported by a dedicated territory manager who works with loc"
+        },
+        {
+          "rank": 5,
+          "similarity": 2.0005,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Sales Channel Analysis\n\nNorthstar received orders through three primary channels in 2025: its website, email, and telephone. The\nwebsite was the largest channel by revenue, accounting for 55% of total"
+        },
+        {
+          "rank": 6,
+          "similarity": 0.3094,
+          "page": 7,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Top-Selling Products\n\nThis section lists the products that generated the most revenue for Northstar in 2025. These items account\nfor a large share of total sales and are closely monitored for stock av"
+        },
+        {
+          "rank": 7,
+          "similarity": -4.2707,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "The figures in this section describe different measures. Revenue represents the total sales value for a\nchannel, while average order value represents the average amount spent per order within that cha"
+        },
+        {
+          "rank": 8,
+          "similarity": -4.8688,
+          "page": 6,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Northstar Office Supplies | Annual Review 2025\nPage 6"
         }
       ]
     },
@@ -261,11 +351,10 @@
       "level": "easy",
       "question": "How many customer service channels are listed in the customer service table?",
       "answerable": true,
-      "keyword_mrr_at_k": 1.0,
+      "keyword_mrr_at_k": 0.5833,
       "keyword_coverage": 1.0,
-      "multi_hop_success": true,
-      "top1_similarity": 0.4649,
-      "tables_in_top_k": 2,
+      "multi_hop_success": false,
+      "top1_similarity": 1.6476,
       "keyword_details": [
         {
           "keyword": "Email",
@@ -281,61 +370,93 @@
         },
         {
           "keyword": "Web chat",
-          "first_rank": 1,
-          "reciprocal_rank": 1.0,
+          "first_rank": 6,
+          "reciprocal_rank": 0.1667,
           "found": true
         },
         {
           "keyword": "In-person",
-          "first_rank": 1,
-          "reciprocal_rank": 1.0,
+          "first_rank": 6,
+          "reciprocal_rank": 0.1667,
           "found": true
         }
       ],
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.4649,
+          "similarity": 1.6476,
           "page": 9,
           "type": "text",
           "matched_keywords": [
             "Email",
-            "Phone",
-            "Web chat",
-            "In-person"
+            "Phone"
           ],
           "text_preview": "Email was the most used customer service channel in 2025, handling 1,440 inquiries. The average\nresponse time was 3.2 hours, and the customer satisfaction rating was 4.6 out of 5. Most email inquiries"
         },
         {
           "rank": 2,
-          "similarity": 0.412,
+          "similarity": 0.1061,
           "page": 3,
-          "type": "table",
-          "matched_keywords": [
-            "Email"
-          ],
-          "text_preview": "Table (Page 3)\n\nWebsite:\nRevenue: £1,320,000\nShare of sales: 55%\nAverage order: £82\n\nEmail:\nRevenue: £600,000\nShare of sales: 25%\nAverage order: £116\n\nTelephone:\nRevenue: £480,000\nShare of sales: 20%\n"
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "This channel was often used by small\nbusinesses that requested quotes, combined several product categories into one order, or needed\nassistance confirming product specifications. Customer service staf"
         },
         {
           "rank": 3,
-          "similarity": 0.3938,
-          "page": 9,
-          "type": "table",
+          "similarity": -1.7044,
+          "page": 8,
+          "type": "text",
           "matched_keywords": [
-            "Email",
-            "Phone",
-            "Web chat",
-            "In-person"
+            "Email"
           ],
-          "text_preview": "Table (Page 9)\n\nEmail:\nVolume 2025: 1,440\nResponse time: 3.2 hours\nSatisfaction: 4.6 / 5\n\nPhone:\nVolume 2025: 960\nResponse time: 28 seconds\nSatisfaction: 4.5 / 5\n\nWeb chat:\nVolume 2025: 720\nResponse t"
+          "text_preview": "Customer Service Metrics\n\nCustomer service is provided through the company's website chat, email, and telephone lines. The\ncustomer service team consists of eight advisors who operate during UK busine"
         },
         {
           "rank": 4,
-          "similarity": 0.3784,
+          "similarity": -2.6954,
+          "page": 11,
+          "type": "text",
+          "matched_keywords": [
+            "Email"
+          ],
+          "text_preview": "Combined revenue from the Website and Email channels was £1,920,000, representing 80% of the\ncompany's total 2025 revenue. The Website channel alone generated £1,320,000 (55%) and the Email\nchannel ge"
+        },
+        {
+          "rank": 5,
+          "similarity": -2.8609,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [
+            "Email"
+          ],
+          "text_preview": "Sales Channel Analysis\n\nNorthstar received orders through three primary channels in 2025: its website, email, and telephone. The\nwebsite was the largest channel by revenue, accounting for 55% of total"
+        },
+        {
+          "rank": 6,
+          "similarity": -3.5919,
+          "page": 9,
+          "type": "text",
+          "matched_keywords": [
+            "Web chat",
+            "In-person"
+          ],
+          "text_preview": "Web chat, introduced in 2024, handled 720 conversations in 2025. Its average response time of less than\none minute made it the fastest channel. It achieved the highest satisfaction rating at 4.7 out o"
+        },
+        {
+          "rank": 7,
+          "similarity": -6.7979,
           "page": 3,
           "type": "text",
           "matched_keywords": [],
           "text_preview": "The company processed 4,800 orders during 2025. Of these, 1,920 orders came from returning\ncustomers, representing 40% of all orders. Management views repeat purchasing as an important\nindicator of cu"
+        },
+        {
+          "rank": 8,
+          "similarity": -7.073,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "The figures in this section describe different measures. Revenue represents the total sales value for a\nchannel, while average order value represents the average amount spent per order within that cha"
         }
       ]
     },
@@ -347,8 +468,7 @@
       "keyword_mrr_at_k": 1.0,
       "keyword_coverage": 1.0,
       "multi_hop_success": true,
-      "top1_similarity": 0.6039,
-      "tables_in_top_k": 1,
+      "top1_similarity": 7.0221,
       "keyword_details": [
         {
           "keyword": "Telephone",
@@ -366,7 +486,7 @@
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.6039,
+          "similarity": 7.0221,
           "page": 11,
           "type": "text",
           "matched_keywords": [
@@ -377,32 +497,61 @@
         },
         {
           "rank": 2,
-          "similarity": 0.5926,
+          "similarity": 6.7326,
+          "page": 6,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "of everyday items such as paper and pens. Schools placed 720 orders in 2025, generating £432,000 in revenue. Although their order count was lower,\ntheir average order value of £600 was above the compa"
+        },
+        {
+          "rank": 3,
+          "similarity": 5.5475,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [
+            "Telephone"
+          ],
+          "text_preview": "Sales Channel Analysis\n\nNorthstar received orders through three primary channels in 2025: its website, email, and telephone. The\nwebsite was the largest channel by revenue, accounting for 55% of total"
+        },
+        {
+          "rank": 4,
+          "similarity": 5.5105,
+          "page": 6,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Northstar classifies its customers into four segments based on order volume and purchasing behaviour. Understanding these segments helps the company tailor its pricing, service levels, and marketing. "
+        },
+        {
+          "rank": 5,
+          "similarity": 5.4627,
+          "page": 8,
+          "type": "table",
+          "matched_keywords": [],
+          "text_preview": "Table (Page 8)\n\nOrders fulfilled:\n2025 result: 4,800\n2024 result: 4,200\nTarget: 5,000\n\nAverage pick time (minutes):\n2025 result: 12.5\n2024 result: 14.2\nTarget: 12.0\n\nOn-time dispatch %:\n2025 result: 9"
+        },
+        {
+          "rank": 6,
+          "similarity": 3.7276,
           "page": 3,
           "type": "text",
           "matched_keywords": [],
           "text_preview": "The company processed 4,800 orders during 2025. Of these, 1,920 orders came from returning\ncustomers, representing 40% of all orders. Management views repeat purchasing as an important\nindicator of cu"
         },
         {
-          "rank": 3,
-          "similarity": 0.5821,
-          "page": 3,
+          "rank": 7,
+          "similarity": 3.6344,
+          "page": 9,
           "type": "text",
-          "matched_keywords": [
-            "Telephone"
-          ],
-          "text_preview": "Email orders had a higher average order value than website orders. This channel was often used by small\nbusinesses that requested quotes, combined several product categories into one order, or needed\n"
+          "matched_keywords": [],
+          "text_preview": "Email was the most used customer service channel in 2025, handling 1,440 inquiries. The average\nresponse time was 3.2 hours, and the customer satisfaction rating was 4.6 out of 5. Most email inquiries"
         },
         {
-          "rank": 4,
-          "similarity": 0.5581,
-          "page": 10,
-          "type": "table",
-          "matched_keywords": [
-            "Telephone",
-            "£143"
-          ],
-          "text_preview": "Table (Page 10)\n\nRevenue growth:\n2025 value: £300,000\nCalculation: £2,400,000 - £2,100,000\n\nRevenue growth %:\n2025 value: 14.3%\nCalculation: £300,000 / £2,100,000\n\nCOGS growth:\n2025 value: £156,000\nCa"
+          "rank": 8,
+          "similarity": 3.2336,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "The figures in this section describe different measures. Revenue represents the total sales value for a\nchannel, while average order value represents the average amount spent per order within that cha"
         }
       ]
     },
@@ -414,8 +563,7 @@
       "keyword_mrr_at_k": 1.0,
       "keyword_coverage": 1.0,
       "multi_hop_success": true,
-      "top1_similarity": 0.5612,
-      "tables_in_top_k": 2,
+      "top1_similarity": 5.3598,
       "keyword_details": [
         {
           "keyword": "Website",
@@ -433,18 +581,18 @@
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.5612,
+          "similarity": 5.3598,
           "page": 3,
           "type": "text",
           "matched_keywords": [
             "Website",
             "55%"
           ],
-          "text_preview": "Operating profit increased by £66,000 compared with 2024, when it was £210,000. Management\nconsidered this improvement encouraging but noted that higher sales volumes also increased warehouse\nworkload"
+          "text_preview": "Sales Channel Analysis\n\nNorthstar received orders through three primary channels in 2025: its website, email, and telephone. The\nwebsite was the largest channel by revenue, accounting for 55% of total"
         },
         {
           "rank": 2,
-          "similarity": 0.5286,
+          "similarity": 4.3582,
           "page": 11,
           "type": "text",
           "matched_keywords": [
@@ -455,19 +603,51 @@
         },
         {
           "rank": 3,
-          "similarity": 0.5082,
+          "similarity": 0.907,
+          "page": 9,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Web chat, introduced in 2024, handled 720 conversations in 2025. Its average response time of less than\none minute made it the fastest channel. It achieved the highest satisfaction rating at 4.7 out o"
+        },
+        {
+          "rank": 4,
+          "similarity": 0.8543,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "The figures in this section describe different measures. Revenue represents the total sales value for a\nchannel, while average order value represents the average amount spent per order within that cha"
+        },
+        {
+          "rank": 5,
+          "similarity": -0.2361,
           "page": 9,
           "type": "table",
           "matched_keywords": [],
           "text_preview": "Table (Page 9)\n\nDigital advertising:\n2025 spend: £180,000\nShare: 60%\nROI (est.): 3.2x\n\nPrint advertising:\n2025 spend: £48,000\nShare: 16%\nROI (est.): 1.8x\n\nTrade shows:\n2025 spend: £36,000\nShare: 12%\nR"
         },
         {
-          "rank": 4,
-          "similarity": 0.5058,
-          "page": 5,
-          "type": "table",
+          "rank": 6,
+          "similarity": -0.3778,
+          "page": 7,
+          "type": "text",
           "matched_keywords": [],
-          "text_preview": "Table (Page 5)\n\nNorth:\n2023: £560,000\n2024: £640,000\n2025: £720,000\n2025 share: 30%\n\nSouth:\n2023: £740,000\n2024: £840,000\n2025: £960,000\n2025 share: 40%\n\nEast:\n2023: £280,000\n2024: £320,000\n2025: £360"
+          "text_preview": "Top-Selling Products\n\nThis section lists the products that generated the most revenue for Northstar in 2025. These items account\nfor a large share of total sales and are closely monitored for stock av"
+        },
+        {
+          "rank": 7,
+          "similarity": -0.662,
+          "page": 10,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Digital advertising received the largest share of the marketing budget at £180,000, representing 60% of\ntotal spend. This channel focuses on Google and Facebook ads targeting small businesses and home"
+        },
+        {
+          "rank": 8,
+          "similarity": -0.6766,
+          "page": 9,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Email was the most used customer service channel in 2025, handling 1,440 inquiries. The average\nresponse time was 3.2 hours, and the customer satisfaction rating was 4.6 out of 5. Most email inquiries"
         }
       ]
     },
@@ -479,8 +659,7 @@
       "keyword_mrr_at_k": 1.0,
       "keyword_coverage": 1.0,
       "multi_hop_success": true,
-      "top1_similarity": 0.7043,
-      "tables_in_top_k": 0,
+      "top1_similarity": 8.6898,
       "keyword_details": [
         {
           "keyword": "2,400",
@@ -498,40 +677,75 @@
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.7043,
+          "similarity": 8.6898,
           "page": 6,
           "type": "text",
           "matched_keywords": [
             "2,400",
             "small businesses"
           ],
-          "text_preview": "7. Customer Segments\n\nNorthstar classifies its customers into four segments based on order volume and purchasing behaviour.\nUnderstanding these segments helps the company tailor its pricing, service l"
+          "text_preview": "Northstar classifies its customers into four segments based on order volume and purchasing behaviour. Understanding these segments helps the company tailor its pricing, service levels, and marketing. "
         },
         {
           "rank": 2,
-          "similarity": 0.5507,
+          "similarity": 3.8925,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "The company processed 4,800 orders during 2025. Of these, 1,920 orders came from returning\ncustomers, representing 40% of all orders. Management views repeat purchasing as an important\nindicator of cu"
+        },
+        {
+          "rank": 3,
+          "similarity": 3.7902,
+          "page": 6,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "of everyday items such as paper and pens. Schools placed 720 orders in 2025, generating £432,000 in revenue. Although their order count was lower,\ntheir average order value of £600 was above the compa"
+        },
+        {
+          "rank": 4,
+          "similarity": 2.4528,
+          "page": 5,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "years was steady but slower than the South, partly because the customer base skews toward larger\ncorporate accounts with longer procurement cycles. The East and West regions together contributed 25% o"
+        },
+        {
+          "rank": 5,
+          "similarity": 2.338,
+          "page": 8,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Northstar fulfilled all 4,800 orders during 2025 from its single warehouse in Manchester. The warehouse\noperates five days a week and employs twelve fulfilment staff. This section summarises the key\no"
+        },
+        {
+          "rank": 6,
+          "similarity": 1.9354,
           "page": 5,
           "type": "text",
           "matched_keywords": [
             "small businesses"
           ],
-          "text_preview": "The South region, which includes London and the surrounding metropolitan area, delivered £960,000 in\nrevenue in 2025. This represented 40% of the company's total sales. The region benefits from a high"
+          "text_preview": "Northstar sells throughout the United Kingdom and organises its distribution into four regions plus an\nonline-only segment. Each region is supported by a dedicated territory manager who works with loc"
         },
         {
-          "rank": 3,
-          "similarity": 0.5476,
+          "rank": 7,
+          "similarity": 1.354,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Sales Channel Analysis\n\nNorthstar received orders through three primary channels in 2025: its website, email, and telephone. The\nwebsite was the largest channel by revenue, accounting for 55% of total"
+        },
+        {
+          "rank": 8,
+          "similarity": 1.2707,
           "page": 6,
-          "type": "text",
-          "matched_keywords": [],
-          "text_preview": "Independent professionals, such as freelancers and consultants, placed the fewest orders at 240 but\nachieved the highest average order value of £800. They often buy specialised or premium products and"
-        },
-        {
-          "rank": 4,
-          "similarity": 0.5389,
-          "page": 5,
-          "type": "text",
-          "matched_keywords": [],
-          "text_preview": "2025. Management expects continued demand as customers install new printers and maintain existing\nhardware throughout the year.\n\nWriting instruments include pens, pencils, markers, and correction prod"
+          "type": "table",
+          "matched_keywords": [
+            "2,400",
+            "small businesses"
+          ],
+          "text_preview": "Table (Page 6)\n\nSmall businesses:\nOrders: 2,400\nShare: 50%\nRevenue: £1,200,000\nAvg order: £500\n\nHome offices:\nOrders: 1,440\nShare: 30%\nRevenue: £576,000\nAvg order: £400\n\nSchools:\nOrders: 720\nShare: 15"
         }
       ]
     },
@@ -543,8 +757,7 @@
       "keyword_mrr_at_k": 1.0,
       "keyword_coverage": 1.0,
       "multi_hop_success": true,
-      "top1_similarity": 0.7292,
-      "tables_in_top_k": 0,
+      "top1_similarity": 9.1544,
       "keyword_details": [
         {
           "keyword": "South",
@@ -562,40 +775,72 @@
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.7292,
+          "similarity": 9.1544,
           "page": 5,
           "type": "text",
           "matched_keywords": [
             "South",
             "£960,000"
           ],
-          "text_preview": "The South region, which includes London and the surrounding metropolitan area, delivered £960,000 in\nrevenue in 2025. This represented 40% of the company's total sales. The region benefits from a high"
+          "text_preview": "Northstar sells throughout the United Kingdom and organises its distribution into four regions plus an\nonline-only segment. Each region is supported by a dedicated territory manager who works with loc"
         },
         {
           "rank": 2,
-          "similarity": 0.6695,
-          "page": 10,
+          "similarity": 5.0619,
+          "page": 4,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "Revenue increased by £300,000 from 2024 to 2025, rising from £2,100,000 to £2,400,000. This represents\na percentage increase of approximately 14.3%.\n\nCost of goods sold increased by £156,000, rising f"
+          "text_preview": "Revenue rose from £555,000 to £720,000 between 2023 and\n\nNorthstar Office Supplies | Annual Review 2025\nPage 4"
         },
         {
           "rank": 3,
-          "similarity": 0.6343,
-          "page": 5,
-          "type": "text",
-          "matched_keywords": [
-            "South"
-          ],
-          "text_preview": "2025. Management expects continued demand as customers install new printers and maintain existing\nhardware throughout the year.\n\nWriting instruments include pens, pencils, markers, and correction prod"
-        },
-        {
-          "rank": 4,
-          "similarity": 0.6085,
+          "similarity": 4.6464,
           "page": 9,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "12. Marketing and Advertising\n\nNorthstar spent £300,000 on marketing and advertising during 2025. This represents 12.5% of total\nrevenue. The marketing budget is allocated across several channels to r"
+          "text_preview": "Marketing and Advertising\n\nNorthstar spent £300,000 on marketing and advertising during 2025. This represents 12.5% of total\nrevenue. The marketing budget is allocated across several channels to reach"
+        },
+        {
+          "rank": 4,
+          "similarity": 4.0716,
+          "page": 4,
+          "type": "text",
+          "matched_keywords": [
+            "£960,000"
+          ],
+          "text_preview": "Product Category Performance\n\nNorthstar organises its catalogue into five product categories. Tracking these categories helps\nmanagement see which products are driving growth and which may need more p"
+        },
+        {
+          "rank": 5,
+          "similarity": 4.0119,
+          "page": 6,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Northstar classifies its customers into four segments based on order volume and purchasing behaviour. Understanding these segments helps the company tailor its pricing, service levels, and marketing. "
+        },
+        {
+          "rank": 6,
+          "similarity": 3.5438,
+          "page": 7,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Top-Selling Products\n\nThis section lists the products that generated the most revenue for Northstar in 2025. These items account\nfor a large share of total sales and are closely monitored for stock av"
+        },
+        {
+          "rank": 7,
+          "similarity": 3.2369,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Sales Channel Analysis\n\nNorthstar received orders through three primary channels in 2025: its website, email, and telephone. The\nwebsite was the largest channel by revenue, accounting for 55% of total"
+        },
+        {
+          "rank": 8,
+          "similarity": 1.4027,
+          "page": 7,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Quarterly revenue grew from £540,000 in the first quarter to £648,000 in the fourth quarter. This\nrepresents an increase of £108,000 between the opening and closing quarters. The steady upward trend\ni"
         }
       ]
     },
@@ -607,8 +852,7 @@
       "keyword_mrr_at_k": 1.0,
       "keyword_coverage": 1.0,
       "multi_hop_success": null,
-      "top1_similarity": 0.6216,
-      "tables_in_top_k": 2,
+      "top1_similarity": 6.7422,
       "keyword_details": [
         {
           "keyword": "HP Black Toner",
@@ -620,17 +864,7 @@
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.6216,
-          "page": 8,
-          "type": "text",
-          "matched_keywords": [
-            "HP Black Toner"
-          ],
-          "text_preview": "The HP Black Toner and Ballpoint Pen Black were the second and third best sellers respectively. Together\nthey generated £155,000 in revenue. Printer supplies and writing instruments are among the most"
-        },
-        {
-          "rank": 2,
-          "similarity": 0.5025,
+          "similarity": 6.7422,
           "page": 7,
           "type": "table",
           "matched_keywords": [
@@ -639,20 +873,62 @@
           "text_preview": "Table (Page 7)\n\nA4 Copy Paper 500 sheets:\nUnits sold: 5,000\nUnit price: £20\nRevenue: £100,000\n\nHP Black Toner:\nUnits sold: 2,000\nUnit price: £40\nRevenue: £80,000\n\nBallpoint Pen Black (12 pack):\nUnits "
         },
         {
+          "rank": 2,
+          "similarity": 0.2347,
+          "page": 8,
+          "type": "text",
+          "matched_keywords": [
+            "HP Black Toner"
+          ],
+          "text_preview": "The HP Black Toner and Ballpoint Pen Black were the second and third best sellers respectively. Together\nthey generated £155,000 in revenue. Printer supplies and writing instruments are among the most"
+        },
+        {
           "rank": 3,
-          "similarity": 0.4441,
+          "similarity": -1.8752,
+          "page": 7,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Top-Selling Products\n\nThis section lists the products that generated the most revenue for Northstar in 2025. These items account\nfor a large share of total sales and are closely monitored for stock av"
+        },
+        {
+          "rank": 4,
+          "similarity": -2.946,
+          "page": 2,
+          "type": "table",
+          "matched_keywords": [],
+          "text_preview": "Table (Page 2)\n\nRevenue:\n2023: £1,850,000\n2024: £2,100,000\n2025: £2,400,000\n\nCost of goods sold:\n2023: £1,110,000\n2024: £1,260,000\n2025: £1,416,000\n\nGross profit:\n2023: £740,000\n2024: £840,000\n2025: £"
+        },
+        {
+          "rank": 5,
+          "similarity": -3.1231,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "The company processed 4,800 orders during 2025. Of these, 1,920 orders came from returning\ncustomers, representing 40% of all orders. Management views repeat purchasing as an important\nindicator of cu"
+        },
+        {
+          "rank": 6,
+          "similarity": -4.2295,
           "page": 4,
           "type": "table",
           "matched_keywords": [],
           "text_preview": "Table (Page 4)\n\nPaper products:\n2023: £740,000\n2024: £840,000\n2025: £960,000\n2025 share: 40%\n\nPrinter supplies:\n2023: £555,000\n2024: £630,000\n2025: £720,000\n2025 share: 30%\n\nWriting instruments:\n2023:"
         },
         {
-          "rank": 4,
-          "similarity": 0.4334,
-          "page": 5,
+          "rank": 7,
+          "similarity": -4.4669,
+          "page": 6,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "2025. Management expects continued demand as customers install new printers and maintain existing\nhardware throughout the year.\n\nWriting instruments include pens, pencils, markers, and correction prod"
+          "text_preview": "Northstar classifies its customers into four segments based on order volume and purchasing behaviour. Understanding these segments helps the company tailor its pricing, service levels, and marketing. "
+        },
+        {
+          "rank": 8,
+          "similarity": -4.543,
+          "page": 10,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Revenue increased by £300,000 from 2024 to 2025, rising from £2,100,000 to £2,400,000. This represents\na percentage increase of approximately 14.3%. Cost of goods sold increased by £156,000, rising fr"
         }
       ]
     },
@@ -664,8 +940,7 @@
       "keyword_mrr_at_k": 1.0,
       "keyword_coverage": 1.0,
       "multi_hop_success": true,
-      "top1_similarity": 0.6376,
-      "tables_in_top_k": 1,
+      "top1_similarity": 7.253,
       "keyword_details": [
         {
           "keyword": "98.2%",
@@ -683,34 +958,18 @@
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.6376,
+          "similarity": 7.253,
           "page": 8,
           "type": "text",
           "matched_keywords": [
             "98.2%",
             "pick accuracy"
           ],
-          "text_preview": "Pick accuracy, the percentage of orders packed without errors, improved to 98.2% in 2025 from 96.5% in\n2024. The company reduced incorrect items sent to customers by introducing additional packing che"
+          "text_preview": "Northstar fulfilled all 4,800 orders during 2025 from its single warehouse in Manchester. The warehouse\noperates five days a week and employs twelve fulfilment staff. This section summarises the key\no"
         },
         {
           "rank": 2,
-          "similarity": 0.5213,
-          "page": 9,
-          "type": "text",
-          "matched_keywords": [],
-          "text_preview": "12. Marketing and Advertising\n\nNorthstar spent £300,000 on marketing and advertising during 2025. This represents 12.5% of total\nrevenue. The marketing budget is allocated across several channels to r"
-        },
-        {
-          "rank": 3,
-          "similarity": 0.516,
-          "page": 7,
-          "type": "text",
-          "matched_keywords": [],
-          "text_preview": "Quarterly revenue grew from £540,000 in the first quarter to £648,000 in the fourth quarter. This\nrepresents an increase of £108,000 between the opening and closing quarters. The steady upward trend\ni"
-        },
-        {
-          "rank": 4,
-          "similarity": 0.5056,
+          "similarity": 5.9641,
           "page": 8,
           "type": "table",
           "matched_keywords": [
@@ -718,6 +977,54 @@
             "pick accuracy"
           ],
           "text_preview": "Table (Page 8)\n\nOrders fulfilled:\n2025 result: 4,800\n2024 result: 4,200\nTarget: 5,000\n\nAverage pick time (minutes):\n2025 result: 12.5\n2024 result: 14.2\nTarget: 12.0\n\nOn-time dispatch %:\n2025 result: 9"
+        },
+        {
+          "rank": 3,
+          "similarity": 2.1159,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Sales Channel Analysis\n\nNorthstar received orders through three primary channels in 2025: its website, email, and telephone. The\nwebsite was the largest channel by revenue, accounting for 55% of total"
+        },
+        {
+          "rank": 4,
+          "similarity": 1.2231,
+          "page": 5,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Northstar sells throughout the United Kingdom and organises its distribution into four regions plus an\nonline-only segment. Each region is supported by a dedicated territory manager who works with loc"
+        },
+        {
+          "rank": 5,
+          "similarity": 1.1056,
+          "page": 9,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Marketing and Advertising\n\nNorthstar spent £300,000 on marketing and advertising during 2025. This represents 12.5% of total\nrevenue. The marketing budget is allocated across several channels to reach"
+        },
+        {
+          "rank": 6,
+          "similarity": -1.2195,
+          "page": 7,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Top-Selling Products\n\nThis section lists the products that generated the most revenue for Northstar in 2025. These items account\nfor a large share of total sales and are closely monitored for stock av"
+        },
+        {
+          "rank": 7,
+          "similarity": -1.9224,
+          "page": 8,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Customer Service Metrics\n\nCustomer service is provided through the company's website chat, email, and telephone lines. The\ncustomer service team consists of eight advisors who operate during UK busine"
+        },
+        {
+          "rank": 8,
+          "similarity": -3.4236,
+          "page": 2,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Northstar Office Supplies | Annual Review 2025\nPage 2"
         }
       ]
     },
@@ -729,8 +1036,7 @@
       "keyword_mrr_at_k": 1.0,
       "keyword_coverage": 1.0,
       "multi_hop_success": true,
-      "top1_similarity": 0.5675,
-      "tables_in_top_k": 1,
+      "top1_similarity": 8.7149,
       "keyword_details": [
         {
           "keyword": "94.8%",
@@ -748,7 +1054,7 @@
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.5675,
+          "similarity": 8.7149,
           "page": 8,
           "type": "table",
           "matched_keywords": [
@@ -759,30 +1065,62 @@
         },
         {
           "rank": 2,
-          "similarity": 0.4795,
+          "similarity": 6.1908,
           "page": 8,
           "type": "text",
           "matched_keywords": [
             "94.8%",
             "on-time dispatch"
           ],
-          "text_preview": "The HP Black Toner and Ballpoint Pen Black were the second and third best sellers respectively. Together\nthey generated £155,000 in revenue. Printer supplies and writing instruments are among the most"
+          "text_preview": "Northstar fulfilled all 4,800 orders during 2025 from its single warehouse in Manchester. The warehouse\noperates five days a week and employs twelve fulfilment staff. This section summarises the key\no"
         },
         {
           "rank": 3,
-          "similarity": 0.4435,
-          "page": 2,
-          "type": "text",
-          "matched_keywords": [],
-          "text_preview": "These changes were intended to reduce dispatch delays and prevent incorrect items from being sent to\ncustomers. Although the business continued to experience occasional supplier delays, management\nrep"
-        },
-        {
-          "rank": 4,
-          "similarity": 0.4434,
+          "similarity": 1.2019,
           "page": 8,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "Pick accuracy, the percentage of orders packed without errors, improved to 98.2% in 2025 from 96.5% in\n2024. The company reduced incorrect items sent to customers by introducing additional packing che"
+          "text_preview": "2024. The company reduced incorrect items sent to customers by introducing additional packing checks\nbefore parcels leave the warehouse, as noted in the company overview above. The return rate fell fr"
+        },
+        {
+          "rank": 4,
+          "similarity": 0.6188,
+          "page": 2,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "The company reviewed its most frequently ordered products, adjusted\nstock levels for selected items, and introduced additional checks before parcels left the warehouse. These changes were intended to "
+        },
+        {
+          "rank": 5,
+          "similarity": -0.0633,
+          "page": 9,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Web chat, introduced in 2024, handled 720 conversations in 2025. Its average response time of less than\none minute made it the fastest channel. It achieved the highest satisfaction rating at 4.7 out o"
+        },
+        {
+          "rank": 6,
+          "similarity": -0.7758,
+          "page": 9,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Email was the most used customer service channel in 2025, handling 1,440 inquiries. The average\nresponse time was 3.2 hours, and the customer satisfaction rating was 4.6 out of 5. Most email inquiries"
+        },
+        {
+          "rank": 7,
+          "similarity": -1.6245,
+          "page": 9,
+          "type": "table",
+          "matched_keywords": [],
+          "text_preview": "Table (Page 9)\n\nEmail:\nVolume 2025: 1,440\nResponse time: 3.2 hours\nSatisfaction: 4.6 / 5\n\nPhone:\nVolume 2025: 960\nResponse time: 28 seconds\nSatisfaction: 4.5 / 5\n\nWeb chat:\nVolume 2025: 720\nResponse t"
+        },
+        {
+          "rank": 8,
+          "similarity": -2.3077,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "The company processed 4,800 orders during 2025. Of these, 1,920 orders came from returning\ncustomers, representing 40% of all orders. Management views repeat purchasing as an important\nindicator of cu"
         }
       ]
     },
@@ -794,8 +1132,7 @@
       "keyword_mrr_at_k": 1.0,
       "keyword_coverage": 1.0,
       "multi_hop_success": null,
-      "top1_similarity": 0.612,
-      "tables_in_top_k": 2,
+      "top1_similarity": 9.7292,
       "keyword_details": [
         {
           "keyword": "Ballpoint Pen Black",
@@ -807,7 +1144,7 @@
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.612,
+          "similarity": 9.7292,
           "page": 7,
           "type": "table",
           "matched_keywords": [
@@ -817,7 +1154,7 @@
         },
         {
           "rank": 2,
-          "similarity": 0.3786,
+          "similarity": 0.9092,
           "page": 8,
           "type": "text",
           "matched_keywords": [
@@ -827,19 +1164,51 @@
         },
         {
           "rank": 3,
-          "similarity": 0.346,
+          "similarity": -8.6776,
+          "page": 5,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Writing instruments include pens, pencils, markers, and correction products. The category grew modestly\nfrom £277,500 to £360,000 over the three-year period. Pens and pencils account for most of the v"
+        },
+        {
+          "rank": 4,
+          "similarity": -8.7902,
           "page": 4,
           "type": "table",
           "matched_keywords": [],
           "text_preview": "Table (Page 4)\n\nPaper products:\n2023: £740,000\n2024: £840,000\n2025: £960,000\n2025 share: 40%\n\nPrinter supplies:\n2023: £555,000\n2024: £630,000\n2025: £720,000\n2025 share: 30%\n\nWriting instruments:\n2023:"
         },
         {
-          "rank": 4,
-          "similarity": 0.3223,
-          "page": 4,
-          "type": "text",
+          "rank": 5,
+          "similarity": -9.2202,
+          "page": 5,
+          "type": "table",
           "matched_keywords": [],
-          "text_preview": "Paper products include copier paper, stationery paper, and specialty media. Revenue in this category\ngrew from £740,000 in 2023 to £960,000 in 2025, an increase of £220,000. The growth was driven by\nh"
+          "text_preview": "Table (Page 5)\n\nNorth:\n2023: £560,000\n2024: £640,000\n2025: £720,000\n2025 share: 30%\n\nSouth:\n2023: £740,000\n2024: £840,000\n2025: £960,000\n2025 share: 40%\n\nEast:\n2023: £280,000\n2024: £320,000\n2025: £360"
+        },
+        {
+          "rank": 6,
+          "similarity": -9.2384,
+          "page": 2,
+          "type": "table",
+          "matched_keywords": [],
+          "text_preview": "Table (Page 2)\n\nRevenue:\n2023: £1,850,000\n2024: £2,100,000\n2025: £2,400,000\n\nCost of goods sold:\n2023: £1,110,000\n2024: £1,260,000\n2025: £1,416,000\n\nGross profit:\n2023: £740,000\n2024: £840,000\n2025: £"
+        },
+        {
+          "rank": 7,
+          "similarity": -9.2664,
+          "page": 7,
+          "type": "table",
+          "matched_keywords": [],
+          "text_preview": "Table (Page 7)\n\nQ3 (Jul-Sep):\nRevenue: £624,000\nOperating profit: £72,000\nMargin: 11.5%\nOrders: 1,240\n\nQ4 (Oct-Dec):\nRevenue: £648,000\nOperating profit: £85,000\nMargin: 13.1%\nOrders: 1,260\n\nTotal:\nRev"
+        },
+        {
+          "rank": 8,
+          "similarity": -9.2862,
+          "page": 8,
+          "type": "table",
+          "matched_keywords": [],
+          "text_preview": "Table (Page 8)\n\nOrders fulfilled:\n2025 result: 4,800\n2024 result: 4,200\nTarget: 5,000\n\nAverage pick time (minutes):\n2025 result: 12.5\n2024 result: 14.2\nTarget: 12.0\n\nOn-time dispatch %:\n2025 result: 9"
         }
       ]
     },
@@ -848,51 +1217,84 @@
       "level": "easy",
       "question": "What was Northstar's revenue in 2023?",
       "answerable": true,
-      "keyword_mrr_at_k": 0.0,
-      "keyword_coverage": 0.0,
+      "keyword_mrr_at_k": 0.1429,
+      "keyword_coverage": 1.0,
       "multi_hop_success": null,
-      "top1_similarity": 0.6509,
-      "tables_in_top_k": 0,
+      "top1_similarity": 8.3729,
       "keyword_details": [
         {
           "keyword": "£1,850,000",
-          "first_rank": null,
-          "reciprocal_rank": 0.0,
-          "found": false
+          "first_rank": 7,
+          "reciprocal_rank": 0.1429,
+          "found": true
         }
       ],
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.6509,
-          "page": 10,
+          "similarity": 8.3729,
+          "page": 4,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "Revenue increased by £300,000 from 2024 to 2025, rising from £2,100,000 to £2,400,000. This represents\na percentage increase of approximately 14.3%.\n\nCost of goods sold increased by £156,000, rising f"
+          "text_preview": "Revenue rose from £555,000 to £720,000 between 2023 and\n\nNorthstar Office Supplies | Annual Review 2025\nPage 4"
         },
         {
           "rank": 2,
-          "similarity": 0.6085,
+          "similarity": 7.345,
+          "page": 5,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Northstar sells throughout the United Kingdom and organises its distribution into four regions plus an\nonline-only segment. Each region is supported by a dedicated territory manager who works with loc"
+        },
+        {
+          "rank": 3,
+          "similarity": 7.315,
+          "page": 9,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Marketing and Advertising\n\nNorthstar spent £300,000 on marketing and advertising during 2025. This represents 12.5% of total\nrevenue. The marketing budget is allocated across several channels to reach"
+        },
+        {
+          "rank": 4,
+          "similarity": 7.3075,
+          "page": 4,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Product Category Performance\n\nNorthstar organises its catalogue into five product categories. Tracking these categories helps\nmanagement see which products are driving growth and which may need more p"
+        },
+        {
+          "rank": 5,
+          "similarity": 6.3045,
+          "page": 7,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Top-Selling Products\n\nThis section lists the products that generated the most revenue for Northstar in 2025. These items account\nfor a large share of total sales and are closely monitored for stock av"
+        },
+        {
+          "rank": 6,
+          "similarity": 4.1656,
           "page": 7,
           "type": "text",
           "matched_keywords": [],
           "text_preview": "Quarterly revenue grew from £540,000 in the first quarter to £648,000 in the fourth quarter. This\nrepresents an increase of £108,000 between the opening and closing quarters. The steady upward trend\ni"
         },
         {
-          "rank": 3,
-          "similarity": 0.5678,
-          "page": 9,
-          "type": "text",
-          "matched_keywords": [],
-          "text_preview": "12. Marketing and Advertising\n\nNorthstar spent £300,000 on marketing and advertising during 2025. This represents 12.5% of total\nrevenue. The marketing budget is allocated across several channels to r"
+          "rank": 7,
+          "similarity": 2.6129,
+          "page": 2,
+          "type": "table",
+          "matched_keywords": [
+            "£1,850,000"
+          ],
+          "text_preview": "Table (Page 2)\n\nRevenue:\n2023: £1,850,000\n2024: £2,100,000\n2025: £2,400,000\n\nCost of goods sold:\n2023: £1,110,000\n2024: £1,260,000\n2025: £1,416,000\n\nGross profit:\n2023: £740,000\n2024: £840,000\n2025: £"
         },
         {
-          "rank": 4,
-          "similarity": 0.5619,
+          "rank": 8,
+          "similarity": 1.8571,
           "page": 2,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "Operating expenses reached £708,000 in 2025 and included staff costs, warehouse expenses, software\nsubscriptions, marketing, and administration. After these operating expenses were deducted from gross"
+          "text_preview": "1. Company Overview\n\nNorthstar Office Supplies is a fictional office-products retailer based in Manchester, United Kingdom. Established in 2018, the company serves small businesses, home offices, scho"
         }
       ]
     },
@@ -904,8 +1306,7 @@
       "keyword_mrr_at_k": 1.0,
       "keyword_coverage": 1.0,
       "multi_hop_success": true,
-      "top1_similarity": 0.6936,
-      "tables_in_top_k": 2,
+      "top1_similarity": 6.9821,
       "keyword_details": [
         {
           "keyword": "operating expenses",
@@ -923,26 +1324,18 @@
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.6936,
+          "similarity": 6.9821,
           "page": 2,
           "type": "text",
           "matched_keywords": [
             "operating expenses",
             "£708,000"
           ],
-          "text_preview": "Operating expenses reached £708,000 in 2025 and included staff costs, warehouse expenses, software\nsubscriptions, marketing, and administration. After these operating expenses were deducted from gross"
+          "text_preview": "It is calculated by subtracting the cost of goods sold from\nrevenue. The cost of goods sold includes the purchase cost of products sold to customers during the\nreporting period. Gross profit does not "
         },
         {
           "rank": 2,
-          "similarity": 0.593,
-          "page": 10,
-          "type": "table",
-          "matched_keywords": [],
-          "text_preview": "Table (Page 10)\n\nRevenue growth:\n2025 value: £300,000\nCalculation: £2,400,000 - £2,100,000\n\nRevenue growth %:\n2025 value: 14.3%\nCalculation: £300,000 / £2,100,000\n\nCOGS growth:\n2025 value: £156,000\nCa"
-        },
-        {
-          "rank": 3,
-          "similarity": 0.5806,
+          "similarity": 6.3336,
           "page": 2,
           "type": "table",
           "matched_keywords": [
@@ -952,12 +1345,52 @@
           "text_preview": "Table (Page 2)\n\nRevenue:\n2023: £1,850,000\n2024: £2,100,000\n2025: £2,400,000\n\nCost of goods sold:\n2023: £1,110,000\n2024: £1,260,000\n2025: £1,416,000\n\nGross profit:\n2023: £740,000\n2024: £840,000\n2025: £"
         },
         {
-          "rank": 4,
-          "similarity": 0.5457,
+          "rank": 3,
+          "similarity": 2.8904,
           "page": 10,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "Revenue increased by £300,000 from 2024 to 2025, rising from £2,100,000 to £2,400,000. This represents\na percentage increase of approximately 14.3%.\n\nCost of goods sold increased by £156,000, rising f"
+          "text_preview": "Revenue increased by £300,000 from 2024 to 2025, rising from £2,100,000 to £2,400,000. This represents\na percentage increase of approximately 14.3%. Cost of goods sold increased by £156,000, rising fr"
+        },
+        {
+          "rank": 4,
+          "similarity": 1.8316,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Operating profit increased by £66,000 compared with 2024, when it was £210,000. Management\nconsidered this improvement encouraging but noted that higher sales volumes also increased warehouse\nworkload"
+        },
+        {
+          "rank": 5,
+          "similarity": 1.0184,
+          "page": 10,
+          "type": "table",
+          "matched_keywords": [],
+          "text_preview": "Table (Page 10)\n\nRevenue growth:\n2025 value: £300,000\nCalculation: £2,400,000 - £2,100,000\n\nRevenue growth %:\n2025 value: 14.3%\nCalculation: £300,000 / £2,100,000\n\nCOGS growth:\n2025 value: £156,000\nCa"
+        },
+        {
+          "rank": 6,
+          "similarity": -2.5628,
+          "page": 9,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Marketing and Advertising\n\nNorthstar spent £300,000 on marketing and advertising during 2025. This represents 12.5% of total\nrevenue. The marketing budget is allocated across several channels to reach"
+        },
+        {
+          "rank": 7,
+          "similarity": -2.5965,
+          "page": 9,
+          "type": "table",
+          "matched_keywords": [],
+          "text_preview": "Table (Page 9)\n\nDigital advertising:\n2025 spend: £180,000\nShare: 60%\nROI (est.): 3.2x\n\nPrint advertising:\n2025 spend: £48,000\nShare: 16%\nROI (est.): 1.8x\n\nTrade shows:\n2025 spend: £36,000\nShare: 12%\nR"
+        },
+        {
+          "rank": 8,
+          "similarity": -3.382,
+          "page": 4,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Revenue rose from £555,000 to £720,000 between 2023 and\n\nNorthstar Office Supplies | Annual Review 2025\nPage 4"
         }
       ]
     },
@@ -966,60 +1399,94 @@
       "level": "easy",
       "question": "What was Northstar's return rate percentage in 2025?",
       "answerable": true,
-      "keyword_mrr_at_k": 0.5,
+      "keyword_mrr_at_k": 1.0,
       "keyword_coverage": 1.0,
       "multi_hop_success": true,
-      "top1_similarity": 0.669,
-      "tables_in_top_k": 0,
+      "top1_similarity": 4.7601,
       "keyword_details": [
         {
           "keyword": "2.1%",
-          "first_rank": 2,
-          "reciprocal_rank": 0.5,
+          "first_rank": 1,
+          "reciprocal_rank": 1.0,
           "found": true
         },
         {
           "keyword": "return rate",
-          "first_rank": 2,
-          "reciprocal_rank": 0.5,
+          "first_rank": 1,
+          "reciprocal_rank": 1.0,
           "found": true
         }
       ],
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.669,
-          "page": 10,
-          "type": "text",
-          "matched_keywords": [],
-          "text_preview": "Revenue increased by £300,000 from 2024 to 2025, rising from £2,100,000 to £2,400,000. This represents\na percentage increase of approximately 14.3%.\n\nCost of goods sold increased by £156,000, rising f"
-        },
-        {
-          "rank": 2,
-          "similarity": 0.6435,
+          "similarity": 4.7601,
           "page": 8,
           "type": "text",
           "matched_keywords": [
             "2.1%",
             "return rate"
           ],
-          "text_preview": "Pick accuracy, the percentage of orders packed without errors, improved to 98.2% in 2025 from 96.5% in\n2024. The company reduced incorrect items sent to customers by introducing additional packing che"
+          "text_preview": "2024. The company reduced incorrect items sent to customers by introducing additional packing checks\nbefore parcels leave the warehouse, as noted in the company overview above. The return rate fell fr"
+        },
+        {
+          "rank": 2,
+          "similarity": 4.499,
+          "page": 8,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Northstar fulfilled all 4,800 orders during 2025 from its single warehouse in Manchester. The warehouse\noperates five days a week and employs twelve fulfilment staff. This section summarises the key\no"
         },
         {
           "rank": 3,
-          "similarity": 0.6298,
-          "page": 7,
+          "similarity": 3.9568,
+          "page": 10,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "Quarterly revenue grew from £540,000 in the first quarter to £648,000 in the fourth quarter. This\nrepresents an increase of £108,000 between the opening and closing quarters. The steady upward trend\ni"
+          "text_preview": "Digital advertising received the largest share of the marketing budget at £180,000, representing 60% of\ntotal spend. This channel focuses on Google and Facebook ads targeting small businesses and home"
         },
         {
           "rank": 4,
-          "similarity": 0.6154,
+          "similarity": 3.7493,
           "page": 9,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "12. Marketing and Advertising\n\nNorthstar spent £300,000 on marketing and advertising during 2025. This represents 12.5% of total\nrevenue. The marketing budget is allocated across several channels to r"
+          "text_preview": "Marketing and Advertising\n\nNorthstar spent £300,000 on marketing and advertising during 2025. This represents 12.5% of total\nrevenue. The marketing budget is allocated across several channels to reach"
+        },
+        {
+          "rank": 5,
+          "similarity": 3.6364,
+          "page": 8,
+          "type": "table",
+          "matched_keywords": [
+            "2.1%",
+            "return rate"
+          ],
+          "text_preview": "Table (Page 8)\n\nOrders fulfilled:\n2025 result: 4,800\n2024 result: 4,200\nTarget: 5,000\n\nAverage pick time (minutes):\n2025 result: 12.5\n2024 result: 14.2\nTarget: 12.0\n\nOn-time dispatch %:\n2025 result: 9"
+        },
+        {
+          "rank": 6,
+          "similarity": 3.4191,
+          "page": 5,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Northstar sells throughout the United Kingdom and organises its distribution into four regions plus an\nonline-only segment. Each region is supported by a dedicated territory manager who works with loc"
+        },
+        {
+          "rank": 7,
+          "similarity": 3.3991,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Sales Channel Analysis\n\nNorthstar received orders through three primary channels in 2025: its website, email, and telephone. The\nwebsite was the largest channel by revenue, accounting for 55% of total"
+        },
+        {
+          "rank": 8,
+          "similarity": 2.2737,
+          "page": 4,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Revenue rose from £555,000 to £720,000 between 2023 and\n\nNorthstar Office Supplies | Annual Review 2025\nPage 4"
         }
       ]
     },
@@ -1031,8 +1498,7 @@
       "keyword_mrr_at_k": 1.0,
       "keyword_coverage": 1.0,
       "multi_hop_success": true,
-      "top1_similarity": 0.6341,
-      "tables_in_top_k": 2,
+      "top1_similarity": 7.097,
       "keyword_details": [
         {
           "keyword": "average parcel weight",
@@ -1050,7 +1516,7 @@
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.6341,
+          "similarity": 7.097,
           "page": 8,
           "type": "table",
           "matched_keywords": [
@@ -1061,27 +1527,59 @@
         },
         {
           "rank": 2,
-          "similarity": 0.5194,
+          "similarity": -3.1457,
           "page": 8,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "Pick accuracy, the percentage of orders packed without errors, improved to 98.2% in 2025 from 96.5% in\n2024. The company reduced incorrect items sent to customers by introducing additional packing che"
+          "text_preview": "2024. The company reduced incorrect items sent to customers by introducing additional packing checks\nbefore parcels leave the warehouse, as noted in the company overview above. The return rate fell fr"
         },
         {
           "rank": 3,
-          "similarity": 0.492,
-          "page": 10,
-          "type": "table",
+          "similarity": -3.5747,
+          "page": 6,
+          "type": "text",
           "matched_keywords": [],
-          "text_preview": "Table (Page 10)\n\nRevenue growth:\n2025 value: £300,000\nCalculation: £2,400,000 - £2,100,000\n\nRevenue growth %:\n2025 value: 14.3%\nCalculation: £300,000 / £2,100,000\n\nCOGS growth:\n2025 value: £156,000\nCa"
+          "text_preview": "of everyday items such as paper and pens. Schools placed 720 orders in 2025, generating £432,000 in revenue. Although their order count was lower,\ntheir average order value of £600 was above the compa"
         },
         {
           "rank": 4,
-          "similarity": 0.4863,
-          "page": 10,
+          "similarity": -4.3373,
+          "page": 8,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "Revenue increased by £300,000 from 2024 to 2025, rising from £2,100,000 to £2,400,000. This represents\na percentage increase of approximately 14.3%.\n\nCost of goods sold increased by £156,000, rising f"
+          "text_preview": "Northstar fulfilled all 4,800 orders during 2025 from its single warehouse in Manchester. The warehouse\noperates five days a week and employs twelve fulfilment staff. This section summarises the key\no"
+        },
+        {
+          "rank": 5,
+          "similarity": -4.5219,
+          "page": 2,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "The company reviewed its most frequently ordered products, adjusted\nstock levels for selected items, and introduced additional checks before parcels left the warehouse. These changes were intended to "
+        },
+        {
+          "rank": 6,
+          "similarity": -4.7907,
+          "page": 6,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Northstar classifies its customers into four segments based on order volume and purchasing behaviour. Understanding these segments helps the company tailor its pricing, service levels, and marketing. "
+        },
+        {
+          "rank": 7,
+          "similarity": -4.9926,
+          "page": 9,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Web chat, introduced in 2024, handled 720 conversations in 2025. Its average response time of less than\none minute made it the fastest channel. It achieved the highest satisfaction rating at 4.7 out o"
+        },
+        {
+          "rank": 8,
+          "similarity": -5.2525,
+          "page": 9,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Email was the most used customer service channel in 2025, handling 1,440 inquiries. The average\nresponse time was 3.2 hours, and the customer satisfaction rating was 4.6 out of 5. Most email inquiries"
         }
       ]
     },
@@ -1090,11 +1588,10 @@
       "level": "medium",
       "question": "Which channel had a higher average order value, email or telephone, and by how much?",
       "answerable": true,
-      "keyword_mrr_at_k": 0.625,
-      "keyword_coverage": 0.75,
-      "multi_hop_success": false,
-      "top1_similarity": 0.6904,
-      "tables_in_top_k": 0,
+      "keyword_mrr_at_k": 0.7857,
+      "keyword_coverage": 1.0,
+      "multi_hop_success": true,
+      "top1_similarity": 7.5929,
       "keyword_details": [
         {
           "keyword": "Telephone",
@@ -1104,8 +1601,8 @@
         },
         {
           "keyword": "£143",
-          "first_rank": 2,
-          "reciprocal_rank": 0.5,
+          "first_rank": 1,
+          "reciprocal_rank": 1.0,
           "found": true
         },
         {
@@ -1116,26 +1613,15 @@
         },
         {
           "keyword": "£116",
-          "first_rank": null,
-          "reciprocal_rank": 0.0,
-          "found": false
+          "first_rank": 7,
+          "reciprocal_rank": 0.1429,
+          "found": true
         }
       ],
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.6904,
-          "page": 3,
-          "type": "text",
-          "matched_keywords": [
-            "Telephone",
-            "Email"
-          ],
-          "text_preview": "Email orders had a higher average order value than website orders. This channel was often used by small\nbusinesses that requested quotes, combined several product categories into one order, or needed\n"
-        },
-        {
-          "rank": 2,
-          "similarity": 0.6512,
+          "similarity": 7.5929,
           "page": 11,
           "type": "text",
           "matched_keywords": [
@@ -1146,8 +1632,37 @@
           "text_preview": "Combined revenue from the Website and Email channels was £1,920,000, representing 80% of the\ncompany's total 2025 revenue. The Website channel alone generated £1,320,000 (55%) and the Email\nchannel ge"
         },
         {
+          "rank": 2,
+          "similarity": 5.6441,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [
+            "Telephone",
+            "Email"
+          ],
+          "text_preview": "Sales Channel Analysis\n\nNorthstar received orders through three primary channels in 2025: its website, email, and telephone. The\nwebsite was the largest channel by revenue, accounting for 55% of total"
+        },
+        {
           "rank": 3,
-          "similarity": 0.5238,
+          "similarity": 4.9048,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [
+            "Telephone"
+          ],
+          "text_preview": "This channel was often used by small\nbusinesses that requested quotes, combined several product categories into one order, or needed\nassistance confirming product specifications. Customer service staf"
+        },
+        {
+          "rank": 4,
+          "similarity": 4.3837,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "The figures in this section describe different measures. Revenue represents the total sales value for a\nchannel, while average order value represents the average amount spent per order within that cha"
+        },
+        {
+          "rank": 5,
+          "similarity": 0.4932,
           "page": 9,
           "type": "text",
           "matched_keywords": [
@@ -1156,12 +1671,35 @@
           "text_preview": "Email was the most used customer service channel in 2025, handling 1,440 inquiries. The average\nresponse time was 3.2 hours, and the customer satisfaction rating was 4.6 out of 5. Most email inquiries"
         },
         {
-          "rank": 4,
-          "similarity": 0.5003,
+          "rank": 6,
+          "similarity": -2.5718,
+          "page": 6,
+          "type": "text",
+          "matched_keywords": [
+            "Email"
+          ],
+          "text_preview": "Northstar classifies its customers into four segments based on order volume and purchasing behaviour. Understanding these segments helps the company tailor its pricing, service levels, and marketing. "
+        },
+        {
+          "rank": 7,
+          "similarity": -2.7339,
           "page": 3,
+          "type": "table",
+          "matched_keywords": [
+            "Telephone",
+            "£143",
+            "Email",
+            "£116"
+          ],
+          "text_preview": "Table (Page 3)\n\nWebsite:\nRevenue: £1,320,000\nShare of sales: 55%\nAverage order: £82\n\nEmail:\nRevenue: £600,000\nShare of sales: 25%\nAverage order: £116\n\nTelephone:\nRevenue: £480,000\nShare of sales: 20%\n"
+        },
+        {
+          "rank": 8,
+          "similarity": -2.9141,
+          "page": 6,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "The company processed 4,800 orders during 2025. Of these, 1,920 orders came from returning\ncustomers, representing 40% of all orders. Management views repeat purchasing as an important\nindicator of cu"
+          "text_preview": "of everyday items such as paper and pens. Schools placed 720 orders in 2025, generating £432,000 in revenue. Although their order count was lower,\ntheir average order value of £600 was above the compa"
         }
       ]
     },
@@ -1173,8 +1711,7 @@
       "keyword_mrr_at_k": 1.0,
       "keyword_coverage": 1.0,
       "multi_hop_success": true,
-      "top1_similarity": 0.7248,
-      "tables_in_top_k": 1,
+      "top1_similarity": 8.3757,
       "keyword_details": [
         {
           "keyword": "South",
@@ -1204,7 +1741,7 @@
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.7248,
+          "similarity": 8.3757,
           "page": 5,
           "type": "text",
           "matched_keywords": [
@@ -1213,11 +1750,29 @@
             "North",
             "£720,000"
           ],
-          "text_preview": "The South region, which includes London and the surrounding metropolitan area, delivered £960,000 in\nrevenue in 2025. This represented 40% of the company's total sales. The region benefits from a high"
+          "text_preview": "Northstar sells throughout the United Kingdom and organises its distribution into four regions plus an\nonline-only segment. Each region is supported by a dedicated territory manager who works with loc"
         },
         {
           "rank": 2,
-          "similarity": 0.5763,
+          "similarity": 4.6562,
+          "page": 5,
+          "type": "text",
+          "matched_keywords": [
+            "South"
+          ],
+          "text_preview": "years was steady but slower than the South, partly because the customer base skews toward larger\ncorporate accounts with longer procurement cycles. The East and West regions together contributed 25% o"
+        },
+        {
+          "rank": 3,
+          "similarity": 0.0355,
+          "page": 7,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Top-Selling Products\n\nThis section lists the products that generated the most revenue for Northstar in 2025. These items account\nfor a large share of total sales and are closely monitored for stock av"
+        },
+        {
+          "rank": 4,
+          "similarity": -0.3338,
           "page": 5,
           "type": "table",
           "matched_keywords": [
@@ -1229,22 +1784,40 @@
           "text_preview": "Table (Page 5)\n\nNorth:\n2023: £560,000\n2024: £640,000\n2025: £720,000\n2025 share: 30%\n\nSouth:\n2023: £740,000\n2024: £840,000\n2025: £960,000\n2025 share: 40%\n\nEast:\n2023: £280,000\n2024: £320,000\n2025: £360"
         },
         {
-          "rank": 3,
-          "similarity": 0.558,
-          "page": 5,
-          "type": "text",
-          "matched_keywords": [
-            "South"
-          ],
-          "text_preview": "2025. Management expects continued demand as customers install new printers and maintain existing\nhardware throughout the year.\n\nWriting instruments include pens, pencils, markers, and correction prod"
-        },
-        {
-          "rank": 4,
-          "similarity": 0.5255,
+          "rank": 5,
+          "similarity": -0.9116,
           "page": 10,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "Revenue increased by £300,000 from 2024 to 2025, rising from £2,100,000 to £2,400,000. This represents\na percentage increase of approximately 14.3%.\n\nCost of goods sold increased by £156,000, rising f"
+          "text_preview": "Revenue increased by £300,000 from 2024 to 2025, rising from £2,100,000 to £2,400,000. This represents\na percentage increase of approximately 14.3%. Cost of goods sold increased by £156,000, rising fr"
+        },
+        {
+          "rank": 6,
+          "similarity": -1.7568,
+          "page": 4,
+          "type": "text",
+          "matched_keywords": [
+            "£960,000"
+          ],
+          "text_preview": "Product Category Performance\n\nNorthstar organises its catalogue into five product categories. Tracking these categories helps\nmanagement see which products are driving growth and which may need more p"
+        },
+        {
+          "rank": 7,
+          "similarity": -2.3837,
+          "page": 4,
+          "type": "text",
+          "matched_keywords": [
+            "£720,000"
+          ],
+          "text_preview": "Revenue rose from £555,000 to £720,000 between 2023 and\n\nNorthstar Office Supplies | Annual Review 2025\nPage 4"
+        },
+        {
+          "rank": 8,
+          "similarity": -2.9497,
+          "page": 9,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Marketing and Advertising\n\nNorthstar spent £300,000 on marketing and advertising during 2025. This represents 12.5% of total\nrevenue. The marketing budget is allocated across several channels to reach"
         }
       ]
     },
@@ -1253,11 +1826,10 @@
       "level": "medium",
       "question": "Which product category generated more revenue in 2025, paper products or printer supplies?",
       "answerable": true,
-      "keyword_mrr_at_k": 1.0,
+      "keyword_mrr_at_k": 0.75,
       "keyword_coverage": 1.0,
       "multi_hop_success": true,
-      "top1_similarity": 0.6925,
-      "tables_in_top_k": 1,
+      "top1_similarity": 7.6874,
       "keyword_details": [
         {
           "keyword": "Paper products",
@@ -1273,34 +1845,32 @@
         },
         {
           "keyword": "Printer supplies",
-          "first_rank": 1,
-          "reciprocal_rank": 1.0,
+          "first_rank": 2,
+          "reciprocal_rank": 0.5,
           "found": true
         },
         {
           "keyword": "£720,000",
-          "first_rank": 1,
-          "reciprocal_rank": 1.0,
+          "first_rank": 2,
+          "reciprocal_rank": 0.5,
           "found": true
         }
       ],
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.6925,
+          "similarity": 7.6874,
           "page": 4,
           "type": "text",
           "matched_keywords": [
             "Paper products",
-            "£960,000",
-            "Printer supplies",
-            "£720,000"
+            "£960,000"
           ],
-          "text_preview": "Paper products include copier paper, stationery paper, and specialty media. Revenue in this category\ngrew from £740,000 in 2023 to £960,000 in 2025, an increase of £220,000. The growth was driven by\nh"
+          "text_preview": "Product Category Performance\n\nNorthstar organises its catalogue into five product categories. Tracking these categories helps\nmanagement see which products are driving growth and which may need more p"
         },
         {
           "rank": 2,
-          "similarity": 0.6589,
+          "similarity": 5.1849,
           "page": 4,
           "type": "table",
           "matched_keywords": [
@@ -1313,21 +1883,58 @@
         },
         {
           "rank": 3,
-          "similarity": 0.6375,
-          "page": 5,
+          "similarity": 5.1291,
+          "page": 7,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "2025. Management expects continued demand as customers install new printers and maintain existing\nhardware throughout the year.\n\nWriting instruments include pens, pencils, markers, and correction prod"
+          "text_preview": "Top-Selling Products\n\nThis section lists the products that generated the most revenue for Northstar in 2025. These items account\nfor a large share of total sales and are closely monitored for stock av"
         },
         {
           "rank": 4,
-          "similarity": 0.5638,
-          "page": 4,
+          "similarity": 4.3736,
+          "page": 5,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Writing instruments include pens, pencils, markers, and correction products. The category grew modestly\nfrom £277,500 to £360,000 over the three-year period. Pens and pencils account for most of the v"
+        },
+        {
+          "rank": 5,
+          "similarity": 3.9258,
+          "page": 8,
           "type": "text",
           "matched_keywords": [
-            "Paper products"
+            "Printer supplies"
           ],
-          "text_preview": "4. Key Financial Definitions\n\nRevenue: The total value of sales generated during a reporting period before deducting business\nexpenses.\n\nCost of goods sold: The direct cost associated with the product"
+          "text_preview": "The HP Black Toner and Ballpoint Pen Black were the second and third best sellers respectively. Together\nthey generated £155,000 in revenue. Printer supplies and writing instruments are among the most"
+        },
+        {
+          "rank": 6,
+          "similarity": 3.3268,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [
+            "Printer supplies"
+          ],
+          "text_preview": "Sales Channel Analysis\n\nNorthstar received orders through three primary channels in 2025: its website, email, and telephone. The\nwebsite was the largest channel by revenue, accounting for 55% of total"
+        },
+        {
+          "rank": 7,
+          "similarity": 2.7996,
+          "page": 6,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "of everyday items such as paper and pens. Schools placed 720 orders in 2025, generating £432,000 in revenue. Although their order count was lower,\ntheir average order value of £600 was above the compa"
+        },
+        {
+          "rank": 8,
+          "similarity": 1.0509,
+          "page": 2,
+          "type": "text",
+          "matched_keywords": [
+            "Paper products",
+            "Printer supplies"
+          ],
+          "text_preview": "1. Company Overview\n\nNorthstar Office Supplies is a fictional office-products retailer based in Manchester, United Kingdom. Established in 2018, the company serves small businesses, home offices, scho"
         }
       ]
     },
@@ -1339,8 +1946,7 @@
       "keyword_mrr_at_k": 1.0,
       "keyword_coverage": 1.0,
       "multi_hop_success": null,
-      "top1_similarity": 0.5843,
-      "tables_in_top_k": 1,
+      "top1_similarity": 5.673,
       "keyword_details": [
         {
           "keyword": "Web chat",
@@ -1352,25 +1958,25 @@
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.5843,
+          "similarity": 5.673,
           "page": 9,
           "type": "text",
           "matched_keywords": [
             "Web chat"
           ],
-          "text_preview": "Email was the most used customer service channel in 2025, handling 1,440 inquiries. The average\nresponse time was 3.2 hours, and the customer satisfaction rating was 4.6 out of 5. Most email inquiries"
+          "text_preview": "Web chat, introduced in 2024, handled 720 conversations in 2025. Its average response time of less than\none minute made it the fastest channel. It achieved the highest satisfaction rating at 4.7 out o"
         },
         {
           "rank": 2,
-          "similarity": 0.3989,
-          "page": 3,
+          "similarity": 3.4324,
+          "page": 9,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "Email orders had a higher average order value than website orders. This channel was often used by small\nbusinesses that requested quotes, combined several product categories into one order, or needed\n"
+          "text_preview": "Email was the most used customer service channel in 2025, handling 1,440 inquiries. The average\nresponse time was 3.2 hours, and the customer satisfaction rating was 4.6 out of 5. Most email inquiries"
         },
         {
           "rank": 3,
-          "similarity": 0.3659,
+          "similarity": -4.094,
           "page": 9,
           "type": "table",
           "matched_keywords": [
@@ -1380,11 +1986,43 @@
         },
         {
           "rank": 4,
-          "similarity": 0.3411,
+          "similarity": -4.451,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "This channel was often used by small\nbusinesses that requested quotes, combined several product categories into one order, or needed\nassistance confirming product specifications. Customer service staf"
+        },
+        {
+          "rank": 5,
+          "similarity": -9.3752,
+          "page": 8,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Customer Service Metrics\n\nCustomer service is provided through the company's website chat, email, and telephone lines. The\ncustomer service team consists of eight advisors who operate during UK busine"
+        },
+        {
+          "rank": 6,
+          "similarity": -9.4433,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Sales Channel Analysis\n\nNorthstar received orders through three primary channels in 2025: its website, email, and telephone. The\nwebsite was the largest channel by revenue, accounting for 55% of total"
+        },
+        {
+          "rank": 7,
+          "similarity": -9.8184,
           "page": 11,
           "type": "text",
           "matched_keywords": [],
           "text_preview": "Combined revenue from the Website and Email channels was £1,920,000, representing 80% of the\ncompany's total 2025 revenue. The Website channel alone generated £1,320,000 (55%) and the Email\nchannel ge"
+        },
+        {
+          "rank": 8,
+          "similarity": -10.2649,
+          "page": 8,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Northstar fulfilled all 4,800 orders during 2025 from its single warehouse in Manchester. The warehouse\noperates five days a week and employs twelve fulfilment staff. This section summarises the key\no"
         }
       ]
     },
@@ -1393,11 +2031,10 @@
       "level": "medium",
       "question": "How much higher was the independent professionals' average order value than the home offices' average order value?",
       "answerable": true,
-      "keyword_mrr_at_k": 0.6667,
+      "keyword_mrr_at_k": 0.75,
       "keyword_coverage": 1.0,
       "multi_hop_success": true,
-      "top1_similarity": 0.5891,
-      "tables_in_top_k": 1,
+      "top1_similarity": 5.4264,
       "keyword_details": [
         {
           "keyword": "independent professionals",
@@ -1413,51 +2050,44 @@
         },
         {
           "keyword": "home offices",
-          "first_rank": 3,
-          "reciprocal_rank": 0.3333,
+          "first_rank": 2,
+          "reciprocal_rank": 0.5,
           "found": true
         },
         {
           "keyword": "£400",
-          "first_rank": 3,
-          "reciprocal_rank": 0.3333,
+          "first_rank": 2,
+          "reciprocal_rank": 0.5,
           "found": true
         }
       ],
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.5891,
+          "similarity": 5.4264,
           "page": 6,
           "type": "text",
           "matched_keywords": [
             "independent professionals",
             "£800"
           ],
-          "text_preview": "Independent professionals, such as freelancers and consultants, placed the fewest orders at 240 but\nachieved the highest average order value of £800. They often buy specialised or premium products and"
+          "text_preview": "of everyday items such as paper and pens. Schools placed 720 orders in 2025, generating £432,000 in revenue. Although their order count was lower,\ntheir average order value of £600 was above the compa"
         },
         {
           "rank": 2,
-          "similarity": 0.4801,
-          "page": 3,
-          "type": "text",
-          "matched_keywords": [],
-          "text_preview": "Email orders had a higher average order value than website orders. This channel was often used by small\nbusinesses that requested quotes, combined several product categories into one order, or needed\n"
-        },
-        {
-          "rank": 3,
-          "similarity": 0.4247,
+          "similarity": 5.1125,
           "page": 6,
           "type": "text",
           "matched_keywords": [
+            "independent professionals",
             "home offices",
             "£400"
           ],
-          "text_preview": "7. Customer Segments\n\nNorthstar classifies its customers into four segments based on order volume and purchasing behaviour.\nUnderstanding these segments helps the company tailor its pricing, service l"
+          "text_preview": "Northstar classifies its customers into four segments based on order volume and purchasing behaviour. Understanding these segments helps the company tailor its pricing, service levels, and marketing. "
         },
         {
-          "rank": 4,
-          "similarity": 0.4203,
+          "rank": 3,
+          "similarity": 2.9945,
           "page": 6,
           "type": "table",
           "matched_keywords": [
@@ -1467,6 +2097,46 @@
             "£400"
           ],
           "text_preview": "Table (Page 6)\n\nSmall businesses:\nOrders: 2,400\nShare: 50%\nRevenue: £1,200,000\nAvg order: £500\n\nHome offices:\nOrders: 1,440\nShare: 30%\nRevenue: £576,000\nAvg order: £400\n\nSchools:\nOrders: 720\nShare: 15"
+        },
+        {
+          "rank": 4,
+          "similarity": 1.1701,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "The figures in this section describe different measures. Revenue represents the total sales value for a\nchannel, while average order value represents the average amount spent per order within that cha"
+        },
+        {
+          "rank": 5,
+          "similarity": 0.0614,
+          "page": 11,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Combined revenue from the Website and Email channels was £1,920,000, representing 80% of the\ncompany's total 2025 revenue. The Website channel alone generated £1,320,000 (55%) and the Email\nchannel ge"
+        },
+        {
+          "rank": 6,
+          "similarity": -1.7244,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "This channel was often used by small\nbusinesses that requested quotes, combined several product categories into one order, or needed\nassistance confirming product specifications. Customer service staf"
+        },
+        {
+          "rank": 7,
+          "similarity": -3.3062,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Sales Channel Analysis\n\nNorthstar received orders through three primary channels in 2025: its website, email, and telephone. The\nwebsite was the largest channel by revenue, accounting for 55% of total"
+        },
+        {
+          "rank": 8,
+          "similarity": -5.9553,
+          "page": 5,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Writing instruments include pens, pencils, markers, and correction products. The category grew modestly\nfrom £277,500 to £360,000 over the three-year period. Pens and pencils account for most of the v"
         }
       ]
     },
@@ -1475,11 +2145,10 @@
       "level": "hard",
       "question": "By how much did cost of goods sold increase from 2023 to 2025?",
       "answerable": true,
-      "keyword_mrr_at_k": 0.6111,
+      "keyword_mrr_at_k": 0.8333,
       "keyword_coverage": 1.0,
       "multi_hop_success": true,
-      "top1_similarity": 0.607,
-      "tables_in_top_k": 1,
+      "top1_similarity": 9.8901,
       "keyword_details": [
         {
           "keyword": "cost of goods sold",
@@ -1489,42 +2158,32 @@
         },
         {
           "keyword": "£1,110,000",
-          "first_rank": 3,
-          "reciprocal_rank": 0.3333,
+          "first_rank": 2,
+          "reciprocal_rank": 0.5,
           "found": true
         },
         {
           "keyword": "£1,416,000",
-          "first_rank": 2,
-          "reciprocal_rank": 0.5,
+          "first_rank": 1,
+          "reciprocal_rank": 1.0,
           "found": true
         }
       ],
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.607,
-          "page": 2,
-          "type": "text",
-          "matched_keywords": [
-            "cost of goods sold"
-          ],
-          "text_preview": "These changes were intended to reduce dispatch delays and prevent incorrect items from being sent to\ncustomers. Although the business continued to experience occasional supplier delays, management\nrep"
-        },
-        {
-          "rank": 2,
-          "similarity": 0.5957,
+          "similarity": 9.8901,
           "page": 10,
           "type": "text",
           "matched_keywords": [
             "cost of goods sold",
             "£1,416,000"
           ],
-          "text_preview": "Revenue increased by £300,000 from 2024 to 2025, rising from £2,100,000 to £2,400,000. This represents\na percentage increase of approximately 14.3%.\n\nCost of goods sold increased by £156,000, rising f"
+          "text_preview": "Revenue increased by £300,000 from 2024 to 2025, rising from £2,100,000 to £2,400,000. This represents\na percentage increase of approximately 14.3%. Cost of goods sold increased by £156,000, rising fr"
         },
         {
-          "rank": 3,
-          "similarity": 0.5895,
+          "rank": 2,
+          "similarity": 9.2792,
           "page": 2,
           "type": "table",
           "matched_keywords": [
@@ -1535,12 +2194,54 @@
           "text_preview": "Table (Page 2)\n\nRevenue:\n2023: £1,850,000\n2024: £2,100,000\n2025: £2,400,000\n\nCost of goods sold:\n2023: £1,110,000\n2024: £1,260,000\n2025: £1,416,000\n\nGross profit:\n2023: £740,000\n2024: £840,000\n2025: £"
         },
         {
+          "rank": 3,
+          "similarity": 5.4534,
+          "page": 2,
+          "type": "text",
+          "matched_keywords": [
+            "cost of goods sold"
+          ],
+          "text_preview": "It is calculated by subtracting the cost of goods sold from\nrevenue. The cost of goods sold includes the purchase cost of products sold to customers during the\nreporting period. Gross profit does not "
+        },
+        {
           "rank": 4,
-          "similarity": 0.5185,
+          "similarity": 3.3282,
+          "page": 2,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "The company reviewed its most frequently ordered products, adjusted\nstock levels for selected items, and introduced additional checks before parcels left the warehouse. These changes were intended to "
+        },
+        {
+          "rank": 5,
+          "similarity": 2.9542,
+          "page": 4,
+          "type": "table",
+          "matched_keywords": [],
+          "text_preview": "Table (Page 4)\n\nPaper products:\n2023: £740,000\n2024: £840,000\n2025: £960,000\n2025 share: 40%\n\nPrinter supplies:\n2023: £555,000\n2024: £630,000\n2025: £720,000\n2025 share: 30%\n\nWriting instruments:\n2023:"
+        },
+        {
+          "rank": 6,
+          "similarity": 2.8948,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Operating profit increased by £66,000 compared with 2024, when it was £210,000. Management\nconsidered this improvement encouraging but noted that higher sales volumes also increased warehouse\nworkload"
+        },
+        {
+          "rank": 7,
+          "similarity": 2.6422,
           "page": 4,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "Paper products include copier paper, stationery paper, and specialty media. Revenue in this category\ngrew from £740,000 in 2023 to £960,000 in 2025, an increase of £220,000. The growth was driven by\nh"
+          "text_preview": "Product Category Performance\n\nNorthstar organises its catalogue into five product categories. Tracking these categories helps\nmanagement see which products are driving growth and which may need more p"
+        },
+        {
+          "rank": 8,
+          "similarity": 2.3296,
+          "page": 5,
+          "type": "table",
+          "matched_keywords": [],
+          "text_preview": "Table (Page 5)\n\nNorth:\n2023: £560,000\n2024: £640,000\n2025: £720,000\n2025 share: 30%\n\nSouth:\n2023: £740,000\n2024: £840,000\n2025: £960,000\n2025 share: 40%\n\nEast:\n2023: £280,000\n2024: £320,000\n2025: £360"
         }
       ]
     },
@@ -1549,17 +2250,16 @@
       "level": "hard",
       "question": "What was the combined revenue from the three best-selling products in 2025?",
       "answerable": true,
-      "keyword_mrr_at_k": 0.0,
-      "keyword_coverage": 0.0,
+      "keyword_mrr_at_k": 0.1667,
+      "keyword_coverage": 0.3333,
       "multi_hop_success": false,
-      "top1_similarity": 0.5441,
-      "tables_in_top_k": 1,
+      "top1_similarity": 3.9838,
       "keyword_details": [
         {
           "keyword": "£100,000",
-          "first_rank": null,
-          "reciprocal_rank": 0.0,
-          "found": false
+          "first_rank": 2,
+          "reciprocal_rank": 0.5,
+          "found": true
         },
         {
           "keyword": "£80,000",
@@ -1577,35 +2277,69 @@
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.5441,
-          "page": 10,
-          "type": "text",
-          "matched_keywords": [],
-          "text_preview": "Revenue increased by £300,000 from 2024 to 2025, rising from £2,100,000 to £2,400,000. This represents\na percentage increase of approximately 14.3%.\n\nCost of goods sold increased by £156,000, rising f"
-        },
-        {
-          "rank": 2,
-          "similarity": 0.5336,
-          "page": 5,
-          "type": "text",
-          "matched_keywords": [],
-          "text_preview": "2025. Management expects continued demand as customers install new printers and maintain existing\nhardware throughout the year.\n\nWriting instruments include pens, pencils, markers, and correction prod"
-        },
-        {
-          "rank": 3,
-          "similarity": 0.5248,
-          "page": 3,
-          "type": "text",
-          "matched_keywords": [],
-          "text_preview": "Operating profit increased by £66,000 compared with 2024, when it was £210,000. Management\nconsidered this improvement encouraging but noted that higher sales volumes also increased warehouse\nworkload"
-        },
-        {
-          "rank": 4,
-          "similarity": 0.5069,
+          "similarity": 3.9838,
           "page": 2,
           "type": "table",
           "matched_keywords": [],
           "text_preview": "Table (Page 2)\n\nRevenue:\n2023: £1,850,000\n2024: £2,100,000\n2025: £2,400,000\n\nCost of goods sold:\n2023: £1,110,000\n2024: £1,260,000\n2025: £1,416,000\n\nGross profit:\n2023: £740,000\n2024: £840,000\n2025: £"
+        },
+        {
+          "rank": 2,
+          "similarity": 3.9701,
+          "page": 7,
+          "type": "text",
+          "matched_keywords": [
+            "£100,000"
+          ],
+          "text_preview": "Top-Selling Products\n\nThis section lists the products that generated the most revenue for Northstar in 2025. These items account\nfor a large share of total sales and are closely monitored for stock av"
+        },
+        {
+          "rank": 3,
+          "similarity": 3.8579,
+          "page": 4,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Product Category Performance\n\nNorthstar organises its catalogue into five product categories. Tracking these categories helps\nmanagement see which products are driving growth and which may need more p"
+        },
+        {
+          "rank": 4,
+          "similarity": 3.401,
+          "page": 5,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Writing instruments include pens, pencils, markers, and correction products. The category grew modestly\nfrom £277,500 to £360,000 over the three-year period. Pens and pencils account for most of the v"
+        },
+        {
+          "rank": 5,
+          "similarity": 3.1875,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Sales Channel Analysis\n\nNorthstar received orders through three primary channels in 2025: its website, email, and telephone. The\nwebsite was the largest channel by revenue, accounting for 55% of total"
+        },
+        {
+          "rank": 6,
+          "similarity": 3.0403,
+          "page": 10,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Revenue increased by £300,000 from 2024 to 2025, rising from £2,100,000 to £2,400,000. This represents\na percentage increase of approximately 14.3%. Cost of goods sold increased by £156,000, rising fr"
+        },
+        {
+          "rank": 7,
+          "similarity": 1.6937,
+          "page": 8,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "The HP Black Toner and Ballpoint Pen Black were the second and third best sellers respectively. Together\nthey generated £155,000 in revenue. Printer supplies and writing instruments are among the most"
+        },
+        {
+          "rank": 8,
+          "similarity": 1.6794,
+          "page": 11,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Combined revenue from the Website and Email channels was £1,920,000, representing 80% of the\ncompany's total 2025 revenue. The Website channel alone generated £1,320,000 (55%) and the Email\nchannel ge"
         }
       ]
     },
@@ -1614,22 +2348,21 @@
       "level": "hard",
       "question": "What was the combined 2025 revenue of the printer supplies and writing instruments categories?",
       "answerable": true,
-      "keyword_mrr_at_k": 0.75,
+      "keyword_mrr_at_k": 1.0,
       "keyword_coverage": 1.0,
       "multi_hop_success": true,
-      "top1_similarity": 0.6898,
-      "tables_in_top_k": 1,
+      "top1_similarity": 6.3689,
       "keyword_details": [
         {
           "keyword": "printer supplies",
-          "first_rank": 2,
-          "reciprocal_rank": 0.5,
+          "first_rank": 1,
+          "reciprocal_rank": 1.0,
           "found": true
         },
         {
           "keyword": "£720,000",
-          "first_rank": 2,
-          "reciprocal_rank": 0.5,
+          "first_rank": 1,
+          "reciprocal_rank": 1.0,
           "found": true
         },
         {
@@ -1648,18 +2381,7 @@
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.6898,
-          "page": 5,
-          "type": "text",
-          "matched_keywords": [
-            "writing instruments",
-            "£360,000"
-          ],
-          "text_preview": "2025. Management expects continued demand as customers install new printers and maintain existing\nhardware throughout the year.\n\nWriting instruments include pens, pencils, markers, and correction prod"
-        },
-        {
-          "rank": 2,
-          "similarity": 0.6809,
+          "similarity": 6.3689,
           "page": 4,
           "type": "table",
           "matched_keywords": [
@@ -1671,19 +2393,19 @@
           "text_preview": "Table (Page 4)\n\nPaper products:\n2023: £740,000\n2024: £840,000\n2025: £960,000\n2025 share: 40%\n\nPrinter supplies:\n2023: £555,000\n2024: £630,000\n2025: £720,000\n2025 share: 30%\n\nWriting instruments:\n2023:"
         },
         {
-          "rank": 3,
-          "similarity": 0.62,
-          "page": 4,
+          "rank": 2,
+          "similarity": 5.3183,
+          "page": 5,
           "type": "text",
           "matched_keywords": [
-            "printer supplies",
-            "£720,000"
+            "writing instruments",
+            "£360,000"
           ],
-          "text_preview": "Paper products include copier paper, stationery paper, and specialty media. Revenue in this category\ngrew from £740,000 in 2023 to £960,000 in 2025, an increase of £220,000. The growth was driven by\nh"
+          "text_preview": "Writing instruments include pens, pencils, markers, and correction products. The category grew modestly\nfrom £277,500 to £360,000 over the three-year period. Pens and pencils account for most of the v"
         },
         {
-          "rank": 4,
-          "similarity": 0.509,
+          "rank": 3,
+          "similarity": 4.7251,
           "page": 8,
           "type": "text",
           "matched_keywords": [
@@ -1691,6 +2413,53 @@
             "writing instruments"
           ],
           "text_preview": "The HP Black Toner and Ballpoint Pen Black were the second and third best sellers respectively. Together\nthey generated £155,000 in revenue. Printer supplies and writing instruments are among the most"
+        },
+        {
+          "rank": 4,
+          "similarity": 0.3716,
+          "page": 4,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Product Category Performance\n\nNorthstar organises its catalogue into five product categories. Tracking these categories helps\nmanagement see which products are driving growth and which may need more p"
+        },
+        {
+          "rank": 5,
+          "similarity": -0.1441,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [
+            "printer supplies"
+          ],
+          "text_preview": "Sales Channel Analysis\n\nNorthstar received orders through three primary channels in 2025: its website, email, and telephone. The\nwebsite was the largest channel by revenue, accounting for 55% of total"
+        },
+        {
+          "rank": 6,
+          "similarity": -0.2415,
+          "page": 2,
+          "type": "text",
+          "matched_keywords": [
+            "printer supplies",
+            "writing instruments"
+          ],
+          "text_preview": "1. Company Overview\n\nNorthstar Office Supplies is a fictional office-products retailer based in Manchester, United Kingdom. Established in 2018, the company serves small businesses, home offices, scho"
+        },
+        {
+          "rank": 7,
+          "similarity": -0.6764,
+          "page": 4,
+          "type": "text",
+          "matched_keywords": [
+            "£720,000"
+          ],
+          "text_preview": "Revenue rose from £555,000 to £720,000 between 2023 and\n\nNorthstar Office Supplies | Annual Review 2025\nPage 4"
+        },
+        {
+          "rank": 8,
+          "similarity": -1.0139,
+          "page": 2,
+          "type": "table",
+          "matched_keywords": [],
+          "text_preview": "Table (Page 2)\n\nRevenue:\n2023: £1,850,000\n2024: £2,100,000\n2025: £2,400,000\n\nCost of goods sold:\n2023: £1,110,000\n2024: £1,260,000\n2025: £1,416,000\n\nGross profit:\n2023: £740,000\n2024: £840,000\n2025: £"
         }
       ]
     },
@@ -1702,8 +2471,7 @@
       "keyword_mrr_at_k": 0.8333,
       "keyword_coverage": 1.0,
       "multi_hop_success": false,
-      "top1_similarity": 0.6813,
-      "tables_in_top_k": 0,
+      "top1_similarity": 6.9872,
       "keyword_details": [
         {
           "keyword": "4,800",
@@ -1727,18 +2495,56 @@
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.6813,
+          "similarity": 6.9872,
           "page": 6,
           "type": "text",
           "matched_keywords": [
             "2,400",
             "small businesses"
           ],
-          "text_preview": "7. Customer Segments\n\nNorthstar classifies its customers into four segments based on order volume and purchasing behaviour.\nUnderstanding these segments helps the company tailor its pricing, service l"
+          "text_preview": "Northstar classifies its customers into four segments based on order volume and purchasing behaviour. Understanding these segments helps the company tailor its pricing, service levels, and marketing. "
         },
         {
           "rank": 2,
-          "similarity": 0.6627,
+          "similarity": 6.4767,
+          "page": 8,
+          "type": "text",
+          "matched_keywords": [
+            "4,800"
+          ],
+          "text_preview": "Northstar fulfilled all 4,800 orders during 2025 from its single warehouse in Manchester. The warehouse\noperates five days a week and employs twelve fulfilment staff. This section summarises the key\no"
+        },
+        {
+          "rank": 3,
+          "similarity": 6.3186,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [
+            "4,800"
+          ],
+          "text_preview": "The company processed 4,800 orders during 2025. Of these, 1,920 orders came from returning\ncustomers, representing 40% of all orders. Management views repeat purchasing as an important\nindicator of cu"
+        },
+        {
+          "rank": 4,
+          "similarity": 3.8081,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Sales Channel Analysis\n\nNorthstar received orders through three primary channels in 2025: its website, email, and telephone. The\nwebsite was the largest channel by revenue, accounting for 55% of total"
+        },
+        {
+          "rank": 5,
+          "similarity": 2.9189,
+          "page": 5,
+          "type": "text",
+          "matched_keywords": [
+            "small businesses"
+          ],
+          "text_preview": "Northstar sells throughout the United Kingdom and organises its distribution into four regions plus an\nonline-only segment. Each region is supported by a dedicated territory manager who works with loc"
+        },
+        {
+          "rank": 6,
+          "similarity": 2.5594,
           "page": 7,
           "type": "text",
           "matched_keywords": [
@@ -1747,22 +2553,24 @@
           "text_preview": "Quarterly revenue grew from £540,000 in the first quarter to £648,000 in the fourth quarter. This\nrepresents an increase of £108,000 between the opening and closing quarters. The steady upward trend\ni"
         },
         {
-          "rank": 3,
-          "similarity": 0.6624,
-          "page": 6,
-          "type": "text",
-          "matched_keywords": [],
-          "text_preview": "Independent professionals, such as freelancers and consultants, placed the fewest orders at 240 but\nachieved the highest average order value of £800. They often buy specialised or premium products and"
-        },
-        {
-          "rank": 4,
-          "similarity": 0.6541,
-          "page": 3,
+          "rank": 7,
+          "similarity": 2.3694,
+          "page": 2,
           "type": "text",
           "matched_keywords": [
-            "4,800"
+            "small businesses"
           ],
-          "text_preview": "The company processed 4,800 orders during 2025. Of these, 1,920 orders came from returning\ncustomers, representing 40% of all orders. Management views repeat purchasing as an important\nindicator of cu"
+          "text_preview": "1. Company Overview\n\nNorthstar Office Supplies is a fictional office-products retailer based in Manchester, United Kingdom. Established in 2018, the company serves small businesses, home offices, scho"
+        },
+        {
+          "rank": 8,
+          "similarity": 1.7818,
+          "page": 7,
+          "type": "text",
+          "matched_keywords": [
+            "small businesses"
+          ],
+          "text_preview": "Top-Selling Products\n\nThis section lists the products that generated the most revenue for Northstar in 2025. These items account\nfor a large share of total sales and are closely monitored for stock av"
         }
       ]
     },
@@ -1771,68 +2579,99 @@
       "level": "hard",
       "question": "What was Northstar's operating expenses as a percentage of its 2025 revenue?",
       "answerable": true,
-      "keyword_mrr_at_k": 0.8333,
+      "keyword_mrr_at_k": 0.175,
       "keyword_coverage": 1.0,
       "multi_hop_success": false,
-      "top1_similarity": 0.7987,
-      "tables_in_top_k": 0,
+      "top1_similarity": 5.8622,
       "keyword_details": [
         {
           "keyword": "operating expenses",
-          "first_rank": 1,
-          "reciprocal_rank": 1.0,
+          "first_rank": 5,
+          "reciprocal_rank": 0.2,
           "found": true
         },
         {
           "keyword": "£708,000",
-          "first_rank": 1,
-          "reciprocal_rank": 1.0,
+          "first_rank": 5,
+          "reciprocal_rank": 0.2,
           "found": true
         },
         {
           "keyword": "£2,400,000",
-          "first_rank": 2,
-          "reciprocal_rank": 0.5,
+          "first_rank": 8,
+          "reciprocal_rank": 0.125,
           "found": true
         }
       ],
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.7987,
+          "similarity": 5.8622,
+          "page": 9,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Marketing and Advertising\n\nNorthstar spent £300,000 on marketing and advertising during 2025. This represents 12.5% of total\nrevenue. The marketing budget is allocated across several channels to reach"
+        },
+        {
+          "rank": 2,
+          "similarity": 4.4313,
+          "page": 5,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Northstar sells throughout the United Kingdom and organises its distribution into four regions plus an\nonline-only segment. Each region is supported by a dedicated territory manager who works with loc"
+        },
+        {
+          "rank": 3,
+          "similarity": 3.8726,
+          "page": 4,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Product Category Performance\n\nNorthstar organises its catalogue into five product categories. Tracking these categories helps\nmanagement see which products are driving growth and which may need more p"
+        },
+        {
+          "rank": 4,
+          "similarity": 3.8344,
+          "page": 4,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Revenue rose from £555,000 to £720,000 between 2023 and\n\nNorthstar Office Supplies | Annual Review 2025\nPage 4"
+        },
+        {
+          "rank": 5,
+          "similarity": 3.7259,
           "page": 2,
           "type": "text",
           "matched_keywords": [
             "operating expenses",
             "£708,000"
           ],
-          "text_preview": "Operating expenses reached £708,000 in 2025 and included staff costs, warehouse expenses, software\nsubscriptions, marketing, and administration. After these operating expenses were deducted from gross"
+          "text_preview": "It is calculated by subtracting the cost of goods sold from\nrevenue. The cost of goods sold includes the purchase cost of products sold to customers during the\nreporting period. Gross profit does not "
         },
         {
-          "rank": 2,
-          "similarity": 0.7333,
+          "rank": 6,
+          "similarity": 2.7011,
+          "page": 6,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Northstar classifies its customers into four segments based on order volume and purchasing behaviour. Understanding these segments helps the company tailor its pricing, service levels, and marketing. "
+        },
+        {
+          "rank": 7,
+          "similarity": 2.538,
+          "page": 7,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Quarterly revenue grew from £540,000 in the first quarter to £648,000 in the fourth quarter. This\nrepresents an increase of £108,000 between the opening and closing quarters. The steady upward trend\ni"
+        },
+        {
+          "rank": 8,
+          "similarity": 2.2889,
           "page": 10,
           "type": "text",
           "matched_keywords": [
             "£2,400,000"
           ],
-          "text_preview": "Revenue increased by £300,000 from 2024 to 2025, rising from £2,100,000 to £2,400,000. This represents\na percentage increase of approximately 14.3%.\n\nCost of goods sold increased by £156,000, rising f"
-        },
-        {
-          "rank": 3,
-          "similarity": 0.6811,
-          "page": 9,
-          "type": "text",
-          "matched_keywords": [],
-          "text_preview": "12. Marketing and Advertising\n\nNorthstar spent £300,000 on marketing and advertising during 2025. This represents 12.5% of total\nrevenue. The marketing budget is allocated across several channels to r"
-        },
-        {
-          "rank": 4,
-          "similarity": 0.6701,
-          "page": 7,
-          "type": "text",
-          "matched_keywords": [],
-          "text_preview": "Quarterly revenue grew from £540,000 in the first quarter to £648,000 in the fourth quarter. This\nrepresents an increase of £108,000 between the opening and closing quarters. The steady upward trend\ni"
+          "text_preview": "Revenue increased by £300,000 from 2024 to 2025, rising from £2,100,000 to £2,400,000. This represents\na percentage increase of approximately 14.3%. Cost of goods sold increased by £156,000, rising fr"
         }
       ]
     },
@@ -1841,11 +2680,10 @@
       "level": "hard",
       "question": "Marketing spend was £300,000 in 2025. What percentage of total revenue does this represent?",
       "answerable": true,
-      "keyword_mrr_at_k": 0.8333,
+      "keyword_mrr_at_k": 1.0,
       "keyword_coverage": 1.0,
       "multi_hop_success": true,
-      "top1_similarity": 0.6815,
-      "tables_in_top_k": 1,
+      "top1_similarity": 8.5659,
       "keyword_details": [
         {
           "keyword": "marketing",
@@ -1861,15 +2699,27 @@
         },
         {
           "keyword": "12.5%",
-          "first_rank": 2,
-          "reciprocal_rank": 0.5,
+          "first_rank": 1,
+          "reciprocal_rank": 1.0,
           "found": true
         }
       ],
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.6815,
+          "similarity": 8.5659,
+          "page": 9,
+          "type": "text",
+          "matched_keywords": [
+            "marketing",
+            "£300,000",
+            "12.5%"
+          ],
+          "text_preview": "Marketing and Advertising\n\nNorthstar spent £300,000 on marketing and advertising during 2025. This represents 12.5% of total\nrevenue. The marketing budget is allocated across several channels to reach"
+        },
+        {
+          "rank": 2,
+          "similarity": 7.7212,
           "page": 9,
           "type": "table",
           "matched_keywords": [
@@ -1879,36 +2729,60 @@
           "text_preview": "Table (Page 9)\n\nDigital advertising:\n2025 spend: £180,000\nShare: 60%\nROI (est.): 3.2x\n\nPrint advertising:\n2025 spend: £48,000\nShare: 16%\nROI (est.): 1.8x\n\nTrade shows:\n2025 spend: £36,000\nShare: 12%\nR"
         },
         {
-          "rank": 2,
-          "similarity": 0.6573,
-          "page": 9,
-          "type": "text",
-          "matched_keywords": [
-            "marketing",
-            "£300,000",
-            "12.5%"
-          ],
-          "text_preview": "12. Marketing and Advertising\n\nNorthstar spent £300,000 on marketing and advertising during 2025. This represents 12.5% of total\nrevenue. The marketing budget is allocated across several channels to r"
-        },
-        {
           "rank": 3,
-          "similarity": 0.6386,
+          "similarity": 6.1465,
           "page": 10,
           "type": "text",
           "matched_keywords": [
             "£300,000"
           ],
-          "text_preview": "Revenue increased by £300,000 from 2024 to 2025, rising from £2,100,000 to £2,400,000. This represents\na percentage increase of approximately 14.3%.\n\nCost of goods sold increased by £156,000, rising f"
+          "text_preview": "Revenue increased by £300,000 from 2024 to 2025, rising from £2,100,000 to £2,400,000. This represents\na percentage increase of approximately 14.3%. Cost of goods sold increased by £156,000, rising fr"
         },
         {
           "rank": 4,
-          "similarity": 0.6239,
+          "similarity": 5.9041,
           "page": 10,
           "type": "text",
           "matched_keywords": [
             "marketing"
           ],
           "text_preview": "Digital advertising received the largest share of the marketing budget at £180,000, representing 60% of\ntotal spend. This channel focuses on Google and Facebook ads targeting small businesses and home"
+        },
+        {
+          "rank": 5,
+          "similarity": 4.9557,
+          "page": 10,
+          "type": "table",
+          "matched_keywords": [
+            "£300,000"
+          ],
+          "text_preview": "Table (Page 10)\n\nRevenue growth:\n2025 value: £300,000\nCalculation: £2,400,000 - £2,100,000\n\nRevenue growth %:\n2025 value: 14.3%\nCalculation: £300,000 / £2,100,000\n\nCOGS growth:\n2025 value: £156,000\nCa"
+        },
+        {
+          "rank": 6,
+          "similarity": 3.5174,
+          "page": 2,
+          "type": "text",
+          "matched_keywords": [
+            "marketing"
+          ],
+          "text_preview": "It is calculated by subtracting the cost of goods sold from\nrevenue. The cost of goods sold includes the purchase cost of products sold to customers during the\nreporting period. Gross profit does not "
+        },
+        {
+          "rank": 7,
+          "similarity": 3.4849,
+          "page": 11,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Combined revenue from the Website and Email channels was £1,920,000, representing 80% of the\ncompany's total 2025 revenue. The Website channel alone generated £1,320,000 (55%) and the Email\nchannel ge"
+        },
+        {
+          "rank": 8,
+          "similarity": 2.6987,
+          "page": 2,
+          "type": "table",
+          "matched_keywords": [],
+          "text_preview": "Table (Page 2)\n\nRevenue:\n2023: £1,850,000\n2024: £2,100,000\n2025: £2,400,000\n\nCost of goods sold:\n2023: £1,110,000\n2024: £1,260,000\n2025: £1,416,000\n\nGross profit:\n2023: £740,000\n2024: £840,000\n2025: £"
         }
       ]
     },
@@ -1920,41 +2794,72 @@
       "keyword_mrr_at_k": null,
       "keyword_coverage": null,
       "multi_hop_success": null,
-      "top1_similarity": 0.6245,
-      "tables_in_top_k": 0,
+      "top1_similarity": 6.5799,
       "keyword_details": [],
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.6245,
-          "page": 10,
+          "similarity": 6.5799,
+          "page": 4,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "Revenue increased by £300,000 from 2024 to 2025, rising from £2,100,000 to £2,400,000. This represents\na percentage increase of approximately 14.3%.\n\nCost of goods sold increased by £156,000, rising f"
+          "text_preview": "Revenue rose from £555,000 to £720,000 between 2023 and\n\nNorthstar Office Supplies | Annual Review 2025\nPage 4"
         },
         {
           "rank": 2,
-          "similarity": 0.611,
-          "page": 7,
-          "type": "text",
-          "matched_keywords": [],
-          "text_preview": "Quarterly revenue grew from £540,000 in the first quarter to £648,000 in the fourth quarter. This\nrepresents an increase of £108,000 between the opening and closing quarters. The steady upward trend\ni"
-        },
-        {
-          "rank": 3,
-          "similarity": 0.5973,
+          "similarity": 6.155,
           "page": 9,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "12. Marketing and Advertising\n\nNorthstar spent £300,000 on marketing and advertising during 2025. This represents 12.5% of total\nrevenue. The marketing budget is allocated across several channels to r"
+          "text_preview": "Marketing and Advertising\n\nNorthstar spent £300,000 on marketing and advertising during 2025. This represents 12.5% of total\nrevenue. The marketing budget is allocated across several channels to reach"
+        },
+        {
+          "rank": 3,
+          "similarity": 5.8604,
+          "page": 5,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Northstar sells throughout the United Kingdom and organises its distribution into four regions plus an\nonline-only segment. Each region is supported by a dedicated territory manager who works with loc"
         },
         {
           "rank": 4,
-          "similarity": 0.5856,
+          "similarity": 5.241,
+          "page": 4,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Product Category Performance\n\nNorthstar organises its catalogue into five product categories. Tracking these categories helps\nmanagement see which products are driving growth and which may need more p"
+        },
+        {
+          "rank": 5,
+          "similarity": 4.8136,
+          "page": 6,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Northstar classifies its customers into four segments based on order volume and purchasing behaviour. Understanding these segments helps the company tailor its pricing, service levels, and marketing. "
+        },
+        {
+          "rank": 6,
+          "similarity": 4.7844,
+          "page": 7,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Top-Selling Products\n\nThis section lists the products that generated the most revenue for Northstar in 2025. These items account\nfor a large share of total sales and are closely monitored for stock av"
+        },
+        {
+          "rank": 7,
+          "similarity": 4.1518,
           "page": 3,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "Operating profit increased by £66,000 compared with 2024, when it was £210,000. Management\nconsidered this improvement encouraging but noted that higher sales volumes also increased warehouse\nworkload"
+          "text_preview": "Sales Channel Analysis\n\nNorthstar received orders through three primary channels in 2025: its website, email, and telephone. The\nwebsite was the largest channel by revenue, accounting for 55% of total"
+        },
+        {
+          "rank": 8,
+          "similarity": 1.631,
+          "page": 3,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "The figures in this section describe different measures. Revenue represents the total sales value for a\nchannel, while average order value represents the average amount spent per order within that cha"
         }
       ]
     },
@@ -1966,41 +2871,72 @@
       "keyword_mrr_at_k": null,
       "keyword_coverage": null,
       "multi_hop_success": null,
-      "top1_similarity": 0.5977,
-      "tables_in_top_k": 0,
+      "top1_similarity": 3.4385,
       "keyword_details": [],
       "top_chunks": [
         {
           "rank": 1,
-          "similarity": 0.5977,
+          "similarity": 3.4385,
+          "page": 2,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "1. Company Overview\n\nNorthstar Office Supplies is a fictional office-products retailer based in Manchester, United Kingdom. Established in 2018, the company serves small businesses, home offices, scho"
+        },
+        {
+          "rank": 2,
+          "similarity": 2.3022,
+          "page": 7,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Top-Selling Products\n\nThis section lists the products that generated the most revenue for Northstar in 2025. These items account\nfor a large share of total sales and are closely monitored for stock av"
+        },
+        {
+          "rank": 3,
+          "similarity": 2.0868,
+          "page": 8,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Customer Service Metrics\n\nCustomer service is provided through the company's website chat, email, and telephone lines. The\ncustomer service team consists of eight advisors who operate during UK busine"
+        },
+        {
+          "rank": 4,
+          "similarity": 1.3193,
           "page": 1,
           "type": "text",
           "matched_keywords": [],
           "text_preview": "Northstar Office Supplies\n\nAnnual Business Review 2025\n\nA fictional business report covering financial performance, sales channels, customer activity, and\noperational priorities. All company names and"
         },
         {
-          "rank": 2,
-          "similarity": 0.5538,
-          "page": 2,
+          "rank": 5,
+          "similarity": 0.9373,
+          "page": 5,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "1. Company Overview\n\nNorthstar Office Supplies is a fictional office-products retailer based in Manchester, United Kingdom.\nEstablished in 2018, the company serves small businesses, home offices, scho"
+          "text_preview": "Northstar sells throughout the United Kingdom and organises its distribution into four regions plus an\nonline-only segment. Each region is supported by a dedicated territory manager who works with loc"
         },
         {
-          "rank": 3,
-          "similarity": 0.5431,
-          "page": 9,
+          "rank": 6,
+          "similarity": 0.3783,
+          "page": 6,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "12. Marketing and Advertising\n\nNorthstar spent £300,000 on marketing and advertising during 2025. This represents 12.5% of total\nrevenue. The marketing budget is allocated across several channels to r"
+          "text_preview": "Northstar classifies its customers into four segments based on order volume and purchasing behaviour. Understanding these segments helps the company tailor its pricing, service levels, and marketing. "
         },
         {
-          "rank": 4,
-          "similarity": 0.5206,
-          "page": 2,
+          "rank": 7,
+          "similarity": -0.6701,
+          "page": 10,
           "type": "text",
           "matched_keywords": [],
-          "text_preview": "Operating expenses reached £708,000 in 2025 and included staff costs, warehouse expenses, software\nsubscriptions, marketing, and administration. After these operating expenses were deducted from gross"
+          "text_preview": "Northstar Office Supplies | Annual Review 2025\nPage 10"
+        },
+        {
+          "rank": 8,
+          "similarity": -0.6768,
+          "page": 5,
+          "type": "text",
+          "matched_keywords": [],
+          "text_preview": "Northstar Office Supplies | Annual Review 2025\nPage 5"
         }
       ]
     }
