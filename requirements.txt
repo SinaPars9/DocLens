@@ -11,3 +11,4 @@ httpx
 diskcache
 rank_bm25
 numpy
+openai

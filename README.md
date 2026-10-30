@@ -14,6 +14,8 @@ This project focuses on building a **experimental / learning project** document 
 - **Batched ONNX Inference:** Optimizes local CPU inference for both embedding (`bekko-embedding`) and reranking (`ms-marco-MiniLM`) models, preventing memory spikes.
 - **Domain-Agnostic Prompts:** LLM prompts are generalized to handle financial reports, academic papers, or technical manuals with equal accuracy.
 - **Transparent UI:** Displays retrieved chunks, page numbers, and rerank scores in a dedicated context panel for full explainability.
+- **Hybrid LLM Strategy:** Uses `gpt-4o-mini` for cost-effective query rewriting, and `Claude Haiku 5.5` for final generation to ensure zero hallucination, accurate math reasoning, and strict adherence to context.
+- **LLM-as-a-Judge Evaluation:** Includes a custom, zero-dependency evaluation script (`evaluate_llm_judge.py`) to measure Faithfulness and Relevancy without relying on unstable third-party libraries like RAGAS.
 
 ## 🏗️ Architecture Pipeline
 
@@ -101,6 +103,7 @@ The `example/` directory includes:
 - `create_pdf.py` — creates a sample PDF for testing.
 - `evaluate_retrieval.py` — evaluates retrieval against a set of questions.
 - `evaluation_questions.json` — contains the evaluation questions.
+- `evaluate_llm_judge.py` — evaluates retrieval against a set of questions with llm as a judge.
 - `retrieval_evaluation_report.json` — contains a sample evaluation report.
 - `test.pdf` — the sample PDF used in the example workflow.
 
@@ -119,14 +122,14 @@ Multi-hop Reasoning on Follow-ups: While the retrieval system correctly identifi
 Complex PDF Layouts: Multi-column PDFs or highly irregular table structures may still pose extraction challenges.
 
 Multilingual Support: The current pipeline is optimized for English. Future iterations will focus on Persian/Arabic RTL support, requiring different embedding models (e.g., BGE-M3).
-## Tech Stack
 
-- Python
-- streamlit
-- PDF Processing: PyMuPDF, pdfplumber
-- Keyword Search: rank_bm25
-- LangChain text utilities
-- Vector Store: ChromaDB
-- Local Inference: ONNX Runtime, Tokenizers
-- LLM & Caching: OpenAI SDK, diskcache
+## 🛠️ Tech Stack
+
+- **UI:** Streamlit
+- **PDF Processing:** PyMuPDF, pdfplumber
+- **Vector Store:** ChromaDB
+- **Keyword Search:** rank_bm25
+- **Local Inference:** ONNX Runtime, Tokenizers
+- **LLMs:** Claude Haiku 5.5 (Generation), GPT-4o-mini (Query Rewriting)
+- **Caching & Evaluation:** Diskcache, Custom LLM Judge
 
