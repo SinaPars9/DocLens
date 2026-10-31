@@ -7,7 +7,6 @@ This project focuses on building a **experimental / learning project** document 
 ## Features
 
 - **Hybrid Search (BM25 + Vector):** Combines semantic vector search (ChromaDB) with keyword-based BM25 (using Reciprocal Rank Fusion) to drastically improve retrieval accuracy for numeric data, specific entities, and tables.
-- **Smart Table Boost:** The Cross-Encoder reranker is enhanced to automatically boost the scores of table chunks when the user's question contains numbers or financial symbols, ensuring tabular data is never ignored.
 - **Semantic Chunking & Robust Parsing:** Text is split based on semantic topic shifts (rather than arbitrary character limits), while a custom word-count filter prevents 2-column PDF layouts from being falsely detected as tables.
 - **Streaming Responses:** Built with Streamlit, generating answers token-by-token for a ChatGPT-like user experience with near-zero perceived latency.
 - **Persistent LLM Caching:** Utilizes `diskcache` to locally store query rewrites and generated answers, saving API costs and delivering instant responses for repeated questions.
@@ -15,15 +14,15 @@ This project focuses on building a **experimental / learning project** document 
 - **Domain-Agnostic Prompts:** LLM prompts are generalized to handle financial reports, academic papers, or technical manuals with equal accuracy.
 - **Transparent UI:** Displays retrieved chunks, page numbers, and rerank scores in a dedicated context panel for full explainability.
 - **Hybrid LLM Strategy:** Uses `gpt-4o-mini` for cost-effective query rewriting, and `Claude Haiku 5.5` for final generation to ensure zero hallucination, accurate math reasoning, and strict adherence to context.
-- **LLM-as-a-Judge Evaluation:** Includes a custom, zero-dependency evaluation script (`evaluate_llm_judge.py`) to measure Faithfulness and Relevancy without relying on unstable third-party libraries like RAGAS.
+- **Dynamic Table Boosting:** Instead of a hardcoded score, the reranker dynamically extracts numbers and keywords from the user's query and boosts table chunks only if they contain matching evidence.
+- **Custom LLM-as-a-Judge Evaluation:** Includes a zero-dependency evaluation script (`evaluate_llm_judge.py`) to measure Faithfulness and Relevancy, bypassing unstable third-party libraries like RAGAS.
 
 ## 🏗️ Architecture Pipeline
 
 1. **Document Ingestion & Semantic Chunking:** Extracts text and tables (via PyMuPDF + pdfplumber). Filters out false-positive tables (like 2-column text) and applies Semantic Chunking to text blocks to preserve topic integrity, while keeping actual tables intact.
 2. **Query Processing:** Resolves follow-up questions using chat history and generates multiple expanded queries.
 3. **Hybrid Retrieval:** Fetches candidates using both Vector Search (ChromaDB) and BM25.
-4. **Fusion:** Combines results using Reciprocal Rank Fusion (RRF).
-5. **Smart Reranking:** Scores the fused candidates using a local Cross-Encoder ONNX model, with conditional boosting for table data.
+4. **Smart Reranking:** Scores the fused candidates using a local Cross-Encoder ONNX model. It applies a **Dynamic Table Boost** by extracting numbers/keywords from the query and rewarding tables that contain them.
 6. **Generation:** Streams the final answer using an LLM based strictly on the retrieved context.
 
 ## Project Structure

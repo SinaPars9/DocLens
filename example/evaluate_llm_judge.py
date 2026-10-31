@@ -98,7 +98,11 @@ def main():
                 answer += event["content"]
             elif event["type"] == "chunks":
                 contexts = [c["text"] for c in event["chunks"]]
-
+                print(f"  [Retrieved Chunks]")
+                for c in event["chunks"]:
+                    meta = c.get("metadata", {})
+                    score = c.get("rerank_score", 0.0)
+                    print(f"    - Type: {meta.get('type')} | Page: {meta.get('page')} | Score: {score:.2f}")
         print(f"  ANSWER: {answer}")
 
         f_score, r_score, reasoning = ask_judge(q_text, answer, contexts)
