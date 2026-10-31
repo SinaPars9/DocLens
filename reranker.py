@@ -8,6 +8,7 @@ from tokenizers import Tokenizer
 class Reranker:
     def __init__(self, model_dir=r"E:\models\reranker"):
         model_dir = Path(model_dir)
+
         self.onnx_path = model_dir / "onnx" / "model.onnx"
         self.tokenizer_path = model_dir / "tokenizer.json"
 
@@ -26,16 +27,49 @@ class Reranker:
             sess_options=sess_options,
             providers=["CPUExecutionProvider"],
         )
+
         self.input_names = {item.name for item in self.session.get_inputs()}
 
-    def _should_boost_tables(self, question: str) -> bool:
-        if re.search(r"\d", question):
-            return True
-        if any(sym in question for sym in ["£", "$", "%", "target", "goal", "margin"]):
-            return True
-        return False
+        self.stopwords = {
+            "what", "was", "the", "of", "in", "for", "a", "is", "to", "and",
+            "how", "much", "did", "by", "were", "are", "on", "with", "that", 
+            "this", "it", "be", "from", "at", "an", "as", "which", "or", "who",
+            "whom", "whose", "where", "when", "why", "all", "any", "both", "each",
+            "few", "more", "most", "other", "some", "such", "no", "nor", "not",
+            "only", "own", "same", "so", "than", "too", "very", "can", "will",
+            "just", "should", "now"
+        }
 
-    def rerank(self, question, chunks, top_k=5, batch_size=8):
+    def _extract_query_features(self, question: str):
+        numbers = re.findall(r"\b\d+(?:,\d{3})*(?:\.\d+)?%?\b", question)
+
+        words = re.findall(r"\b[a-zA-Z]{3,}\b", question.lower())
+        keywords = [w for w in words if w not in self.stopwords]
+
+        return numbers, keywords
+
+    def _calculate_table_boost(self, question: str, chunk_text: str) -> float:
+        numbers, keywords = self._extract_query_features(question)
+
+        if not numbers and not keywords:
+            return 0.0
+
+        chunk_lower = chunk_text.lower()
+        boost_score = 0.0
+
+        for num in numbers:
+            if num in chunk_text:
+                boost_score += 1.5
+
+        for kw in keywords:
+            if kw in chunk_lower:
+                boost_score += 0.5
+
+        return min(boost_score, 3.0)
+
+    def rerank(
+        self, question: str, chunks: list, top_k: int = 5, batch_size: int = 8
+    ) -> list:
         if not chunks:
             return []
 
@@ -66,15 +100,14 @@ class Reranker:
             batch_scores = np.asarray(outputs[0]).reshape(-1)
             all_scores.extend(batch_scores)
 
-        boost_tables = self._should_boost_tables(question)
-
         ranked_chunks = []
         for chunk, score in zip(chunks, all_scores):
             item = dict(chunk)
             final_score = float(score)
 
-            if boost_tables and item.get("metadata", {}).get("type") == "table":
-                final_score += 2.0
+            if item.get("metadata", {}).get("type") == "table":
+                dynamic_boost = self._calculate_table_boost(question, item["text"])
+                final_score += dynamic_boost
 
             item["rerank_score"] = final_score
             ranked_chunks.append(item)
