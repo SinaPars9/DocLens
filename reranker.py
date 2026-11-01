@@ -42,10 +42,8 @@ class Reranker:
 
     def _extract_query_features(self, question: str):
         numbers = re.findall(r"\b\d+(?:,\d{3})*(?:\.\d+)?%?\b", question)
-
         words = re.findall(r"\b[a-zA-Z]{3,}\b", question.lower())
         keywords = [w for w in words if w not in self.stopwords]
-
         return numbers, keywords
 
     def _calculate_table_boost(self, question: str, chunk_text: str) -> float:
@@ -59,13 +57,13 @@ class Reranker:
 
         for num in numbers:
             if num in chunk_text:
-                boost_score += 1.5
+                boost_score += 4.0
 
         for kw in keywords:
             if kw in chunk_lower:
-                boost_score += 0.5
+                boost_score += 1.0
 
-        return min(boost_score, 3.0)
+        return min(boost_score, 10.0)
 
     def rerank(
         self, question: str, chunks: list, top_k: int = 5, batch_size: int = 8
