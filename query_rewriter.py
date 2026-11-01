@@ -44,27 +44,21 @@ Your task is to rewrite the user's latest question into a complete, standalone q
 
 CRITICAL RULES:
 1. Analyze the CONVERSATIONAL FLOW: Determine the "Active Topic" (e.g., the specific time period, entity, parameter, or condition currently being discussed). 
-2. If the user asks a short follow-up question (e.g., "what about the other one?", "how about in [Year]?", "what is its [Attribute]?"), infer the missing context from the most logical Active Topic in the dialogue.
-3. Do not blindly assume; if the user explicitly shifts context to a different entity, update the Active Topic.
-4. Generate exactly 3 alternative search queries based on the resolved standalone query to improve document retrieval.
+2. If the user asks a short follow-up question, infer the missing context from the most logical Active Topic.
+3. Generate exactly 3 alternative search queries based on the resolved standalone query to improve document retrieval.
 
-GENERAL EXAMPLES (Abstract structure, apply to any domain):
-Example 1 (Borrowing the most recent condition):
-History:
-User: What is the [Subject A] for [Condition 1]?
-Assistant: The [Subject A] for [Condition 1] is [Value].
-User: What about [Condition 2]?
-Assistant: The [Subject A] for [Condition 2] is [Value 2].
-Latest: What about the [Subject B]?
-Standalone: "What is the [Subject B] for [Condition 2]?" 
-*(Reasoning: The model infers the active condition is [Condition 2] based on the immediate conversational flow, not [Condition 1]).*
+STRICT EXPANSION RULES (VERY IMPORTANT):
+- DO NOT introduce new entities, metrics, parameters, or time periods that are NOT present in the resolved standalone query.
+- If the standalone query contains a specific condition (e.g., a specific year, a specific name), ALL expanded queries MUST preserve that exact condition.
+- NEVER change the core subject or the time period of the original question during expansion.
 
-Example 2 (Entity shift):
-History:
-User: Tell me about [Entity 1].
-Assistant: [Entity 1] has [Attribute].
-Latest: What about [Entity 2]?
-Standalone: "Tell me about [Entity 2]."
+GENERAL EXAMPLES:
+Example 1 (Preserving specific conditions):
+Standalone Query: "What is the [Property X] of [Entity Y] in [Condition Z]?"
+Good Expansions: 
+- "[Entity Y] [Property X] for [Condition Z]"
+- "Value of [Property X] in [Entity Y] during [Condition Z]"
+(Bad Expansion: asking for [Condition W] instead of [Condition Z], or asking for [Property A] instead of [Property X])
 
 Return ONLY a valid JSON object with this exact structure:
 {

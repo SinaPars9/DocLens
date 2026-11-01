@@ -9,21 +9,22 @@ This project focuses on building a **experimental / learning project** document 
 - **Hybrid Search (BM25 + Vector):** Combines semantic vector search (ChromaDB) with keyword-based BM25 (using Reciprocal Rank Fusion) to drastically improve retrieval accuracy for numeric data, specific entities, and tables.
 - **Semantic Chunking & Robust Parsing:** Text is split based on semantic topic shifts (rather than arbitrary character limits), while a custom word-count filter prevents 2-column PDF layouts from being falsely detected as tables.
 - **Streaming Responses:** Built with Streamlit, generating answers token-by-token for a ChatGPT-like user experience with near-zero perceived latency.
-- **Persistent LLM Caching:** Utilizes `diskcache` to locally store query rewrites and generated answers, saving API costs and delivering instant responses for repeated questions.
+- **Layered Semantic Caching:** Uses a dual-cache system. An exact-match disk cache for LLM calls, plus a ChromaDB-based Semantic Cache that recognizes meaningfully similar queries (e.g., "How much did we make in 2023?" vs "2023 revenue") and returns answers instantly with zero API cost.
 - **Batched ONNX Inference:** Optimizes local CPU inference for both embedding (`bekko-embedding`) and reranking (`ms-marco-MiniLM`) models, preventing memory spikes.
 - **Domain-Agnostic Prompts:** LLM prompts are generalized to handle financial reports, academic papers, or technical manuals with equal accuracy.
 - **Transparent UI:** Displays retrieved chunks, page numbers, and rerank scores in a dedicated context panel for full explainability.
+- **Transparent Query Inspector:** The Streamlit UI features a collapsible panel that shows the user exactly how their follow-up question was resolved into a standalone query before hitting the database (with cache-hit bypasses).
 - **Hybrid LLM Strategy:** Uses `gpt-4o-mini` for cost-effective query rewriting, and `Claude Haiku 5.5` for final generation to ensure zero hallucination, accurate math reasoning, and strict adherence to context.
-- **Dynamic Table Boosting:** Instead of a hardcoded score, the reranker dynamically extracts numbers and keywords from the user's query and boosts table chunks only if they contain matching evidence.
+- **Enhanced Dynamic Table Boosting:** The Cross-Encoder reranker dynamically extracts numbers/keywords from the query and applies a heavy penalty/boost to ensure tables with exact numerical evidence outrank distractor text.
 - **Custom LLM-as-a-Judge Evaluation:** Includes a zero-dependency evaluation script (`evaluate_llm_judge.py`) to measure Faithfulness and Relevancy, bypassing unstable third-party libraries like RAGAS.
 
 ## 🏗️ Architecture Pipeline
-
+0. **Semantic Cache:** Checks if a semantically similar question (Cosine Similarity > 0.95) was already answered. If yes, returns the cached answer and chunks instantly without hitting the LLM or Vector DB.
 1. **Document Ingestion & Semantic Chunking:** Extracts text and tables (via PyMuPDF + pdfplumber). Filters out false-positive tables (like 2-column text) and applies Semantic Chunking to text blocks to preserve topic integrity, while keeping actual tables intact.
 2. **Query Processing:** Resolves follow-up questions using chat history and generates multiple expanded queries.
 3. **Hybrid Retrieval:** Fetches candidates using both Vector Search (ChromaDB) and BM25.
-4. **Smart Reranking:** Scores the fused candidates using a local Cross-Encoder ONNX model. It applies a **Dynamic Table Boost** by extracting numbers/keywords from the query and rewarding tables that contain them.
-6. **Generation:** Streams the final answer using an LLM based strictly on the retrieved context.
+4. **Fusion & Smart Reranking:** Combines results using RRF and scores them with a local Cross-Encoder, applying **Dynamic Table Boosting** for numeric queries.
+5. **Generation:** Streams the final answer using Claude Haiku 5.5 based strictly on the retrieved context
 
 ## Project Structure
 
