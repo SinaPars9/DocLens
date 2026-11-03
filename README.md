@@ -17,6 +17,9 @@ This project focuses on building a **experimental / learning project** document 
 - **Hybrid LLM Strategy:** Uses `gpt-4o-mini` for cost-effective query rewriting, and `Claude Haiku 5.5` for final generation to ensure zero hallucination, accurate math reasoning, and strict adherence to context.
 - **Enhanced Dynamic Table Boosting:** The Cross-Encoder reranker dynamically extracts numbers/keywords from the query and applies a heavy penalty/boost to ensure tables with exact numerical evidence outrank distractor text.
 - **Custom LLM-as-a-Judge Evaluation:** Includes a zero-dependency evaluation script (`evaluate_llm_judge.py`) to measure Faithfulness and Relevancy, bypassing unstable third-party libraries like RAGAS.
+- **Deterministic Answer Verification:** A zero-dependency, pure-Python verifier (`verifier.py`) that acts as a strict auditor. It normalizes numbers, extracts operands for mathematical exceptions (e.g., sums/differences), and mathematically proves if the LLM's answer is grounded in the source text, verified, or hallucinated.
+- **Human-in-the-Loop (HITL) Interface:** The Streamlit UI features a dedicated `🛡️ Verify Answer & Sources` panel. It highlights verified claims, exposes hallucinations, and provides `👍/👎` feedback buttons. User feedback (along with the source snippet and verdict) is automatically saved to a local JSON file (`feedback_log.json`) to build a "Golden Dataset" for future fine-tuning and regression testing.
+- **Developer Mode Toggle:** A UI toggle that hides the verification panel and exposes internal query-rewriting steps, giving developers and researchers deep visibility into the RAG pipeline without cluttering the user experience.
 
 ## 🏗️ Architecture Pipeline
 0. **Semantic Cache:** Checks if a semantically similar question (Cosine Similarity > 0.95) was already answered. If yes, returns the cached answer and chunks instantly without hitting the LLM or Vector DB.
@@ -24,7 +27,9 @@ This project focuses on building a **experimental / learning project** document 
 2. **Query Processing:** Resolves follow-up questions using chat history and generates multiple expanded queries.
 3. **Hybrid Retrieval:** Fetches candidates using both Vector Search (ChromaDB) and BM25.
 4. **Fusion & Smart Reranking:** Combines results using RRF and scores them with a local Cross-Encoder, applying **Dynamic Table Boosting** for numeric queries.
-5. **Generation:** Streams the final answer using Claude Haiku 5.5 based strictly on the retrieved context
+5. **Generation:** Streams the final answer using Claude Haiku 5.5 based strictly on the retrieved context.
+6. **Deterministic Verification:** Post-generation, a rule-based Python layer audits the LLM's answer sentence-by-sentence. It checks for numeric hallucinations, validates calculated operands, and feeds the result to the HITL UI.
+
 
 ## Project Structure
 
@@ -41,6 +46,7 @@ DocLens/
 ├── reranker.py            # ONNX Cross-Encoder wrapper with Smart Boost
 ├── retriever.py           # Hybrid Search (Vector + BM25) & RRF
 ├── vector_store.py        # ChromaDB management
+├── verifier.py            # Pure-Python deterministic answer verification (NEW)
 ├── requirements.txt
 └── example/               # Retrieval evaluation scripts and sample PDF
 └── .streamlit             # for dark mode switch in streamlit
@@ -117,11 +123,11 @@ Check the script for any required arguments or configuration before running it.
 
 ## Limitations
 
-Multi-hop Reasoning on Follow-ups: While the retrieval system correctly identifies the relevant tables, smaller LLMs (like gpt-4o-mini) may sometimes take "shortcuts" during follow-up questions (e.g., returning 2025 data instead of calculating 2024 data). Future iterations will explore stronger LLMs or fine-tuning for better multi-hop reasoning.
+**Verifier Regex Constraints:** While the deterministic verifier catches numeric hallucinations and directionality errors effectively, it relies on regex. It may still struggle with highly complex semantic mismatches (e.g., a number that exists in the text but is attributed to the wrong entity in a very dense paragraph).
 
-Complex PDF Layouts: Multi-column PDFs or highly irregular table structures may still pose extraction challenges.
+**Complex PDF Layouts:** Multi-column PDFs or highly irregular table structures may still pose extraction challenges. (Upcoming roadmap includes Camelot integration for structured table extraction).
 
-Multilingual Support: The current pipeline is optimized for English. Future iterations will focus on Persian/Arabic RTL support, requiring different embedding models (e.g., BGE-M3).
+**Multilingual Support:** The current pipeline is optimized for English. Future iterations will focus on Persian/Arabic RTL support, requiring different embedding models (e.g., BGE-M3) and updated regex patterns for the verifier.
 
 ## 🛠️ Tech Stack
 

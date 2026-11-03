@@ -7,6 +7,7 @@ from query_rewriter import resolve_and_expand
 from generate import generate_answer_stream
 from config import TOP_K_RETRIEVE, TOP_K_FINAL
 from semantic_cache import SemanticCache
+from verifier import AnswerVerifier
 
 
 class RAGPipeline:
@@ -18,7 +19,7 @@ class RAGPipeline:
         self.vector_store = VectorStore()
         self.retriever = Retriever(store=self.vector_store)
         self.reranker = Reranker()
-
+        self.verifier = AnswerVerifier()
         self.cache = SemanticCache(embedding_model=self.vector_store.embedding_model)
 
         self.is_built: bool = self.vector_store.collection.count() > 0
@@ -67,6 +68,10 @@ class RAGPipeline:
             cached_answer, cached_chunks = cached_result
             yield {"type": "chunks", "chunks": cached_chunks}
             yield {"type": "text", "content": cached_answer}
+            verification_result = self.verifier.verify_answer(
+                cached_answer, cached_chunks
+            )
+            yield {"type": "verification", "data": verification_result}
             return
 
         queries = [standalone_query] + [str(q) for q in expanded]
@@ -96,3 +101,5 @@ class RAGPipeline:
             yield {"type": "text", "content": token}
 
         self.cache.put(standalone_query, full_response, ranked_chunks)
+        verification_result = self.verifier.verify_answer(full_response, ranked_chunks)
+        yield {"type": "verification", "data": verification_result}

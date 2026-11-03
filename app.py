@@ -1,4 +1,6 @@
 import os
+import json
+from datetime import datetime
 import streamlit as st
 from typing import List, Dict, Any
 
@@ -23,20 +25,45 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+FEEDBACK_FILE = "feedback_log.json"
+
+
+if "app_initialized" not in st.session_state:
+    with open(FEEDBACK_FILE, "w", encoding="utf-8") as f:
+        json.dump([], f)
+    st.session_state.app_initialized = True
+
 
 @st.cache_resource(show_spinner=False)
 def get_rag_pipeline() -> RAGPipeline:
     return RAGPipeline()
 
 
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-if "latest_chunks" not in st.session_state:
-    st.session_state.latest_chunks = []
-if "rag_built" not in st.session_state:
-    st.session_state.rag_built = False
-if "current_file_name" not in st.session_state:
-    st.session_state.current_file_name = None
+def save_feedback(
+    question: str, claim: Dict[str, Any], verdict: str, reason: str = ""
+) -> None:
+
+    feedback_entry = {
+        "timestamp": datetime.now().isoformat(),
+        "question": question,
+        "llm_sentence": claim.get("sentence", ""),
+        "status": claim.get("status", ""),
+        "source_snippet": claim.get("source_snippet", ""),
+        "user_verdict": verdict,
+        "reason": reason,
+    }
+
+    data = []
+    if os.path.exists(FEEDBACK_FILE):
+        try:
+            with open(FEEDBACK_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except json.JSONDecodeError:
+            data = []
+
+    data.append(feedback_entry)
+    with open(FEEDBACK_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4, ensure_ascii=False)
 
 
 def format_chunks(chunks: List[Dict[str, Any]]) -> str:
@@ -53,9 +80,137 @@ def format_chunks(chunks: List[Dict[str, Any]]) -> str:
     return markdown_text
 
 
+def render_feedback_buttons(
+    claim: Dict[str, Any], question: str, msg_idx: int, claim_idx: int
+) -> None:
+
+    state_key = f"feedback_state_{msg_idx}_{claim_idx}"
+
+    if state_key not in st.session_state:
+        st.session_state[state_key] = "idle"
+
+    if st.session_state[state_key] == "idle":
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button(
+                "👍 Correct",
+                key=f"correct_{msg_idx}_{claim_idx}",
+                use_container_width=True,
+            ):
+                save_feedback(question, claim, "Correct")
+                st.session_state[state_key] = "done"
+                st.rerun()
+        with col2:
+            if st.button(
+                "👎 Incorrect",
+                key=f"incorrect_{msg_idx}_{claim_idx}",
+                use_container_width=True,
+            ):
+                st.session_state[state_key] = "asking_reason"
+                st.rerun()
+
+    elif st.session_state[state_key] == "asking_reason":
+        reason = st.text_input(
+            "Why is this incorrect? (e.g., Wrong year, missing context)",
+            key=f"reason_{msg_idx}_{claim_idx}",
+        )
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button(
+                "Submit",
+                key=f"submit_{msg_idx}_{claim_idx}",
+                type="primary",
+                use_container_width=True,
+            ):
+                if reason.strip():
+                    save_feedback(question, claim, "Incorrect", reason)
+                    st.session_state[state_key] = "done"
+                    st.rerun()
+                else:
+                    st.warning("Please enter a reason.")
+        with col2:
+            if st.button(
+                "Cancel", key=f"cancel_{msg_idx}_{claim_idx}", use_container_width=True
+            ):
+                st.session_state[state_key] = "idle"
+                st.rerun()
+
+    elif st.session_state[state_key] == "done":
+        st.success("✅ Feedback saved to Golden Dataset.")
+
+
+def render_verification_ui(
+    v_data: Dict[str, Any],
+    msg_idx: int,
+    question: str,
+    standalone_q: str,
+    expanded_qs: List[str],
+    dev_mode: bool,
+) -> None:
+
+    if dev_mode:
+        if standalone_q and standalone_q != question:
+            with st.expander("🔍 Query Inspector (Dev Mode)", expanded=True):
+                st.info(f"**Target Query:** {standalone_q}")
+                if expanded_qs:
+                    st.write("**Expanded Queries:**")
+                    for q in expanded_qs:
+                        st.write(f"- {q}")
+        return
+
+    if not v_data or "claims" not in v_data:
+        return
+
+    claims = v_data["claims"]
+    verified_count = sum(1 for c in claims if "✅" in c.get("status", ""))
+    error_count = len(claims) - verified_count
+
+    is_fully_verified = v_data.get("is_fully_verified", True)
+    expander_title = (
+        f"🛡️ Verify Answer & Sources ({verified_count} Verified, {error_count} Issues)"
+    )
+
+    with st.expander(expander_title, expanded=not is_fully_verified):
+        if is_fully_verified:
+            st.success(
+                "All claims and numbers are verified against the source documents."
+            )
+
+        for idx, claim in enumerate(claims):
+            status: str = claim.get("status", "")
+            sentence: str = claim.get("sentence", "")
+            source: str = claim.get("source_snippet", "")
+            details: str = claim.get("details", "")
+
+            if "✅" in status:
+                st.success(f"**{status}** — {sentence}")
+            elif "❌" in status:
+                st.error(f"**{status}** — {sentence}")
+            else:
+                st.warning(f"**{status}** — {sentence}")
+
+            st.markdown(f"> **Source:** *{source}*")
+            st.caption(f"Reasoning: {details}")
+
+            render_feedback_buttons(claim, question, msg_idx, idx)
+
+            st.divider()
+
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+if "latest_chunks" not in st.session_state:
+    st.session_state.latest_chunks = []
+if "rag_built" not in st.session_state:
+    st.session_state.rag_built = False
+if "current_file_name" not in st.session_state:
+    st.session_state.current_file_name = None
+
 with st.sidebar:
     st.title("📄 DocLens")
     st.caption("Upload a PDF and ask questions.")
+
+    dev_mode = st.toggle("🛠️ Developer Mode", value=False)
 
     pdf_file = st.file_uploader(
         "Choose PDF", type=["pdf"], label_visibility="collapsed"
@@ -125,20 +280,19 @@ with col1:
 
     chat_container = st.container(height=500)
     with chat_container:
-        for msg in st.session_state.messages:
+        for i, msg in enumerate(st.session_state.messages):
             with st.chat_message(msg["role"]):
                 st.markdown(msg["content"])
-                if (
-                    msg["role"] == "assistant"
-                    and msg.get("standalone_query")
-                    and msg["standalone_query"] != msg.get("original_question")
-                ):
-                    with st.expander("🔍 View Resolved Standalone Query"):
-                        st.info(f"**Target Query:** {msg['standalone_query']}")
-                        if msg.get("expanded_queries"):
-                            st.write("**Expanded Queries:**")
-                            for q in msg["expanded_queries"]:
-                                st.write(f"- {q}")
+
+                if msg["role"] == "assistant":
+                    render_verification_ui(
+                        v_data=msg.get("verification", {}),
+                        msg_idx=i,
+                        question=msg.get("original_question", ""),
+                        standalone_q=msg.get("standalone_query", ""),
+                        expanded_qs=msg.get("expanded_queries", []),
+                        dev_mode=dev_mode,
+                    )
 
     if prompt := st.chat_input("Ask a question..."):
         if not st.session_state.rag_built:
@@ -156,6 +310,7 @@ with col1:
 
                     standalone_q = prompt
                     expanded_qs = []
+                    verification_result: Dict[str, Any] = {}
 
                     response_placeholder = st.empty()
                     full_response = ""
@@ -169,16 +324,19 @@ with col1:
                         elif event["type"] == "text":
                             full_response += event["content"]
                             response_placeholder.markdown(full_response + "▌")
+                        elif event["type"] == "verification":
+                            verification_result = event["data"]
 
                     response_placeholder.markdown(full_response)
 
-                    if standalone_q and standalone_q != prompt:
-                        with st.expander("🔍 View Resolved Standalone Query"):
-                            st.info(f"**Target Query:** {standalone_q}")
-                            if expanded_qs:
-                                st.write("**Expanded Queries:**")
-                                for q in expanded_qs:
-                                    st.write(f"- {q}")
+                    render_verification_ui(
+                        v_data=verification_result,
+                        msg_idx=len(st.session_state.messages),
+                        question=prompt,
+                        standalone_q=standalone_q,
+                        expanded_qs=expanded_qs,
+                        dev_mode=dev_mode,
+                    )
 
                     st.session_state.messages.append(
                         {
@@ -187,6 +345,7 @@ with col1:
                             "standalone_query": standalone_q,
                             "expanded_queries": expanded_qs,
                             "original_question": prompt,
+                            "verification": verification_result,
                         }
                     )
                     st.session_state.latest_chunks = current_chunks
