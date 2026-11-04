@@ -18,18 +18,17 @@ This project focuses on building a **experimental / learning project** document 
 - **Hybrid LLM Strategy:** Uses `gpt-4o-mini` for cost-effective query rewriting, and `Claude Haiku 5.5` for final generation to ensure zero hallucination, accurate math reasoning, and strict adherence to context.
 - **Enhanced Dynamic Table Boosting:** The Cross-Encoder reranker dynamically extracts numbers/keywords from the query and applies a heavy penalty/boost to ensure tables with exact numerical evidence outrank distractor text.
 - **Custom LLM-as-a-Judge Evaluation:** Includes a zero-dependency evaluation script (`evaluate_llm_judge.py`) to measure Faithfulness and Relevancy, bypassing unstable third-party libraries like RAGAS.
-- **Deterministic Answer Verification & HITL:** A zero-dependency Python verifier (`verifier.py`) that normalizes numbers, extracts operands for mathematical exceptions, and cross-checks LLM claims against source chunks. It filters out page numbers and headings to prevent false positives. The UI features a `🛡️ Verify Answer & Sources` panel with 👍/👎 feedback buttons that log to a local `feedback_log.json` Golden Dataset.
+- **Deterministic Answer Verification & HITL:** A zero-dependency Python verifier (`verifier.py`) that normalizes numbers, extracts operands for mathematical exceptions, and cross-checks LLM claims against source chunks. It filters out page numbers and headings to prevent false positives. The UI features a `🛡️ Verify Answer & Sources` panel with `👍/👎` feedback buttons that log to a local `feedback_log.json` Golden Dataset.
 - **Developer Mode Toggle:** A UI toggle that hides the verification panel and exposes internal query-rewriting steps, giving developers and researchers deep visibility into the RAG pipeline without cluttering the user experience.
 
 ## 🏗️ Architecture Pipeline
 0. **Semantic Cache:** Checks if a semantically similar question (Cosine Similarity > 0.95) was already answered. If yes, returns the cached answer and chunks instantly without hitting the LLM or Vector DB.
-1. **Document Ingestion & Hybrid Extraction:** Text is extracted via PyMuPDF. Tables are extracted via Camelot (for bordered tables, converted to Markdown) with a pdfplumber fallback. Text undergoes Semantic Chunking, while tables remain atomic.
-2. **Semantic Chunking:** applies Semantic Chunking to text blocks to preserve topic integrity, while keeping actual tables intact.
-3. **Query Processing:** Resolves follow-up questions using chat history and generates multiple expanded queries.
-4. **Hybrid Retrieval:** Fetches candidates using both Vector Search (ChromaDB) and BM25.
-5. **Fusion & Smart Reranking:** Combines results using RRF and scores them with a local Cross-Encoder, applying **Dynamic Table Boosting** for numeric queries.
-6. **Generation:** Streams the final answer using Claude Haiku 5.5 based strictly on the retrieved context.
-7. **Deterministic Verification:** Post-generation, a rule-based Python layer audits the LLM's answer sentence-by-sentence. It normalizes numbers, ignores page/table references, and validates calculated operands. The result is fed to the HITL UI.
+1. **Document Ingestion & Hybrid Extraction:** Text is extracted via PyMuPDF. Tables are extracted via Camelot (for bordered tables, converted to Markdown) with a pdfplumber fallback. Text undergoes **Semantic Chunking** to preserve topic integrity, while tables remain **atomic**.
+2. **Query Processing:** Resolves follow-up questions using chat history and generates multiple expanded queries.
+3. **Hybrid Retrieval:** Fetches candidates using both Vector Search (ChromaDB) and BM25.
+4. **Fusion & Smart Reranking:** Combines results using RRF and scores them with a local Cross-Encoder, applying **Dynamic Table Boosting** for numeric queries.
+5. **Generation:** Streams the final answer using Claude Haiku 5.5 based strictly on the retrieved context.
+6. **Deterministic Verification:** Post-generation, a rule-based Python layer audits the LLM's answer sentence-by-sentence. It normalizes numbers, ignores page/table references, and validates calculated operands. The result is fed to the HITL UI.
 
 
 ## Project Structure
@@ -45,6 +44,7 @@ DocLens/
 ├── pipeline.py            # Main RAG orchestrator
 ├── query_rewriter.py      # Query resolution and expansion
 ├── reranker.py            # ONNX Cross-Encoder wrapper with Smart Boost
+├── semantic_cache.py      # ChromaDB-based semantic cache
 ├── retriever.py           # Hybrid Search (Vector + BM25) & RRF
 ├── vector_store.py        # ChromaDB management
 ├── verifier.py            # Pure-Python deterministic answer verification (NEW)
