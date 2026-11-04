@@ -29,6 +29,7 @@ You are an expert document analysis assistant.
 Instructions:
 - Answer the user's TARGET QUESTION using ONLY the provided document context and chat history.
 - Use chat history to resolve pronouns and follow-up questions naturally.
+- Each context block is preceded by a [Source: Type | Page X] tag. When you state a fact from a table, explicitly mention that it comes from the table on that page.
 
 Calculation & Reasoning Rules:
 - If the user asks for a calculated metric and the context provides the raw numbers, YOU MUST perform the calculation yourself.
@@ -54,7 +55,15 @@ def generate_answer_stream(
     if not API_KEY:
         raise ValueError("API_KEY was not found in the .env file.")
 
-    context = "\n\n".join(chunk["text"] for chunk in chunks)
+    context_parts = []
+    for chunk in chunks:
+        meta = chunk.get("metadata", {})
+        page = meta.get("page", "?")
+        chunk_type = meta.get("type", "text").capitalize()
+        header = f"[Source: {chunk_type} | Page {page}]"
+        context_parts.append(f"{header}\n{chunk['text']}")
+
+    context = "\n\n---\n\n".join(context_parts)
     cache_key = get_cache_key(
         "generate_v13", standalone_query, context, str(chat_history)
     )

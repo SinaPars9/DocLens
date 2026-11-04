@@ -52,6 +52,9 @@ STRICT EXPANSION RULES (VERY IMPORTANT):
 - If the standalone query contains a specific condition (e.g., a specific year, a specific name), ALL expanded queries MUST preserve that exact condition.
 - NEVER change the core subject or the time period of the original question during expansion.
 
+SMALL TALK RULE: 
+- If the user's input is a greeting, gratitude (e.g., "thanks", "thank you"), or farewell, do NOT resolve it against the chat history. Return the user's exact input as the standalone query and leave the expanded queries empty.
+
 GENERAL EXAMPLES:
 Example 1 (Preserving specific conditions):
 Standalone Query: "What is the [Property X] of [Entity Y] in [Condition Z]?"

@@ -1,52 +1,18 @@
 import pymupdf
 import pdfplumber
-
+import camelot
+import os
+import tempfile
+import pandas as pd
 from langchain_core.documents import Document
-
-
-def table_to_text(table, page_number):
-    """Convert a detected table into generic structured text."""
-
-    if not table or len(table) < 2:
-        return ""
-
-    headers = [str(header).strip() if header is not None else "" for header in table[0]]
-
-    lines = [f"Table (Page {page_number})"]
-
-    for row in table[1:]:
-        if not row:
-            continue
-
-        if all(value is None or not str(value).strip() for value in row):
-            continue
-
-        item_name = (
-            str(row[0]).strip()
-            if row[0] is not None and str(row[0]).strip()
-            else "Unnamed item"
-        )
-
-        lines.append(f"\n{item_name}:")
-
-        for header, value in zip(headers[1:], row[1:]):
-            if value is None or not str(value).strip():
-                continue
-
-            label = header or "Value"
-            lines.append(f"{label}: {str(value).strip()}")
-
-    return "\n".join(lines)
 
 
 def block_overlaps_table(block, table_bbox, threshold=0.5):
     """Check whether a text block substantially overlaps a table."""
-
     x0, y0, x1, y1 = block[:4]
     tx0, ttop, tx1, tbottom = table_bbox
 
     block_area = max(0, x1 - x0) * max(0, y1 - y0)
-
     if block_area == 0:
         return False
 
@@ -64,39 +30,62 @@ def block_overlaps_table(block, table_bbox, threshold=0.5):
     return overlap_ratio >= threshold
 
 
-def extract_page_content(pymupdf_page, plumber_page, page_number):
+def extract_page_content(pymupdf_page, plumber_page, page_number, pdf_path):
     """
     Extract text blocks and tables separately from a single page.
-
-    Returns:
-        text_content: string containing only the ordinary text of the page.
-        tables: list of strings, one per detected table.
+    Uses Camelot for tables (lattice), with pdfplumber as fallback.
     """
-
-    table_objects = plumber_page.find_tables()
+    camelot_tables_text = []
     table_bboxes = []
-    tables = []
 
-    for table_obj in table_objects:
-        raw_table = table_obj.extract()
-        if not raw_table or not raw_table[0] or len(raw_table[0]) < 2:
-            continue
-        total_words = sum(
-            len(str(cell).split()) for row in raw_table if row for cell in row if cell
-        )
-        total_cells = sum(len(row) for row in raw_table if row)
+    try:
+        tables = camelot.read_pdf(pdf_path, pages=str(page_number), flavor="lattice")  # type: ignore
+        if len(tables) > 0:
+            for table in tables:
+                df = table.df
+                if df.empty or len(df) < 2:
+                    continue
+                total_words = sum(
+                    len(str(cell).split()) for row in df.values for cell in row if cell
+                )
+                total_cells = df.size
+                if total_cells > 0 and (total_words / total_cells) > 6:
+                    continue
+                df.columns = df.iloc[0]
+                df = df[1:]
 
-        if total_cells > 0 and (total_words / total_cells) > 6:
-            continue
+                markdown_table = df.to_markdown(index=False)
+                camelot_tables_text.append(markdown_table)
 
-        table_bboxes.append(table_obj.bbox)
-        converted_text = table_to_text(raw_table, page_number)
+                table_bboxes.append(table._bbox)
+    except Exception as e:
+        print(f"Camelot failed on page {page_number}: {e}")
 
-        if converted_text:
-            tables.append(converted_text)
+    if not camelot_tables_text:
+        table_objects = plumber_page.find_tables()
+        for table_obj in table_objects:
+            raw_table = table_obj.extract()
+            if not raw_table or not raw_table[0] or len(raw_table[0]) < 2:
+                continue
+
+            total_words = sum(
+                len(str(cell).split())
+                for row in raw_table
+                if row
+                for cell in row
+                if cell
+            )
+            total_cells = sum(len(row) for row in raw_table if row)
+            if total_cells > 0 and (total_words / total_cells) > 6:
+                continue
+
+            df = pd.DataFrame(raw_table[1:], columns=raw_table[0])
+            markdown_table = df.to_markdown(index=False)
+
+            camelot_tables_text.append(markdown_table)
+            table_bboxes.append(table_obj.bbox)
 
     text_blocks = pymupdf_page.get_text("blocks")
-
     text_elements = []
 
     for block in text_blocks:
@@ -116,20 +105,17 @@ def extract_page_content(pymupdf_page, plumber_page, page_number):
         text_elements.append((y0, x0, text))
 
     text_elements.sort(key=lambda element: (element[0], element[1]))
-
     text_content = "\n\n".join(element[2] for element in text_elements)
 
-    return text_content, tables
+    return text_content, camelot_tables_text
 
 
 def load_pdf_documents(pdf_path):
     """
     Create LangChain Documents from a PDF.
-
     - One Document per page of ordinary text (metadata: type="text").
     - One Document per detected table   (metadata: type="table").
     """
-
     documents = []
 
     with pymupdf.open(pdf_path) as pdf_text, pdfplumber.open(pdf_path) as pdf_tables:
@@ -143,7 +129,7 @@ def load_pdf_documents(pdf_path):
             plumber_page = pdf_tables.pages[page_index]
 
             text_content, tables = extract_page_content(
-                pymupdf_page, plumber_page, page_number
+                pymupdf_page, plumber_page, page_number, pdf_path
             )
 
             # ---- Document for the page's ordinary text ----

@@ -7,7 +7,8 @@ This project focuses on building a **experimental / learning project** document 
 ## Features
 
 - **Hybrid Search (BM25 + Vector):** Combines semantic vector search (ChromaDB) with keyword-based BM25 (using Reciprocal Rank Fusion) to drastically improve retrieval accuracy for numeric data, specific entities, and tables.
-- **Semantic Chunking & Robust Parsing:** Text is split based on semantic topic shifts (rather than arbitrary character limits), while a custom word-count filter prevents 2-column PDF layouts from being falsely detected as tables.
+- **Advanced Hybrid Parsing (Camelot + pdfplumber):** Uses PyMuPDF for text, Camelot's `lattice` parser for bordered tables (converting them to structured Markdown), and falls back to pdfplumber for borderless tables. A custom word-count filter prevents 2-column layouts from being falsely detected as tables.
+- **Semantic Chunking:** Text is split based on semantic topic shifts (rather than arbitrary character limits)
 - **Streaming Responses:** Built with Streamlit, generating answers token-by-token for a ChatGPT-like user experience with near-zero perceived latency.
 - **Layered Semantic Caching:** Uses a dual-cache system. An exact-match disk cache for LLM calls, plus a ChromaDB-based Semantic Cache that recognizes meaningfully similar queries (e.g., "How much did we make in 2023?" vs "2023 revenue") and returns answers instantly with zero API cost.
 - **Batched ONNX Inference:** Optimizes local CPU inference for both embedding (`bekko-embedding`) and reranking (`ms-marco-MiniLM`) models, preventing memory spikes.
@@ -17,18 +18,18 @@ This project focuses on building a **experimental / learning project** document 
 - **Hybrid LLM Strategy:** Uses `gpt-4o-mini` for cost-effective query rewriting, and `Claude Haiku 5.5` for final generation to ensure zero hallucination, accurate math reasoning, and strict adherence to context.
 - **Enhanced Dynamic Table Boosting:** The Cross-Encoder reranker dynamically extracts numbers/keywords from the query and applies a heavy penalty/boost to ensure tables with exact numerical evidence outrank distractor text.
 - **Custom LLM-as-a-Judge Evaluation:** Includes a zero-dependency evaluation script (`evaluate_llm_judge.py`) to measure Faithfulness and Relevancy, bypassing unstable third-party libraries like RAGAS.
-- **Deterministic Answer Verification:** A zero-dependency, pure-Python verifier (`verifier.py`) that acts as a strict auditor. It normalizes numbers, extracts operands for mathematical exceptions (e.g., sums/differences), and mathematically proves if the LLM's answer is grounded in the source text, verified, or hallucinated.
-- **Human-in-the-Loop (HITL) Interface:** The Streamlit UI features a dedicated `🛡️ Verify Answer & Sources` panel. It highlights verified claims, exposes hallucinations, and provides `👍/👎` feedback buttons. User feedback (along with the source snippet and verdict) is automatically saved to a local JSON file (`feedback_log.json`) to build a "Golden Dataset" for future fine-tuning and regression testing.
+- **Deterministic Answer Verification & HITL:** A zero-dependency Python verifier (`verifier.py`) that normalizes numbers, extracts operands for mathematical exceptions, and cross-checks LLM claims against source chunks. It filters out page numbers and headings to prevent false positives. The UI features a `🛡️ Verify Answer & Sources` panel with 👍/👎 feedback buttons that log to a local `feedback_log.json` Golden Dataset.
 - **Developer Mode Toggle:** A UI toggle that hides the verification panel and exposes internal query-rewriting steps, giving developers and researchers deep visibility into the RAG pipeline without cluttering the user experience.
 
 ## 🏗️ Architecture Pipeline
 0. **Semantic Cache:** Checks if a semantically similar question (Cosine Similarity > 0.95) was already answered. If yes, returns the cached answer and chunks instantly without hitting the LLM or Vector DB.
-1. **Document Ingestion & Semantic Chunking:** Extracts text and tables (via PyMuPDF + pdfplumber). Filters out false-positive tables (like 2-column text) and applies Semantic Chunking to text blocks to preserve topic integrity, while keeping actual tables intact.
-2. **Query Processing:** Resolves follow-up questions using chat history and generates multiple expanded queries.
-3. **Hybrid Retrieval:** Fetches candidates using both Vector Search (ChromaDB) and BM25.
-4. **Fusion & Smart Reranking:** Combines results using RRF and scores them with a local Cross-Encoder, applying **Dynamic Table Boosting** for numeric queries.
-5. **Generation:** Streams the final answer using Claude Haiku 5.5 based strictly on the retrieved context.
-6. **Deterministic Verification:** Post-generation, a rule-based Python layer audits the LLM's answer sentence-by-sentence. It checks for numeric hallucinations, validates calculated operands, and feeds the result to the HITL UI.
+1. **Document Ingestion & Hybrid Extraction:** Text is extracted via PyMuPDF. Tables are extracted via Camelot (for bordered tables, converted to Markdown) with a pdfplumber fallback. Text undergoes Semantic Chunking, while tables remain atomic.
+2. **Semantic Chunking:** applies Semantic Chunking to text blocks to preserve topic integrity, while keeping actual tables intact.
+3. **Query Processing:** Resolves follow-up questions using chat history and generates multiple expanded queries.
+4. **Hybrid Retrieval:** Fetches candidates using both Vector Search (ChromaDB) and BM25.
+5. **Fusion & Smart Reranking:** Combines results using RRF and scores them with a local Cross-Encoder, applying **Dynamic Table Boosting** for numeric queries.
+6. **Generation:** Streams the final answer using Claude Haiku 5.5 based strictly on the retrieved context.
+7. **Deterministic Verification:** Post-generation, a rule-based Python layer audits the LLM's answer sentence-by-sentence. It normalizes numbers, ignores page/table references, and validates calculated operands. The result is fed to the HITL UI.
 
 
 ## Project Structure
@@ -123,19 +124,21 @@ Check the script for any required arguments or configuration before running it.
 
 ## Limitations
 
-**Verifier Regex Constraints:** While the deterministic verifier catches numeric hallucinations and directionality errors effectively, it relies on regex. It may still struggle with highly complex semantic mismatches (e.g., a number that exists in the text but is attributed to the wrong entity in a very dense paragraph).
+**Complex PDF Layouts (Nested Tables):** While Camelot handles standard bordered tables perfectly, deeply nested tables or highly irregular multi-column layouts may still require vision-based extraction (e.g., GPT-4o Vision) in future iterations.
 
-**Complex PDF Layouts:** Multi-column PDFs or highly irregular table structures may still pose extraction challenges. (Upcoming roadmap includes Camelot integration for structured table extraction).
+**Small Talk Handling:** The query rewriter (GPT-4o-mini) sometimes over-eagerly resolves greetings or gratitude (e.g., "thank you") back to the previous query, causing a duplicate response. A system prompt fix is planned.
 
 **Multilingual Support:** The current pipeline is optimized for English. Future iterations will focus on Persian/Arabic RTL support, requiring different embedding models (e.g., BGE-M3) and updated regex patterns for the verifier.
 
 ## 🛠️ Tech Stack
 
 - **UI:** Streamlit
-- **PDF Processing:** PyMuPDF, pdfplumber
+- **PDF Processing:** PyMuPDF, pdfplumber, **Camelot** (for structured table extraction)
+- **Data Transformation:** Pandas, Tabulate (for Markdown table conversion)
 - **Vector Store:** ChromaDB
 - **Keyword Search:** rank_bm25
 - **Local Inference:** ONNX Runtime, Tokenizers
 - **LLMs:** Claude Haiku 5.5 (Generation), GPT-4o-mini (Query Rewriting)
-- **Caching & Evaluation:** Diskcache, Custom LLM Judge
+- **Verification & Evaluation:** Pure-Python (Deterministic Regex), Custom LLM Judge
+- **Caching & Data Logging:** Diskcache, JSON (for HITL Golden Dataset feedback)
 

@@ -3,8 +3,18 @@ import json
 from datetime import datetime
 import streamlit as st
 from typing import List, Dict, Any
-
+import glob
 from pipeline import RAGPipeline
+
+
+def safe_remove(path: str) -> None:
+    """Safely remove a file, ignoring Windows file-lock errors."""
+    try:
+        if os.path.exists(path):
+            os.remove(path)
+    except PermissionError:
+        pass  # File is still locked by Camelot, Windows will clean it up later
+
 
 st.set_page_config(page_title="DocLens", page_icon="📄", layout="wide")
 
@@ -26,12 +36,6 @@ st.markdown(
 )
 
 FEEDBACK_FILE = "feedback_log.json"
-
-
-if "app_initialized" not in st.session_state:
-    with open(FEEDBACK_FILE, "w", encoding="utf-8") as f:
-        json.dump([], f)
-    st.session_state.app_initialized = True
 
 
 @st.cache_resource(show_spinner=False)
@@ -73,10 +77,17 @@ def format_chunks(chunks: List[Dict[str, Any]]) -> str:
     for i, chunk in enumerate(chunks, 1):
         meta = chunk.get("metadata", {})
         score = chunk.get("rerank_score", 0.0)
-        markdown_text += f"<span style='font-size:0.75rem; color:gray;'>[{i}] Page {meta.get('page', '?')} | {meta.get('type', '?')} | score {score:+.2f}</span>\n\n"
-        markdown_text += (
-            f"<div style='font-size:0.8rem;'>{chunk['text']}</div>\n\n---\n\n"
-        )
+        chunk_type = meta.get("type", "?")
+
+        markdown_text += f"<span style='font-size:0.75rem; color:gray;'>[{i}] Page {meta.get('page', '?')} | {chunk_type} | score {score:+.2f}</span>\n\n"
+
+        if chunk_type == "table":
+            markdown_text += f"{chunk['text']}\n\n---\n\n"
+        else:
+            markdown_text += (
+                f"<div style='font-size:0.8rem;'>{chunk['text']}</div>\n\n---\n\n"
+            )
+
     return markdown_text
 
 
@@ -234,6 +245,9 @@ with st.sidebar:
         disabled=build_disabled,
     ):
         if pdf_file is not None:
+            for old_temp in glob.glob("temp_*.pdf"):
+                safe_remove(old_temp)
+
             with st.status("Building database...", expanded=True) as status:
                 rag = get_rag_pipeline()
 
@@ -241,7 +255,6 @@ with st.sidebar:
                 temp_path = f"temp_{pdf_file.name}"
                 with open(temp_path, "wb") as f:
                     f.write(pdf_file.getbuffer())
-
                 try:
                     count = rag.build(temp_path)
                     st.session_state.rag_built = True
@@ -253,13 +266,10 @@ with st.sidebar:
                         expanded=False,
                     )
 
-                    if os.path.exists(temp_path):
-                        os.remove(temp_path)
-
+                    safe_remove(temp_path)
                     st.rerun()
                 except Exception as e:
-                    if os.path.exists(temp_path):
-                        os.remove(temp_path)
+                    safe_remove(temp_path)
                     status.update(label=f"Error: {e}", state="error", expanded=True)
 
     if st.button("Clear Chat", use_container_width=True):
