@@ -12,3 +12,6 @@ diskcache
 rank_bm25
 numpy
 openai
+camelot-py[base]
+pandas
+tabulate
