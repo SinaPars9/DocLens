@@ -10,14 +10,10 @@ class AnswerVerifier:
 
         self.math_words_pattern: re.Pattern[str] = re.compile(
             r"\b("
-            # Aggregation & Math
             r"difference|sum|total|totaled|average|mean|median|combined|count|amount|"
             r"multiply|multiplied|times|divide|divided|division|quotient|plus|minus|product|calculated|computed|derived|"
-            # Directionality
             r"increase[ds]?|decrease[ds]?|rise|rose|fall|fell|drop(?:ped)?|gain(?:ed)?|growth|decline[ds]?|"
-            # Ratios & Percentages
             r"rate|ratio|margin|percentage|percent|proportion|fraction|"
-            # Comparison & Estimation
             r"compare[ds]?|comparison|more than|less than|higher|lower|roughly|approximately|approx"
             r")\b|[\+\-\*\/\÷\=\×]",
             re.IGNORECASE,
@@ -57,8 +53,13 @@ class AnswerVerifier:
             return None
 
     def _extract_numbers(self, text: str) -> List[float]:
+
+        cleaned_text = re.sub(
+            r"(?i)\b(page|table|figure|section|chapter|appendix)\s*\d+", "", text
+        )
+
         nums: List[float] = []
-        for m in self.number_pattern.finditer(text):
+        for m in self.number_pattern.finditer(cleaned_text):
             val = self._normalize_number(m.group())
             if val is not None:
                 if 1900 <= val <= 2099 and val == int(val):
@@ -71,28 +72,30 @@ class AnswerVerifier:
     ) -> Optional[str]:
         sent_nums = self._extract_numbers(sentence)
 
+        sent_words = set(re.findall(r"\b[a-zA-Z]{4,}\b", sentence.lower()))
+
         best_chunk_text: Optional[str] = None
-        max_matches = 0
+        best_score = -1
 
         for chunk in chunks:
             text = str(chunk.get("text", ""))
             chunk_nums = self._extract_numbers(text)
+            chunk_words = set(re.findall(r"\b[a-zA-Z]{4,}\b", text.lower()))
 
-            if not sent_nums:
-                return text[:300] + "..." if len(text) > 300 else text
-
-            matches = sum(
+            num_matches = sum(
                 1 for n in sent_nums if any(abs(n - cn) < 0.0001 for cn in chunk_nums)
             )
+            word_matches = len(sent_words.intersection(chunk_words))
 
-            if matches > max_matches:
-                max_matches = matches
+            score = (num_matches * 10) + word_matches
+
+            if score > best_score and score > 0:
+                best_score = score
                 best_chunk_text = text
 
-        if best_chunk_text and max_matches > 0:
+        if best_chunk_text:
             chunk_sentences = re.split(r"(?<=[.!?])\s+", best_chunk_text)
             for cs in chunk_sentences:
-
                 if any(
                     abs(n - cn) < 0.0001
                     for n in sent_nums
@@ -111,9 +114,11 @@ class AnswerVerifier:
         self, answer: str, chunks: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
         claims: List[Dict[str, Any]] = []
-        sentences = [
-            s.strip() for s in re.split(r"(?<=[.!?])\s+", answer) if len(s.strip()) > 10
-        ]
+        sentences = []
+        for s in re.split(r"(?<=[.!?])\s+", answer):
+            s = s.strip()
+            if len(s) > 15 and not s.endswith(":") and not s.startswith("-"):
+                sentences.append(s)
 
         for sent in sentences:
             sent_nums = self._extract_numbers(sent)

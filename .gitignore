@@ -40,3 +40,6 @@ htmlcov/
 Thumbs.db
 desktop.ini
 feedback_log.json
+
+# Temporary files
+temp_*.pdf
