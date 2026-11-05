@@ -159,8 +159,9 @@ def render_verification_ui(
     dev_mode: bool,
 ) -> None:
 
+    
     if dev_mode:
-        if standalone_q and standalone_q != question:
+        if standalone_q: 
             with st.expander("🔍 Query Inspector (Dev Mode)", expanded=True):
                 st.info(f"**Target Query:** {standalone_q}")
                 if expanded_qs:

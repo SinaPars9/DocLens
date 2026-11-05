@@ -39,24 +39,37 @@ def extract_page_content(pymupdf_page, plumber_page, page_number, pdf_path):
     table_bboxes = []
 
     try:
-        tables = camelot.read_pdf(pdf_path, pages=str(page_number), flavor="lattice")  # type: ignore
+        tables = camelot.read_pdf(pdf_path, pages=str(page_number), flavor="lattice") #type: ignore
         if len(tables) > 0:
             for table in tables:
-                df = table.df
+                df = table.df              
                 if df.empty or len(df) < 2:
                     continue
-                total_words = sum(
-                    len(str(cell).split()) for row in df.values for cell in row if cell
-                )
+                is_empty = True
+                for row in df.values:
+                    for cell in row:
+                        if str(cell).strip() and any(c.isalnum() for c in str(cell)):
+                            is_empty = False
+                            break
+                    if not is_empty:
+                        break
+                
+                if is_empty:
+                    continue 
+
+                total_words = sum(len(str(cell).split()) for row in df.values for cell in row if cell)
                 total_cells = df.size
                 if total_cells > 0 and (total_words / total_cells) > 6:
                     continue
+                
                 df.columns = df.iloc[0]
                 df = df[1:]
-
+                
                 markdown_table = df.to_markdown(index=False)
-                camelot_tables_text.append(markdown_table)
+                if not any(c.isalnum() for c in markdown_table):
+                    continue
 
+                camelot_tables_text.append(markdown_table)
                 table_bboxes.append(table._bbox)
     except Exception as e:
         print(f"Camelot failed on page {page_number}: {e}")
