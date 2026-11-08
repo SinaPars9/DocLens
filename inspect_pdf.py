@@ -4,6 +4,7 @@ import camelot
 import os
 import tempfile
 import pandas as pd
+import re
 from langchain_core.documents import Document
 
 
@@ -30,6 +31,10 @@ def block_overlaps_table(block, table_bbox, threshold=0.5):
     return overlap_ratio >= threshold
 
 
+def is_table_empty(text: str) -> bool:
+    return not bool(re.search(r"[a-zA-Z0-9]", text))
+
+
 def extract_page_content(pymupdf_page, plumber_page, page_number, pdf_path):
     """
     Extract text blocks and tables separately from a single page.
@@ -39,34 +44,26 @@ def extract_page_content(pymupdf_page, plumber_page, page_number, pdf_path):
     table_bboxes = []
 
     try:
-        tables = camelot.read_pdf(pdf_path, pages=str(page_number), flavor="lattice") #type: ignore
+        tables = camelot.read_pdf(pdf_path, pages=str(page_number), flavor="lattice")  # type: ignore
         if len(tables) > 0:
             for table in tables:
-                df = table.df              
+                df = table.df
                 if df.empty or len(df) < 2:
                     continue
-                is_empty = True
-                for row in df.values:
-                    for cell in row:
-                        if str(cell).strip() and any(c.isalnum() for c in str(cell)):
-                            is_empty = False
-                            break
-                    if not is_empty:
-                        break
-                
-                if is_empty:
-                    continue 
 
-                total_words = sum(len(str(cell).split()) for row in df.values for cell in row if cell)
+                total_words = sum(
+                    len(str(cell).split()) for row in df.values for cell in row if cell
+                )
                 total_cells = df.size
                 if total_cells > 0 and (total_words / total_cells) > 6:
                     continue
-                
+
                 df.columns = df.iloc[0]
                 df = df[1:]
-                
+
                 markdown_table = df.to_markdown(index=False)
-                if not any(c.isalnum() for c in markdown_table):
+
+                if is_table_empty(markdown_table):
                     continue
 
                 camelot_tables_text.append(markdown_table)
@@ -94,6 +91,9 @@ def extract_page_content(pymupdf_page, plumber_page, page_number, pdf_path):
 
             df = pd.DataFrame(raw_table[1:], columns=raw_table[0])
             markdown_table = df.to_markdown(index=False)
+
+            if is_table_empty(markdown_table):
+                continue
 
             camelot_tables_text.append(markdown_table)
             table_bboxes.append(table_obj.bbox)
