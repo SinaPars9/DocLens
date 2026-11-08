@@ -1,0 +1,50 @@
+[
+  {
+    "id": "fin_01",
+    "document": "northstar_financial.pdf",
+    "type": "numerical",
+    "question": "What is the sum of Revenue and Cost of goods sold for 2025?",
+    "expected_answer": "£3,816,000",
+    "expected_pages": [2]
+  },
+  {
+    "id": "fin_neg_01",
+    "document": "northstar_financial.pdf",
+    "type": "abstention",
+    "question": "What was the total revenue in 2026?",
+    "expected_answer": "The information is not in the provided context.",
+    "expected_pages": []
+  },
+  {
+    "id": "tf_01",
+    "document": "transformers_paper.pdf",
+    "type": "table_extraction",
+    "question": "According to the Heads table, what are the example datasets used for Sequence Classification?",
+    "expected_answer": "GLUE, SST, MNLI",
+    "expected_pages": [3]
+  },
+  {
+    "id": "tf_02",
+    "document": "transformers_paper.pdf",
+    "type": "simple",
+    "question": "Who are the authors of the Transformers library paper?",
+    "expected_answer": "Thomas Wolf, Lysandre Debut, Victor Sanh, etc.",
+    "expected_pages": [1]
+  },
+  {
+    "id": "safety_01",
+    "document": "safety_science.pdf",
+    "type": "definition",
+    "question": "According to Table 1, what is the definition and function of 'Safety behavior of operators'?",
+    "expected_answer": "State variable INTEG (entry of behavior - exit of behavior), representing the level of operator behavior.",
+    "expected_pages": [11]
+  },
+  {
+    "id": "safety_02",
+    "document": "safety_science.pdf",
+    "type": "concept",
+    "question": "What are the three main factors that define safety conditions in the complex industrial system?",
+    "expected_answer": "technical, organizational and human factors",
+    "expected_pages": [2]
+  }
+]
