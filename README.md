@@ -7,8 +7,8 @@ This project focuses on building a **experimental / learning project** document 
 ## Features
 
 - **Hybrid Search (BM25 + Vector):** Combines semantic vector search (ChromaDB) with keyword-based BM25 (using Reciprocal Rank Fusion) to drastically improve retrieval accuracy for numeric data, specific entities, and tables.
-- **Advanced Hybrid Parsing (Camelot + pdfplumber):** Uses PyMuPDF for text, Camelot's `lattice` parser for bordered tables (converting them to structured Markdown), and falls back to pdfplumber for borderless tables. A custom word-count filter prevents 2-column layouts from being falsely detected as tables.
-- **Semantic Chunking:** Text is split based on semantic topic shifts (rather than arbitrary character limits)
+- **Document-Isolated Layered Caching:** A dual-cache system (exact-match disk cache + ChromaDB semantic cache). Both caches are strictly isolated by a unique `document_id` hash (generated per PDF). This prevents cross-document cache pollution when a user switches between different files during a session.
+- **Advanced Hybrid Parsing & Empty Table Filter:** Uses PyMuPDF for text, Camelot's `lattice` parser for bordered tables, and pdfplumber as a fallback. Includes a regex-based filter to automatically drop "ghost tables" (empty blocks or graphical boxes containing only whitespace/non-alphanumeric characters), keeping the LLM context clean.
 - **Streaming Responses:** Built with Streamlit, generating answers token-by-token for a ChatGPT-like user experience with near-zero perceived latency.
 - **Layered Semantic Caching:** Uses a dual-cache system. An exact-match disk cache for LLM calls, plus a ChromaDB-based Semantic Cache that recognizes meaningfully similar queries (e.g., "How much did we make in 2023?" vs "2023 revenue") and returns answers instantly with zero API cost.
 - **Batched ONNX Inference:** Optimizes local CPU inference for both embedding (`bekko-embedding`) and reranking (`ms-marco-MiniLM`) models, preventing memory spikes.
@@ -22,8 +22,8 @@ This project focuses on building a **experimental / learning project** document 
 - **Developer Mode Toggle:** A UI toggle that hides the verification panel and exposes internal query-rewriting steps, giving developers and researchers deep visibility into the RAG pipeline without cluttering the user experience.
 
 ## 🏗️ Architecture Pipeline
-0. **Semantic Cache:** Checks if a semantically similar question (Cosine Similarity > 0.95) was already answered. If yes, returns the cached answer and chunks instantly without hitting the LLM or Vector DB.
-1. **Document Ingestion & Hybrid Extraction:** Text is extracted via PyMuPDF. Tables are extracted via Camelot (for bordered tables, converted to Markdown) with a pdfplumber fallback. Text undergoes **Semantic Chunking** to preserve topic integrity, while tables remain **atomic**.
+0. **Document-Isolated Semantic Cache:** Checks if a semantically similar question (Cosine Similarity > 0.95) was already answered **for the current document (`document_id`)**. If yes, returns the cached answer and chunks instantly without hitting the LLM or Vector DB.
+1. **Document Ingestion & Semantic Chunking:** Extracts text (via PyMuPDF) and tables (via Camelot, with pdfplumber fallback). Filters out false-positive tables (like 2-column text) and **automatically drops empty tables (non-alphanumeric blocks)**. Text undergoes Semantic Chunking while tables remain atomic.
 2. **Query Processing:** Resolves follow-up questions using chat history and generates multiple expanded queries.
 3. **Hybrid Retrieval:** Fetches candidates using both Vector Search (ChromaDB) and BM25.
 4. **Fusion & Smart Reranking:** Combines results using RRF and scores them with a local Cross-Encoder, applying **Dynamic Table Boosting** for numeric queries.

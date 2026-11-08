@@ -51,6 +51,7 @@ def generate_answer_stream(
     standalone_query: str,
     chunks: List[Dict[str, Any]],
     chat_history: Optional[List[Dict[str, str]]] = None,
+    document_id: str = "default",
 ) -> Generator[str, None, None]:
     if not API_KEY:
         raise ValueError("API_KEY was not found in the .env file.")
@@ -64,8 +65,9 @@ def generate_answer_stream(
         context_parts.append(f"{header}\n{chunk['text']}")
 
     context = "\n\n---\n\n".join(context_parts)
+
     cache_key = get_cache_key(
-        "generate_v13", standalone_query, context, str(chat_history)
+        "generate_v14", document_id, standalone_query, context, str(chat_history)
     )
 
     if cache_key in cache:

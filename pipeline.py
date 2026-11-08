@@ -1,3 +1,4 @@
+import hashlib
 from typing import Optional, List, Dict, Any, Generator, cast
 
 from vector_store import VectorStore
@@ -23,11 +24,15 @@ class RAGPipeline:
         self.cache = SemanticCache(embedding_model=self.vector_store.embedding_model)
 
         self.is_built: bool = self.vector_store.collection.count() > 0
+        self.document_id: str = "default"  # 🌟 اضافه شد
         print(
             f"Pipeline ready. Vector store: {self.vector_store.collection.count()} chunks."
         )
 
     def build(self, pdf_path: str) -> int:
+
+        self.document_id = hashlib.md5(pdf_path.encode()).hexdigest()[:8]
+
         self.vector_store.build(pdf_path)
         self.retriever.collection = self.vector_store.get_collection()
         self.retriever._build_bm25_index()
@@ -63,7 +68,7 @@ class RAGPipeline:
             "expanded": expanded,
         }
 
-        cached_result = self.cache.get(standalone_query)
+        cached_result = self.cache.get(standalone_query, document_id=self.document_id)
         if cached_result:
             cached_answer, cached_chunks = cached_result
             yield {"type": "chunks", "chunks": cached_chunks}
@@ -96,10 +101,13 @@ class RAGPipeline:
             standalone_query=standalone_query,
             chunks=ranked_chunks,
             chat_history=history,
+            document_id=self.document_id,
         ):
             full_response += str(token)
             yield {"type": "text", "content": token}
 
-        self.cache.put(standalone_query, full_response, ranked_chunks)
+        self.cache.put(
+            standalone_query, full_response, ranked_chunks, document_id=self.document_id
+        )
         verification_result = self.verifier.verify_answer(full_response, ranked_chunks)
         yield {"type": "verification", "data": verification_result}

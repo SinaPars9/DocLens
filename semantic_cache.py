@@ -17,7 +17,9 @@ class SemanticCache:
             name="semantic_cache", metadata={"hnsw:space": "cosine"}
         )
 
-    def get(self, query: str) -> Optional[Tuple[str, List[Dict[str, Any]]]]:
+    def get(
+        self, query: str, document_id: str
+    ) -> Optional[Tuple[str, List[Dict[str, Any]]]]:
         if self.collection.count() == 0:
             return None
 
@@ -26,6 +28,7 @@ class SemanticCache:
         results = self.collection.query(
             query_embeddings=[query_vector.tolist()],
             n_results=1,
+            where={"document_id": document_id},
             include=["distances", "metadatas"],
         )
 
@@ -43,18 +46,19 @@ class SemanticCache:
 
         return None
 
-    def put(self, query: str, answer: str, chunks: List[Dict[str, Any]]):
-
+    def put(
+        self, query: str, answer: str, chunks: List[Dict[str, Any]], document_id: str
+    ):
         query_vector = self.embedding_model.embed_texts([query])[0]
-
         doc_id = f"cache_{self.collection.count()}"
-
         chunks_json = json.dumps(chunks, ensure_ascii=False)
 
         self.collection.add(
             ids=[doc_id],
             embeddings=[query_vector.tolist()],
             documents=[query],
-            metadatas=[{"answer": answer, "chunks": chunks_json}],
+            metadatas=[
+                {"answer": answer, "chunks": chunks_json, "document_id": document_id}
+            ],
         )
         print(f"[Semantic Cache Store] Saved: {query[:30]}...")
