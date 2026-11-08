@@ -2,54 +2,89 @@
 
 DocLens is an end-to-end Retrieval-Augmented Generation (RAG) system that lets users upload a PDF, retrieve relevant passages, and ask questions about its content through a conversational interface. 
 
-This project focuses on building a **experimental / learning project** document analysis pipeline. It goes beyond basic RAG by implementing Hybrid Search, Smart Table Reranking, Streaming, and local ONNX model inference to run efficiently even on low-spec hardware.
+This project goes beyond basic RAG by implementing Hybrid Search, Smart Table Extraction, Deterministic Verification, Human-in-the-Loop (HITL) feedback, and local ONNX model inference to run efficiently even on low-spec hardware.
 
-## Features
+## 🚀 Key Features
 
-- **Hybrid Search (BM25 + Vector):** Combines semantic vector search (ChromaDB) with keyword-based BM25 (using Reciprocal Rank Fusion) to drastically improve retrieval accuracy for numeric data, specific entities, and tables.
-- **Document-Isolated Layered Caching:** A dual-cache system (exact-match disk cache + ChromaDB semantic cache). Both caches are strictly isolated by a unique `document_id` hash (generated per PDF). This prevents cross-document cache pollution when a user switches between different files during a session.
-- **Advanced Hybrid Parsing & Empty Table Filter:** Uses PyMuPDF for text, Camelot's `lattice` parser for bordered tables, and pdfplumber as a fallback. Includes a regex-based filter to automatically drop "ghost tables" (empty blocks or graphical boxes containing only whitespace/non-alphanumeric characters), keeping the LLM context clean.
-- **Streaming Responses:** Built with Streamlit, generating answers token-by-token for a ChatGPT-like user experience with near-zero perceived latency.
-- **Layered Semantic Caching:** Uses a dual-cache system. An exact-match disk cache for LLM calls, plus a ChromaDB-based Semantic Cache that recognizes meaningfully similar queries (e.g., "How much did we make in 2023?" vs "2023 revenue") and returns answers instantly with zero API cost.
+### 🔍 Retrieval & Parsing
+- **Advanced Hybrid Parsing (Camelot + pdfplumber):** Uses PyMuPDF for text and Camelot's `lattice` parser for bordered tables (converted to clean Markdown). A custom fallback and a **Ghost Table Filter** (regex-based) drop empty blocks and 2-column text falsely detected as tables.
+- **Hybrid Search (BM25 + Vector):** Combines semantic vector search (ChromaDB) with keyword-based BM25 using Reciprocal Rank Fusion (RRF) to drastically improve retrieval accuracy for numeric data, specific entities, and tables.
+- **Semantic Chunking:** Text is split based on semantic topic shifts, while tables remain atomic to preserve their structure for the LLM.
+
+### 🧠 Generation & Verification
+- **Streaming Responses:** Built with Streamlit, generating answers token-by-token for a ChatGPT-like experience.
+- **Hybrid LLM Strategy:** Uses `gpt-4o-mini` for cost-effective query rewriting, and `Claude Haiku 5.5` for final generation to ensure accurate math reasoning and strict adherence to context.
+- **Deterministic Answer Verification:** A zero-dependency, pure-Python verifier (`verifier.py`) that acts as a strict auditor. It normalizes numbers, extracts operands for mathematical exceptions (e.g., sums/differences), and mathematically proves if the LLM's answer is grounded, calculated, or hallucinated. It automatically ignores page numbers and headings to prevent false positives.
+
+### 🛡️ UI & Human-in-the-Loop (HITL)
+- **Verify Answer & Sources UI:** Highlights exactly which sentence is ✅ Verified, ❌ Hallucinated, or 🧮 Calculated. It displays the exact source table/text from the PDF right below the claim.
+- **Feedback Logging:** If the user flags a claim with a 👎, the system logs the query, the source snippet, and the user's reason into a local `feedback_log.json` file, building a "Golden Dataset" for future fine-tuning.
+- **Developer Mode Toggle:** Hides the verification panel and exposes internal query-rewriting steps (Query Inspector) for researchers and developers.
+
+### ⚡ Caching & Performance
+- **Document-Isolated Layered Caching:** A dual-cache system (exact-match disk cache + ChromaDB semantic cache). Both caches are strictly isolated by a unique `document_id` hash to prevent cross-document cache pollution when switching between files.
 - **Batched ONNX Inference:** Optimizes local CPU inference for both embedding (`bekko-embedding`) and reranking (`ms-marco-MiniLM`) models, preventing memory spikes.
-- **Domain-Agnostic Prompts:** LLM prompts are generalized to handle financial reports, academic papers, or technical manuals with equal accuracy.
-- **Transparent UI:** Displays retrieved chunks, page numbers, and rerank scores in a dedicated context panel for full explainability.
-- **Transparent Query Inspector:** The Streamlit UI features a collapsible panel that shows the user exactly how their follow-up question was resolved into a standalone query before hitting the database (with cache-hit bypasses).
-- **Hybrid LLM Strategy:** Uses `gpt-4o-mini` for cost-effective query rewriting, and `Claude Haiku 5.5` for final generation to ensure zero hallucination, accurate math reasoning, and strict adherence to context.
-- **Enhanced Dynamic Table Boosting:** The Cross-Encoder reranker dynamically extracts numbers/keywords from the query and applies a heavy penalty/boost to ensure tables with exact numerical evidence outrank distractor text.
-- **Custom LLM-as-a-Judge Evaluation:** Includes a zero-dependency evaluation script (`evaluate_llm_judge.py`) to measure Faithfulness and Relevancy, bypassing unstable third-party libraries like RAGAS.
-- **Deterministic Answer Verification & HITL:** A zero-dependency Python verifier (`verifier.py`) that normalizes numbers, extracts operands for mathematical exceptions, and cross-checks LLM claims against source chunks. It filters out page numbers and headings to prevent false positives. The UI features a `🛡️ Verify Answer & Sources` panel with `👍/👎` feedback buttons that log to a local `feedback_log.json` Golden Dataset.
-- **Developer Mode Toggle:** A UI toggle that hides the verification panel and exposes internal query-rewriting steps, giving developers and researchers deep visibility into the RAG pipeline without cluttering the user experience.
+
+---
 
 ## 🏗️ Architecture Pipeline
-0. **Document-Isolated Semantic Cache:** Checks if a semantically similar question (Cosine Similarity > 0.95) was already answered **for the current document (`document_id`)**. If yes, returns the cached answer and chunks instantly without hitting the LLM or Vector DB.
-1. **Document Ingestion & Semantic Chunking:** Extracts text (via PyMuPDF) and tables (via Camelot, with pdfplumber fallback). Filters out false-positive tables (like 2-column text) and **automatically drops empty tables (non-alphanumeric blocks)**. Text undergoes Semantic Chunking while tables remain atomic.
+
+0. **Document-Isolated Semantic Cache:** Checks if a semantically similar question (Cosine Similarity > 0.95) was already answered **for the current document**. If yes, returns the cached answer instantly.
+1. **Document Ingestion & Hybrid Extraction:** Extracts text (PyMuPDF) and tables (Camelot, with pdfplumber fallback). Filters out false-positive and empty tables. Text undergoes Semantic Chunking while tables remain atomic.
 2. **Query Processing:** Resolves follow-up questions using chat history and generates multiple expanded queries.
 3. **Hybrid Retrieval:** Fetches candidates using both Vector Search (ChromaDB) and BM25.
 4. **Fusion & Smart Reranking:** Combines results using RRF and scores them with a local Cross-Encoder, applying **Dynamic Table Boosting** for numeric queries.
-5. **Generation:** Streams the final answer using Claude Haiku 5.5 based strictly on the retrieved context.
-6. **Deterministic Verification:** Post-generation, a rule-based Python layer audits the LLM's answer sentence-by-sentence. It normalizes numbers, ignores page/table references, and validates calculated operands. The result is fed to the HITL UI.
+5. **Generation:** Streams the final answer using Claude Haiku 5.5 based strictly on the retrieved context (with injected Page/Type metadata).
+6. **Deterministic Verification:** Post-generation, a rule-based Python layer audits the LLM's answer sentence-by-sentence, checking for hallucinations and validating calculated operands.
 
+---
+
+## 🧪 Evaluation Suite
+
+DocLens includes two levels of evaluation to ensure regression testing and continuous quality improvement.
+
+### 1. Quick Demo (`example/`)
+Contains a sample financial PDF and basic evaluation scripts to demonstrate the workflow.
+
+### 2. Robust Regression Suite (`eval_suite/`)
+Includes a diverse set of PDF documents to stress-test the pipeline across different domains:
+- `northstar_financial.pdf`: Dense financial tables and calculations.
+- `transformers_paper.pdf`: Academic paper with complex table layouts.
+- `safety_science.pdf`: Long definition tables and conceptual diagrams.
+
+The suite runs curated questions (`questions.json`) covering:
+- **Numerical Calculations:** Testing the LLM's math and the Verifier's operand checks.
+- **Table Extraction:** Testing Camelot's ability to extract clean Markdown tables.
+- **Abstention:** Testing the system's ability to say "I don't know" when information is missing.
+
+To run the evaluation suite:
+```bash
+python eval_suite/run_eval.py
+
+Note: Set SKIP_BUILD = True in run_eval.py to reuse existing databases and speed up testing.
+
+Check the script for any required arguments or configuration before running it.
 
 ## Project Structure
 
 ```text
 DocLens/
-├── app.py                 # Streamlit UI
-├── chunk_pdf.py           # Text splitting logic
-├── config.py              # local model example +chunk size+ chunk overlap
+├── app.py                 # Streamlit UI (HITL, Dev Mode)
+├── chunk_pdf.py           # Semantic chunking logic
+├── config.py              # Model paths & chunking configs
 ├── embedding.py           # ONNX Embedding model wrapper
-├── generate.py            # LLM streaming generation
-├── inspect_pdf.py         # PyMuPDF + pdfplumber extraction
-├── pipeline.py            # Main RAG orchestrator
+├── generate.py            # LLM streaming generation & disk cache
+├── inspect_pdf.py         # PyMuPDF + Camelot extraction + Ghost Table filter
+├── pipeline.py            # Main RAG orchestrator & document_id assignment
 ├── query_rewriter.py      # Query resolution and expansion
 ├── reranker.py            # ONNX Cross-Encoder wrapper with Smart Boost
-├── semantic_cache.py      # ChromaDB-based semantic cache
 ├── retriever.py           # Hybrid Search (Vector + BM25) & RRF
+├── semantic_cache.py      # ChromaDB-based semantic cache (document-isolated)
 ├── vector_store.py        # ChromaDB management
-├── verifier.py            # Pure-Python deterministic answer verification (NEW)
+├── verifier.py            # Pure-Python deterministic answer verification
 ├── requirements.txt
-└── example/               # Retrieval evaluation scripts and sample PDF
+├── example/               # Demo scripts and sample PDF
+├── eval_suite/            # Regression testing suite (data, questions, runner)
 └── .streamlit             # for dark mode switch in streamlit
 ```
 The `example/` directory contains sample PDF and retrieval-evaluation resources.
@@ -103,24 +138,7 @@ Open the local URL printed in the terminal.
 
 Upload a PDF, build the vector database, ask a question, and inspect the retrieved chunks alongside the generated answer.
 
-## Retrieval Evaluation
 
-The `example/` directory includes:
-
-- `create_pdf.py` — creates a sample PDF for testing.
-- `evaluate_retrieval.py` — evaluates retrieval against a set of questions.
-- `evaluation_questions.json` — contains the evaluation questions.
-- `evaluate_llm_judge.py` — evaluates retrieval against a set of questions with llm as a judge.
-- `retrieval_evaluation_report.json` — contains a sample evaluation report.
-- `test.pdf` — the sample PDF used in the example workflow.
-
-To run the evaluation script:
-
-```bash
-python example/evaluate_retrieval.py
-```
-
-Check the script for any required arguments or configuration before running it.
 
 ## Limitations
 
