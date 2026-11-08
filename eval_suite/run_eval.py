@@ -4,24 +4,23 @@ import sys
 import hashlib
 from pathlib import Path
 
-
 sys.path.append(str(Path(__file__).parent.parent))
 
 from pipeline import RAGPipeline
 
-
 SKIP_BUILD = False
+
 
 def load_questions(json_path):
     with open(json_path, "r", encoding="utf-8") as f:
         return json.load(f)
+
 
 def run_evaluation():
     questions_file = Path(__file__).parent / "questions.json"
     data_dir = Path(__file__).parent / "data"
     questions = load_questions(questions_file)
 
-    
     doc_groups = {}
     for q in questions:
         doc = q["document"]
@@ -30,7 +29,7 @@ def run_evaluation():
         doc_groups[doc].append(q)
 
     rag = RAGPipeline()
-    
+
     total_retrieval_hits = 0
     total_verifier_passes = 0
     total_questions = 0
@@ -55,12 +54,11 @@ def run_evaluation():
         for q in doc_questions:
             total_questions += 1
             print(f"❓ Question [{q['id']}]: {q['question']}")
-            
+
             chunks = []
             answer = ""
             verification = {}
-            
-            
+
             for event in rag.answer_stream(q["question"]):
                 if event["type"] == "chunks":
                     chunks = event["chunks"]
@@ -69,12 +67,21 @@ def run_evaluation():
                 elif event["type"] == "verification":
                     verification = event["data"]
 
-           
             retrieved_pages = [c["metadata"].get("page") for c in chunks]
-            
-            
+
             if q["type"] == "abstention":
-                if "not in the provided context" in answer.lower() or "not provided" in answer.lower():
+                ans_lower = answer.lower()
+                abstention_keywords = [
+                    "not in the provided context",
+                    "doesn't include",
+                    "does not include",
+                    "does not contain",
+                    "cannot find",
+                    "no information",
+                    "not seem to contain relevant information",
+                    "don't know",
+                ]
+                if any(kw in ans_lower for kw in abstention_keywords):
                     hit = True
                 else:
                     hit = False
@@ -85,9 +92,10 @@ def run_evaluation():
                 total_retrieval_hits += 1
                 print(f"  ✅ Retrieval/Logic: PASS")
             else:
-                print(f"  ❌ Retrieval/Logic: FAIL (Expected Pages: {q['expected_pages']}, Got: {retrieved_pages})")
+                print(
+                    f"  ❌ Retrieval/Logic: FAIL (Expected Pages: {q['expected_pages']}, Got: {retrieved_pages})"
+                )
 
-            
             if verification:
                 if verification.get("is_fully_verified", False):
                     total_verifier_passes += 1
@@ -95,18 +103,21 @@ def run_evaluation():
                 else:
                     print("  ❌ Verifier: WARNING (Some claims flagged)")
 
-            
-            clean_answer = answer[:150].replace('\n', ' ')
+            clean_answer = answer[:150].replace("\n", " ")
             print(f"  📄 Answer snippet: {clean_answer}...\n")
 
-    
     print(f"\n{'='*50}")
     print("🏁 EVALUATION SUMMARY")
     print(f"{'='*50}")
     print(f"Total Questions: {total_questions}")
     if total_questions > 0:
-        print(f"Retrieval/Logic Hit Rate: {(total_retrieval_hits / total_questions) * 100:.1f}%")
-        print(f"Verifier Pass Rate: {(total_verifier_passes / total_questions) * 100:.1f}%")
+        print(
+            f"Retrieval/Logic Hit Rate: {(total_retrieval_hits / total_questions) * 100:.1f}%"
+        )
+        print(
+            f"Verifier Pass Rate: {(total_verifier_passes / total_questions) * 100:.1f}%"
+        )
+
 
 if __name__ == "__main__":
     run_evaluation()

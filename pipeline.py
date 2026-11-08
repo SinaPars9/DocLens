@@ -24,13 +24,12 @@ class RAGPipeline:
         self.cache = SemanticCache(embedding_model=self.vector_store.embedding_model)
 
         self.is_built: bool = self.vector_store.collection.count() > 0
-        self.document_id: str = "default"  # 🌟 اضافه شد
+        self.document_id: str = "default"
         print(
             f"Pipeline ready. Vector store: {self.vector_store.collection.count()} chunks."
         )
 
     def build(self, pdf_path: str) -> int:
-
         self.document_id = hashlib.md5(pdf_path.encode()).hexdigest()[:8]
 
         self.vector_store.build(pdf_path)
@@ -95,11 +94,32 @@ class RAGPipeline:
             }
             return
 
+        top_score = ranked_chunks[0].get("rerank_score", 0.0)
+        ABSOLUTE_IRRELEVANCE_THRESHOLD = -8.0
+
+        if top_score < ABSOLUTE_IRRELEVANCE_THRESHOLD:
+            yield {
+                "type": "text",
+                "content": "The provided document does not seem to contain relevant information to answer this question.",
+            }
+            return
+
+        MIN_RERANK_SCORE = -5.0
+        filtered_chunks = [
+            c for c in ranked_chunks if c.get("rerank_score", 0.0) >= MIN_RERANK_SCORE
+        ]
+
+        if not filtered_chunks:
+            filtered_chunks = ranked_chunks[:3]
+            print(
+                "[Context Compression] All chunks below threshold. Kept top 3 as fallback."
+            )
+
         full_response = ""
         for token in generate_answer_stream(
             question=question,
             standalone_query=standalone_query,
-            chunks=ranked_chunks,
+            chunks=filtered_chunks,
             chat_history=history,
             document_id=self.document_id,
         ):
@@ -107,7 +127,12 @@ class RAGPipeline:
             yield {"type": "text", "content": token}
 
         self.cache.put(
-            standalone_query, full_response, ranked_chunks, document_id=self.document_id
+            standalone_query,
+            full_response,
+            filtered_chunks,
+            document_id=self.document_id,
         )
-        verification_result = self.verifier.verify_answer(full_response, ranked_chunks)
+        verification_result = self.verifier.verify_answer(
+            full_response, filtered_chunks
+        )
         yield {"type": "verification", "data": verification_result}
