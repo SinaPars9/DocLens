@@ -3,9 +3,10 @@ import os
 import sys
 import hashlib
 from pathlib import Path
-from pipeline import RAGPipeline
 
 sys.path.append(str(Path(__file__).parent.parent))
+
+from pipeline import RAGPipeline
 
 SKIP_BUILD = False
 
@@ -73,6 +74,7 @@ def run_evaluation():
                 abstention_keywords = [
                     "not in the provided context",
                     "doesn't include",
+                    "does not include",
                     "does not contain",
                     "cannot find",
                     "no information",

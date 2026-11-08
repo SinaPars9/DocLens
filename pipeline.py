@@ -104,11 +104,22 @@ class RAGPipeline:
             }
             return
 
+        MIN_RERANK_SCORE = -5.0
+        filtered_chunks = [
+            c for c in ranked_chunks if c.get("rerank_score", 0.0) >= MIN_RERANK_SCORE
+        ]
+
+        if not filtered_chunks:
+            filtered_chunks = ranked_chunks[:3]
+            print(
+                "[Context Compression] All chunks below threshold. Kept top 3 as fallback."
+            )
+
         full_response = ""
         for token in generate_answer_stream(
             question=question,
             standalone_query=standalone_query,
-            chunks=ranked_chunks,
+            chunks=filtered_chunks,
             chat_history=history,
             document_id=self.document_id,
         ):
@@ -116,7 +127,12 @@ class RAGPipeline:
             yield {"type": "text", "content": token}
 
         self.cache.put(
-            standalone_query, full_response, ranked_chunks, document_id=self.document_id
+            standalone_query,
+            full_response,
+            filtered_chunks,
+            document_id=self.document_id,
         )
-        verification_result = self.verifier.verify_answer(full_response, ranked_chunks)
+        verification_result = self.verifier.verify_answer(
+            full_response, filtered_chunks
+        )
         yield {"type": "verification", "data": verification_result}
