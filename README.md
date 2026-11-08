@@ -16,6 +16,8 @@ This project goes beyond basic RAG by implementing Hybrid Search, Smart Table Ex
 - **Hybrid LLM Strategy:** Uses `gpt-4o-mini` for cost-effective query rewriting, and `Claude Haiku 5.5` for final generation to ensure accurate math reasoning and strict adherence to context.
 - **Deterministic Answer Verification:** A zero-dependency, pure-Python verifier (`verifier.py`) that acts as a strict auditor. It normalizes numbers, extracts operands for mathematical exceptions (e.g., sums/differences), and mathematically proves if the LLM's answer is grounded, calculated, or hallucinated. It automatically ignores page numbers and headings to prevent false positives.
 
+- **Intelligent Abstention Layer:** To save API costs and prevent hallucinations, the pipeline checks the absolute score of the top-ranked chunk. If the highest-scoring chunk (even after reranking) falls below a strict irrelevance threshold (e.g., -8.0), the system immediately abstains from calling the LLM and informs the user that the document lacks relevant information.
+
 ### 🛡️ UI & Human-in-the-Loop (HITL)
 - **Verify Answer & Sources UI:** Highlights exactly which sentence is ✅ Verified, ❌ Hallucinated, or 🧮 Calculated. It displays the exact source table/text from the PDF right below the claim.
 - **Feedback Logging:** If the user flags a claim with a 👎, the system logs the query, the source snippet, and the user's reason into a local `feedback_log.json` file, building a "Golden Dataset" for future fine-tuning.
@@ -33,7 +35,7 @@ This project goes beyond basic RAG by implementing Hybrid Search, Smart Table Ex
 1. **Document Ingestion & Hybrid Extraction:** Extracts text (PyMuPDF) and tables (Camelot, with pdfplumber fallback). Filters out false-positive and empty tables. Text undergoes Semantic Chunking while tables remain atomic.
 2. **Query Processing:** Resolves follow-up questions using chat history and generates multiple expanded queries.
 3. **Hybrid Retrieval:** Fetches candidates using both Vector Search (ChromaDB) and BM25.
-4. **Fusion & Smart Reranking:** Combines results using RRF and scores them with a local Cross-Encoder, applying **Dynamic Table Boosting** for numeric queries.
+4. **Fusion, Smart Reranking & Abstention:** Combines results using RRF and scores them with a local Cross-Encoder. If the top-scoring chunk is below the irrelevance threshold, the system halts and returns an abstention message. Otherwise, it proceeds to generation.
 5. **Generation:** Streams the final answer using Claude Haiku 5.5 based strictly on the retrieved context (with injected Page/Type metadata).
 6. **Deterministic Verification:** Post-generation, a rule-based Python layer audits the LLM's answer sentence-by-sentence, checking for hallucinations and validating calculated operands.
 

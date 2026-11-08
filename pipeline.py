@@ -24,13 +24,12 @@ class RAGPipeline:
         self.cache = SemanticCache(embedding_model=self.vector_store.embedding_model)
 
         self.is_built: bool = self.vector_store.collection.count() > 0
-        self.document_id: str = "default"  # 🌟 اضافه شد
+        self.document_id: str = "default"
         print(
             f"Pipeline ready. Vector store: {self.vector_store.collection.count()} chunks."
         )
 
     def build(self, pdf_path: str) -> int:
-
         self.document_id = hashlib.md5(pdf_path.encode()).hexdigest()[:8]
 
         self.vector_store.build(pdf_path)
@@ -92,6 +91,16 @@ class RAGPipeline:
             yield {
                 "type": "text",
                 "content": "No relevant information found in the document.",
+            }
+            return
+
+        top_score = ranked_chunks[0].get("rerank_score", 0.0)
+        ABSOLUTE_IRRELEVANCE_THRESHOLD = -8.0
+
+        if top_score < ABSOLUTE_IRRELEVANCE_THRESHOLD:
+            yield {
+                "type": "text",
+                "content": "The provided document does not seem to contain relevant information to answer this question.",
             }
             return
 
