@@ -29,10 +29,10 @@ class RAGPipeline:
             f"Pipeline ready. Vector store: {self.vector_store.collection.count()} chunks."
         )
 
-    def build(self, pdf_path: str) -> int:
+    def build(self, pdf_path: str, use_llm_context: bool = True) -> int:
         self.document_id = hashlib.md5(pdf_path.encode()).hexdigest()[:8]
 
-        self.vector_store.build(pdf_path)
+        self.vector_store.build(pdf_path, use_llm_context=use_llm_context)
         self.retriever.collection = self.vector_store.get_collection()
         self.retriever._build_bm25_index()
 
@@ -70,6 +70,7 @@ class RAGPipeline:
         cached_result = self.cache.get(standalone_query, document_id=self.document_id)
         if cached_result:
             cached_answer, cached_chunks = cached_result
+
             yield {"type": "chunks", "chunks": cached_chunks}
             yield {"type": "text", "content": cached_answer}
             verification_result = self.verifier.verify_answer(
@@ -85,9 +86,8 @@ class RAGPipeline:
             standalone_query, chunks, top_k=top_k_final
         )
 
-        yield {"type": "chunks", "chunks": ranked_chunks}
-
         if not ranked_chunks:
+            yield {"type": "chunks", "chunks": []}
             yield {
                 "type": "text",
                 "content": "No relevant information found in the document.",
@@ -96,8 +96,8 @@ class RAGPipeline:
 
         top_score = ranked_chunks[0].get("rerank_score", 0.0)
         ABSOLUTE_IRRELEVANCE_THRESHOLD = -8.0
-
         if top_score < ABSOLUTE_IRRELEVANCE_THRESHOLD:
+            yield {"type": "chunks", "chunks": []}
             yield {
                 "type": "text",
                 "content": "The provided document does not seem to contain relevant information to answer this question.",
@@ -108,18 +108,53 @@ class RAGPipeline:
         filtered_chunks = [
             c for c in ranked_chunks if c.get("rerank_score", 0.0) >= MIN_RERANK_SCORE
         ]
-
         if not filtered_chunks:
             filtered_chunks = ranked_chunks[:3]
             print(
                 "[Context Compression] All chunks below threshold. Kept top 3 as fallback."
             )
 
+        parent_ids_seen = set()
+        generation_chunks = []
+        ui_display_chunks = []
+
+        for c in filtered_chunks:
+            pid = c.get("metadata", {}).get("parent_id")
+
+            unique_id = pid if pid else c.get("id", id(c))
+
+            if unique_id not in parent_ids_seen:
+                parent_ids_seen.add(unique_id)
+                parent_text = c.get("metadata", {}).get("parent_text", c["text"])
+
+                generation_chunks.append(
+                    {"text": parent_text, "metadata": c.get("metadata", {})}
+                )
+
+                ui_display_chunks.append(
+                    {
+                        "text": parent_text,
+                        "metadata": c.get("metadata", {}),
+                        "rerank_score": c.get("rerank_score", 0.0),
+                        "child_count": (
+                            sum(
+                                1
+                                for fc in filtered_chunks
+                                if fc.get("metadata", {}).get("parent_id") == pid
+                            )
+                            if pid
+                            else 1
+                        ),
+                    }
+                )
+
+        yield {"type": "chunks", "chunks": ui_display_chunks}
+
         full_response = ""
         for token in generate_answer_stream(
             question=question,
             standalone_query=standalone_query,
-            chunks=filtered_chunks,
+            chunks=generation_chunks,
             chat_history=history,
             document_id=self.document_id,
         ):
@@ -132,6 +167,7 @@ class RAGPipeline:
             filtered_chunks,
             document_id=self.document_id,
         )
+
         verification_result = self.verifier.verify_answer(
             full_response, filtered_chunks
         )

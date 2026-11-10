@@ -24,6 +24,7 @@ cache/
 *.pth
 *.safetensors
 llm_cache/
+context_cache
 # ChromaDB vector database
 chroma_db/
 
@@ -43,3 +44,4 @@ feedback_log.json
 
 # Temporary files
 temp_*.pdf
+test.py
