@@ -22,8 +22,10 @@ class VectorStore:
 
         self.embedding_model = Embeddings()
 
-    def build(self, pdf_path):
-        chunks = load_chunks(pdf_path, embed_model=self.embedding_model)
+    def build(self, pdf_path: str, use_llm_context: bool = True):
+        chunks = load_chunks(
+            pdf_path, self.embedding_model, use_llm_context=use_llm_context
+        )
 
         if not chunks:
             raise ValueError("No chunks found in the source PDF.")

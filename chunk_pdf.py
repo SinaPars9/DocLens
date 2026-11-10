@@ -1,10 +1,12 @@
 import re
-from typing import Optional, List
+import uuid
+from typing import Optional, List, Dict, Any
 import numpy as np
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from inspect_pdf import load_pdf_documents
 from embedding import Embeddings
+from contextualizer import generate_chunk_context
 from config import (
     SEMANTIC_BUFFER_SIZE,
     SEMANTIC_THRESHOLD_PERCENTILE,
@@ -25,6 +27,7 @@ def _split_sentences(text: str) -> List[str]:
 
 
 def semantic_chunking(text: str, embed_model: Embeddings) -> List[str]:
+
     sentences = _split_sentences(text)
     if len(sentences) <= SEMANTIC_BUFFER_SIZE:
         return [text]
@@ -70,7 +73,9 @@ def semantic_chunking(text: str, embed_model: Embeddings) -> List[str]:
 
 
 def load_chunks(
-    pdf_path: str, embed_model: Optional[Embeddings] = None
+    pdf_path: str,
+    embed_model: Optional[Embeddings] = None,
+    use_llm_context: bool = True,
 ) -> List[Document]:
     documents = load_pdf_documents(pdf_path)
 
@@ -81,12 +86,53 @@ def load_chunks(
 
     for doc in documents:
         if doc.metadata.get("type") == "table":
-            all_chunks.append(doc)
+            table_text = doc.page_content
+            doc_context_for_table = (
+                f"Document page {doc.metadata.get('page', '?')} contains tables."
+            )
+
+            if use_llm_context:
+                table_context = generate_chunk_context(
+                    doc_context_for_table, table_text
+                )
+            else:
+                table_context = f"Table from page {doc.metadata.get('page', '?')}."
+
+            new_metadata = doc.metadata.copy()
+            new_metadata["parent_id"] = str(uuid.uuid4())
+            new_metadata["parent_text"] = table_text
+            new_metadata["raw_text"] = table_text
+
+            combined_text = f"Context: {table_context}\n\nTable Data:\n{table_text}"
+            new_doc = Document(page_content=combined_text, metadata=new_metadata)
+            all_chunks.append(new_doc)
+
         else:
-            semantic_texts = semantic_chunking(doc.page_content, embed_model)
+            parent_text = doc.page_content
+            parent_id = str(uuid.uuid4())
+
+            page_header = parent_text[:150].replace("\n", " ").strip()
+
+            semantic_texts = semantic_chunking(parent_text, embed_model)
+
             for text in semantic_texts:
                 if len(text) > 50:
-                    new_doc = Document(page_content=text, metadata=doc.metadata.copy())
+                    if use_llm_context:
+                        chunk_context = generate_chunk_context(parent_text, text)
+                    else:
+
+                        chunk_context = page_header
+
+                    new_metadata = doc.metadata.copy()
+                    new_metadata["parent_id"] = parent_id
+                    new_metadata["parent_text"] = parent_text
+                    new_metadata["raw_text"] = text
+
+                    combined_text = f"Context: {chunk_context}\n\nChunk: {text}"
+
+                    new_doc = Document(
+                        page_content=combined_text, metadata=new_metadata
+                    )
                     all_chunks.append(new_doc)
 
     return all_chunks

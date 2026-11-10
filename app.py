@@ -159,9 +159,8 @@ def render_verification_ui(
     dev_mode: bool,
 ) -> None:
 
-    
     if dev_mode:
-        if standalone_q: 
+        if standalone_q:
             with st.expander("🔍 Query Inspector (Dev Mode)", expanded=True):
                 st.info(f"**Target Query:** {standalone_q}")
                 if expanded_qs:
@@ -237,27 +236,69 @@ with st.sidebar:
             st.session_state.rag_built = False
             st.session_state.current_file_name = pdf_file.name
 
-    build_disabled = st.session_state.rag_built or pdf_file is None
+    if "is_building" not in st.session_state:
+        st.session_state.is_building = False
 
-    if st.button(
-        "Build Database",
-        type="primary",
-        use_container_width=True,
-        disabled=build_disabled,
-    ):
-        if pdf_file is not None:
+    if pdf_file is not None and not st.session_state.rag_built:
+        st.divider()
+        st.markdown("### ⚙️ Build Settings")
+
+        if "use_llm_choice" not in st.session_state:
+            st.session_state.use_llm_choice = False
+
+        use_llm_context = st.toggle(
+            "🧠 Enable LLM Contextualization",
+            value=st.session_state.use_llm_choice,
+            disabled=st.session_state.is_building,
+            help="Toggle between Fast Mode (Free) and Accurate Mode (LLM-powered).",
+        )
+        st.session_state.use_llm_choice = use_llm_context
+
+        if use_llm_context:
+            st.warning(
+                "**Accurate Mode (LLM):**\n"
+                "- ✅ Generates a unique summary for each chunk using GPT-4o-mini.\n"
+                "- ⚠️ Slower ingestion and API costs apply (cached per file)."
+            )
+        else:
+            st.info(
+                "**Fast Mode (Free):**\n"
+                "- ✅ Uses the first 150 characters of each page as context.\n"
+                "- ⚡ Instant and zero API cost."
+            )
+
+        st.divider()
+
+        build_clicked = st.button(
+            "Build Database",
+            type="primary",
+            use_container_width=True,
+            disabled=st.session_state.is_building,
+        )
+
+        if build_clicked and not st.session_state.is_building:
+            # 🌟 قفل کردن UI
+            st.session_state.is_building = True
+
             for old_temp in glob.glob("temp_*.pdf"):
                 safe_remove(old_temp)
 
             with st.status("Building database...", expanded=True) as status:
                 rag = get_rag_pipeline()
 
-                st.write("Processing PDF...")
+                if use_llm_context:
+                    st.write(
+                        "Processing PDF with LLM Contextualization (This may take a while)..."
+                    )
+                else:
+                    st.write("Processing PDF in Fast Mode...")
+
                 temp_path = f"temp_{pdf_file.name}"
                 with open(temp_path, "wb") as f:
                     f.write(pdf_file.getbuffer())
+
                 try:
-                    count = rag.build(temp_path)
+                    count = rag.build(temp_path, use_llm_context=use_llm_context)
                     st.session_state.rag_built = True
                     st.session_state.messages = []
                     st.session_state.latest_chunks = []
@@ -268,18 +309,25 @@ with st.sidebar:
                     )
 
                     safe_remove(temp_path)
+
+                    st.session_state.is_building = False
                     st.rerun()
                 except Exception as e:
                     safe_remove(temp_path)
+
+                    st.session_state.is_building = False
                     status.update(label=f"Error: {e}", state="error", expanded=True)
 
-    if st.button("Clear Chat", use_container_width=True):
-        st.session_state.messages = []
-        st.session_state.latest_chunks = []
-        st.rerun()
+    if st.session_state.rag_built and not st.session_state.is_building:
+        if st.button("Clear Chat", use_container_width=True):
+            st.session_state.messages = []
+            st.session_state.latest_chunks = []
+            st.rerun()
 
     st.divider()
-    if st.session_state.rag_built:
+    if st.session_state.is_building:
+        st.info("⏳ Building database... Please wait.")
+    elif st.session_state.rag_built:
         st.success("🟢 Document loaded and ready.")
     else:
         st.info("⚪ Waiting for document...")
