@@ -8,7 +8,7 @@ This project goes beyond basic RAG by implementing Hybrid Search, Smart Table Ex
 
 ### 🔍 Retrieval & Parsing
 - **Advanced Hybrid Parsing (Camelot + pdfplumber):** Uses PyMuPDF for text and Camelot's `lattice` parser for bordered tables (converted to clean Markdown). A custom fallback and a **Ghost Table Filter** (regex-based) drop empty blocks and 2-column text falsely detected as tables.
-- **Contextual Retrieval (Anthropic Method):** Generates a unique summary for every chunk (using GPT-4o-mini or fast page-headers) and prepends it to the chunk text before embedding. This drastically improves retrieval accuracy for context-dependent chunks.
+- **Contextual Retrieval:** Generates a unique summary for every chunk (using GPT-4o-mini or fast page-headers) and prepends it to the chunk text before embedding. This drastically improves retrieval accuracy for context-dependent chunks.
 - **Parent-Child Architecture:** Retrieves using small, precise **Child** chunks. However, it deduplicates and sends the larger, full-page **Parent** chunks to the LLM. This provides complete context and reduces token usage by up to 60% while maintaining 100% retrieval accuracy.
 - **Hybrid Search (BM25 + Vector):** Combines semantic vector search (ChromaDB) with keyword-based BM25 using Reciprocal Rank Fusion (RRF) to drastically improve retrieval accuracy.
 - **Semantic Chunking:** Text is split based on semantic topic shifts, while tables remain atomic to preserve their structure for the LLM.
@@ -70,7 +70,7 @@ Note: Set SKIP_BUILD = True in run_eval.py to reuse existing databases and speed
 Check the script for any required arguments or configuration before running it.
 
 ## Project Structure
-
+```
 ```text
 DocLens/
 ├── app.py                 # Streamlit UI (HITL, Dev Mode)
