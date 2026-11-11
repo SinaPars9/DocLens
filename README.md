@@ -68,9 +68,10 @@ python eval_suite/run_eval.py
 Note: Set SKIP_BUILD = True in run_eval.py to reuse existing databases and speed up testing.
 
 Check the script for any required arguments or configuration before running it.
+```
 
 ## Project Structure
-```
+
 ```text
 DocLens/
 ├── app.py                 # Streamlit UI (HITL, Dev Mode)
