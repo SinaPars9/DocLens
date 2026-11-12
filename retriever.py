@@ -49,11 +49,19 @@ class Retriever:
             self.bm25 = BM25Okapi(tokenized_corpus)
             print(f"[BM25] Index built with {len(tokenized_corpus)} chunks.")
 
-    def _vector_search(self, query: str, top_k: int) -> List[Dict[str, Any]]:
+    def _vector_search(
+        self, query: str, top_k: int, selected_documents: Optional[List[str]] = None
+    ) -> List[Dict[str, Any]]:
         query_vector = self.store.embedding_model.embed_texts([query])[0]
+
+        where_clause = None
+        if selected_documents:
+            where_clause = {"source_document": {"$in": selected_documents}}
+
         results = self.collection.query(
             query_embeddings=[query_vector.tolist()],
             n_results=min(top_k, self.collection.count()),
+            where=where_clause,  # type: ignore
             include=["documents", "metadatas", "distances"],
         )
 
@@ -74,23 +82,31 @@ class Retriever:
                 )
         return chunks
 
-    def _bm25_search(self, query: str, top_k: int) -> List[Dict[str, Any]]:
+    def _bm25_search(
+        self, query: str, top_k: int, selected_documents: Optional[List[str]] = None
+    ) -> List[Dict[str, Any]]:
         if not self.bm25 or not self.bm25_corpus:
             return []
 
         tokenized_query = self._tokenize(query)
         scores = self.bm25.get_scores(tokenized_query)
 
-        top_n = min(top_k, len(scores))
-        top_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[
-            :top_n
-        ]
+        top_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)
 
         chunks = []
         for idx in top_indices:
             chunk = dict(self.bm25_corpus[idx])
+
+            if selected_documents:
+                source_doc = chunk.get("metadata", {}).get("source_document")
+                if source_doc not in selected_documents:
+                    continue
+
             chunk["bm25_score"] = float(scores[idx])
             chunks.append(chunk)
+            if len(chunks) >= top_k:
+                break
+
         return chunks
 
     def _reciprocal_rank_fusion(
@@ -119,21 +135,50 @@ class Retriever:
         return final_results
 
     def retrieve_many(
-        self, queries: List[str], top_k: int = 15
+        self,
+        queries: List[str],
+        top_k: int = 15,
+        selected_documents: Optional[List[str]] = None,
     ) -> List[Dict[str, Any]]:
         if not queries:
             return []
 
         all_results_lists = []
         for query in queries:
-            vector_res = self._vector_search(query, top_k=top_k)
+            vector_res = self._vector_search(
+                query, top_k=top_k, selected_documents=selected_documents
+            )
             all_results_lists.append(vector_res)
 
-            bm25_res = self._bm25_search(query, top_k=top_k)
+            bm25_res = self._bm25_search(
+                query, top_k=top_k, selected_documents=selected_documents
+            )
             all_results_lists.append(bm25_res)
 
         fused_results = self._reciprocal_rank_fusion(all_results_lists)
         return fused_results[:top_k]
 
-    def retrieve(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
-        return self.retrieve_many([query], top_k=top_k)
+    def retrieve(
+        self, query: str, top_k: int = 5, selected_documents: Optional[List[str]] = None
+    ) -> List[Dict[str, Any]]:
+        return self.retrieve_many(
+            [query], top_k=top_k, selected_documents=selected_documents
+        )
+
+    def get_initial_chunks(self, doc_name: str, limit: int = 3) -> List[Dict[str, Any]]:
+        """Fetch the first few chunks of a document for summarization."""
+        results = self.collection.get(
+            where={"source_document": doc_name}, include=["documents", "metadatas"]
+        )
+        chunks = []
+        if results and results.get("ids"):
+            for i in range(min(limit, len(results["ids"]))):
+                chunks.append(
+                    {
+                        "id": results["ids"][i],
+                        "text": results["documents"][i],  # type: ignore
+                        "metadata": results["metadatas"][i],  # type: ignore
+                        "rerank_score": 10.0,
+                    }
+                )
+        return chunks

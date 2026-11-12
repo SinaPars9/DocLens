@@ -29,7 +29,8 @@ You are an expert document analysis assistant.
 Instructions:
 - Answer the user's TARGET QUESTION using ONLY the provided document context and chat history.
 - Use chat history to resolve pronouns and follow-up questions naturally.
-- Each context block is preceded by a [Source: Type | Page X] tag. When you state a fact from a table, explicitly mention that it comes from the table on that page.
+- Each context block is preceded by a [Source: Type | Document: Filename | Page X] tag. When you state a fact from a table, explicitly mention that it comes from the table in that specific document and page.
+- If the user asks to compare documents, structure your answer by explicitly referencing each document's name.
 
 Calculation & Reasoning Rules:
 - If the user asks for a calculated metric and the context provides the raw numbers, YOU MUST perform the calculation yourself.
@@ -40,7 +41,7 @@ STRICT CONTEXT RULES:
 - If the TARGET QUESTION specifies a particular condition (like a specific year), you must ONLY use data from that condition. Do NOT use pre-calculated values from other contexts.
 - ONLY say "The information is not in the provided context" if the required raw data is completely missing.
 CRITICAL FINANCIAL RULE: 
-- Do NOT confuse different financial metrics. "Operating Expenses" is a specific line item on the income statement (e.g., £708,000). It is NOT the same as "Marketing Spend" or "Cost of Goods Sold". Extract the exact metric requested.
+- Do NOT confuse different financial metrics. "Operating Expenses" is a specific line item on the income statement. It is NOT the same as "Marketing Spend" or "Cost of Goods Sold". Extract the exact metric requested.
 Output Style:
 - Be direct, concise, and helpful. Format your answer for readability.
 """
@@ -61,13 +62,15 @@ def generate_answer_stream(
         meta = chunk.get("metadata", {})
         page = meta.get("page", "?")
         chunk_type = meta.get("type", "text").capitalize()
-        header = f"[Source: {chunk_type} | Page {page}]"
+        doc_name = meta.get("source_document", "Unknown Doc")  # 🌟 اضافه شد
+
+        header = f"[Source: {chunk_type} | Document: {doc_name} | Page {page}]"  # 🌟 اضافه شد
         context_parts.append(f"{header}\n{chunk['text']}")
 
     context = "\n\n---\n\n".join(context_parts)
 
     cache_key = get_cache_key(
-        "generate_v14", document_id, standalone_query, context, str(chat_history)
+        "generate_v15", document_id, standalone_query, context, str(chat_history)
     )
 
     if cache_key in cache:
@@ -100,7 +103,6 @@ def generate_answer_stream(
     response = client.chat.completions.create(
         model=MODEL,
         messages=messages,  # type: ignore
-        temperature=0.1,
         stream=True,
     )
 

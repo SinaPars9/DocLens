@@ -1,12 +1,14 @@
 # DocLens — Advanced PDF RAG Assistant
 
-DocLens is an end-to-end Retrieval-Augmented Generation (RAG) system that lets users upload a PDF, retrieve relevant passages, and ask questions about its content through a conversational interface. 
+DocLens is an end-to-end Retrieval-Augmented Generation (RAG) system that lets users upload one or multiple PDFs, retrieve relevant passages, and ask questions about their content through a conversational interface. 
 
-This project goes beyond basic RAG by implementing Hybrid Search, Smart Table Extraction, Deterministic Verification, Human-in-the-Loop (HITL) feedback, and local ONNX model inference to run efficiently even on low-spec hardware.
+This project goes beyond basic RAG by implementing Hybrid Search, Smart Table Extraction, Deterministic Verification, Human-in-the-Loop (HITL) feedback, Multi-Document processing, and local ONNX model inference to run efficiently even on low-spec hardware.
 
 ## 🚀 Key Features
 
 ### 🔍 Retrieval & Parsing
+- **Multi-Document RAG:** Upload multiple documents and query across them. Uses a unified ChromaDB with `source_document` metadata filtering to isolate documents during search.
+- **Document Search Scope:** A UI feature that allows users to dynamically select which uploaded documents to target for a specific question, preventing context pollution.
 - **Advanced Hybrid Parsing (Camelot + pdfplumber):** Uses PyMuPDF for text and Camelot's `lattice` parser for bordered tables (converted to clean Markdown). A custom fallback and a **Ghost Table Filter** (regex-based) drop empty blocks and 2-column text falsely detected as tables.
 - **Contextual Retrieval:** Generates a unique summary for every chunk (using GPT-4o-mini or fast page-headers) and prepends it to the chunk text before embedding. This drastically improves retrieval accuracy for context-dependent chunks.
 - **Parent-Child Architecture:** Retrieves using small, precise **Child** chunks. However, it deduplicates and sends the larger, full-page **Parent** chunks to the LLM. This provides complete context and reduces token usage by up to 60% while maintaining 100% retrieval accuracy.
@@ -14,32 +16,34 @@ This project goes beyond basic RAG by implementing Hybrid Search, Smart Table Ex
 - **Semantic Chunking:** Text is split based on semantic topic shifts, while tables remain atomic to preserve their structure for the LLM.
 
 ### 🧠 Generation & Verification
+- **Intelligent Meta-Query Handling:** Uses strict regex to detect summarization requests (e.g., "what is this file about") and fetches initial pages directly, bypassing the reranker for generic overviews.
+- **Balanced Multi-Document Retrieval:** Applies per-document quotas and deduplication, guaranteeing that each selected document contributes at least one chunk to the final context, while filtering out low-scoring noise.
 - **Streaming Responses:** Built with Streamlit, generating answers token-by-token for a ChatGPT-like experience.
 - **Hybrid LLM Strategy:** Uses `gpt-4o-mini` for cost-effective query rewriting, and `Claude Haiku 5.5` for final generation to ensure accurate math reasoning and strict adherence to context.
-- **Deterministic Answer Verification:** A zero-dependency, pure-Python verifier (`verifier.py`) that acts as a strict auditor. It normalizes numbers, extracts operands for mathematical exceptions (e.g., sums/differences), and mathematically proves if the LLM's answer is grounded, calculated, or hallucinated. It automatically ignores page numbers and headings to prevent false positives.
-
-- **Intelligent Abstention Layer:** To save API costs and prevent hallucinations, the pipeline checks the absolute score of the top-ranked chunk. If the highest-scoring chunk (even after reranking) falls below a strict irrelevance threshold (e.g., -8.0), the system immediately abstains from calling the LLM and informs the user that the document lacks relevant information.
+- **Deterministic Answer Verification:** A zero-dependency, pure-Python verifier (`verifier.py`) that acts as a strict auditor. It normalizes numbers, extracts operands for mathematical exceptions, and mathematically proves if the LLM's answer is grounded, calculated, or hallucinated. It automatically ignores page numbers and headings to prevent false positives.
+- **Intelligent Abstention Layer:** To save API costs and prevent hallucinations, the pipeline checks the absolute score of the top-ranked chunk. If the highest-scoring chunk falls below a strict irrelevance threshold, the system immediately abstains from calling the LLM.
 
 ### 🛡️ UI & Human-in-the-Loop (HITL)
 - **Verify Answer & Sources UI:** Highlights exactly which sentence is ✅ Verified, ❌ Hallucinated, or 🧮 Calculated. It displays the exact source table/text from the PDF right below the claim.
 - **Feedback Logging:** If the user flags a claim with a 👎, the system logs the query, the source snippet, and the user's reason into a local `feedback_log.json` file, building a "Golden Dataset" for future fine-tuning.
 - **Developer Mode Toggle:** Hides the verification panel and exposes internal query-rewriting steps (Query Inspector) for researchers and developers.
+- **Smart UI Controls:** Includes a sidebar toggle button fix, instant toast notifications for scope changes, and a confirmation dialog to prevent accidental data loss when changing files.
 
 ### ⚡ Caching & Performance
-- **Document-Isolated Layered Caching:** A dual-cache system (exact-match disk cache + ChromaDB semantic cache). Both caches are strictly isolated by a unique `document_id` hash to prevent cross-document cache pollution when switching between files.
+- **Document & Scope-Isolated Layered Caching:** A dual-cache system (exact-match disk cache + ChromaDB semantic cache). Both caches are strictly isolated by a unique `document_id` hash and the selected search scope to prevent cross-document cache pollution.
 - **Batched ONNX Inference:** Optimizes local CPU inference for both embedding (`bekko-embedding`) and reranking (`ms-marco-MiniLM`) models, preventing memory spikes.
 
 ---
 
 ## 🏗️ Architecture Pipeline
 
-0. **Document-Isolated Semantic Cache:** Checks if a semantically similar question (Cosine Similarity > 0.95) was already answered **for the current document**. If yes, returns the cached answer instantly.
-1. **Document Ingestion & Hybrid Extraction:** Extracts text (PyMuPDF) and tables (Camelot). Applies Semantic Chunking to create **Child** chunks, generates context summaries for each, and maps them to their **Parent** pages.
-2. **Query Processing:** Resolves follow-up questions using chat history and generates multiple expanded queries.
-3. **Hybrid Retrieval:** Fetches candidates using both Vector Search (ChromaDB) and BM25.
-4. **Fusion, Smart Reranking & Abstention:** Combines results using RRF and scores them with a local Cross-Encoder. If the top-scoring chunk is below the irrelevance threshold, the system halts and returns an abstention message. Otherwise, it proceeds to generation.
-5. **Generation (Parent-Chunking):** Deduplicates the top-ranked child chunks by their `parent_id` and sends only the full Parent pages (plus metadata tags) to Claude Haiku 5.5. This ensures maximum context without token bloat.
-6. **Deterministic Verification:** Post-generation, a rule-based Python layer audits the LLM's answer sentence-by-sentence, checking for hallucinations and validating calculated operands.
+0. **Document-Isolated Semantic Cache:** Checks if a semantically similar question was already answered for the current document and selected scope.
+1. **Document Ingestion & Hybrid Extraction:** Extracts text (PyMuPDF) and tables (Camelot). Applies Semantic Chunking to create **Child** chunks, generates context summaries, and maps them to their **Parent** pages.
+2. **Query Processing & Meta-Detection:** Resolves follow-ups and applies strict regex for meta-queries (summaries). For content queries, it filters the retrieval space based on the user's `Search Scope`.
+3. **Balanced Hybrid Retrieval:** Fetches candidates using Vector Search and BM25, filtered by `source_document`. For multi-document queries, applies per-document quotas to ensure fair representation.
+4. **Fusion & Smart Reranking:** Combines results using RRF and scores them with a local Cross-Encoder. Guarantees the top chunk from each selected document survives the compression filter.
+5. **Generation (Parent-Chunking):** Deduplicates the top-ranked child chunks by their `parent_id` and sends only the full Parent pages to Claude Haiku 5.5.
+6. **Deterministic Verification:** Post-generation, a rule-based Python layer audits the LLM's answer sentence-by-sentence.
 
 ---
 
@@ -64,29 +68,26 @@ The suite runs curated questions (`questions.json`) covering:
 To run the evaluation suite:
 ```bash
 python eval_suite/run_eval.py
-
-Note: Set SKIP_BUILD = True in run_eval.py to reuse existing databases and speed up testing.
-
-Check the script for any required arguments or configuration before running it.
 ```
+*Note: Set SKIP_BUILD = True in run_eval.py to reuse existing databases and speed up testing.
 
 ## Project Structure
 
 ```text
 DocLens/
-├── app.py                 # Streamlit UI (HITL, Dev Mode)
+├── app.py                 # Streamlit UI (HITL, Dev Mode, Multi-Doc)
 ├── chunk_pdf.py           # Semantic chunking logic
 ├── config.py              # Model paths & chunking configs
 ├── embedding.py           # ONNX Embedding model wrapper
 ├── contextualizer.py      # Generates context summaries for chunks (LLM + Diskcache)
-├── generate.py            # LLM streaming generation & disk cachecache
+├── generate.py            # LLM streaming generation & disk cache
 ├── inspect_pdf.py         # PyMuPDF + Camelot extraction + Ghost Table filter
-├── pipeline.py            # Main RAG orchestrator & document_id assignment
+├── pipeline.py            # Main RAG orchestrator (Multi-doc logic & Meta-query)
 ├── query_rewriter.py      # Query resolution and expansion
 ├── reranker.py            # ONNX Cross-Encoder wrapper with Smart Boost
 ├── retriever.py           # Hybrid Search (Vector + BM25) & RRF
 ├── semantic_cache.py      # ChromaDB-based semantic cache (document-isolated)
-├── vector_store.py        # ChromaDB management
+├── vector_store.py        # ChromaDB management (Multi-doc support)
 ├── verifier.py            # Pure-Python deterministic answer verification
 ├── requirements.txt
 ├── example/               # Demo scripts and sample PDF
@@ -118,6 +119,7 @@ pip install -r requirements.txt
 ```
 ## Download Local Models:
 Ensure the ONNX models are placed in your local directory (e.g., E:\models\). Update the paths in config.py if necessary
+
 ## Configuration
 
 DocLens uses local model files for embedding and reranking. Configure their paths to match your environment.
@@ -142,7 +144,7 @@ streamlit run app.py
 
 Open the local URL printed in the terminal.
 
-Upload a PDF, build the vector database, ask a question, and inspect the retrieved chunks alongside the generated answer.
+Upload one or two PDFs, build the vector database, ask a question, and inspect the retrieved chunks alongside the generated answer.
 
 
 
