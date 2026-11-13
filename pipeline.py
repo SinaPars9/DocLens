@@ -32,10 +32,17 @@ class RAGPipeline:
         )
 
     def build(self, pdf_paths: List[str], use_llm_context: bool = True) -> int:
-        clean_names = [os.path.basename(p).replace("temp_", "") for p in pdf_paths]
-        combined_name = "_".join(sorted(clean_names))
+        file_hasher = hashlib.md5()
+        for path in pdf_paths:
+            with open(path, "rb") as f:
+                for chunk in iter(lambda: f.read(4096), b""):
+                    file_hasher.update(chunk)
+        
+        self.document_id = file_hasher.hexdigest()[:12]
+        
+        self.cache.invalidate_document(self.document_id)
 
-        self.document_id = hashlib.md5(combined_name.encode()).hexdigest()[:8]
+        clean_names = [os.path.basename(p).replace("temp_", "") for p in pdf_paths]
         self.ingested_documents = clean_names
 
         self.vector_store.build(pdf_paths, use_llm_context=use_llm_context)
