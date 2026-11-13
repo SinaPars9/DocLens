@@ -25,6 +25,8 @@ cache/
 *.safetensors
 llm_cache/
 context_cache
+eval_judge_cache
+eval_report.json
 # ChromaDB vector database
 chroma_db/
 

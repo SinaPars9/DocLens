@@ -12,21 +12,20 @@ class AnswerVerifier:
             r"\b("
             r"difference|sum|total|totaled|average|mean|median|combined|count|amount|"
             r"multiply|multiplied|times|divide|divided|division|quotient|plus|minus|product|calculated|computed|derived|"
-            r"increase[ds]?|decrease[ds]?|rise|rose|fall|fell|drop(?:ped)?|gain(?:ed)?|growth|decline[ds]?|"
             r"rate|ratio|margin|percentage|percent|proportion|fraction|"
-            r"compare[ds]?|comparison|more than|less than|higher|lower|roughly|approximately|approx"
+            r"compare[ds]?|comparison|roughly|approximately|approx"
             r")\b|[\+\-\*\/\÷\=\×]",
             re.IGNORECASE,
         )
+        self.increase_pattern: re.Pattern[str] = re.compile(
+            r"\b(increase[ds]?|rise|risen|rose|grew|growth|grow|up|higher|gain(?:ed)?|surge[ds]?)\b", re.IGNORECASE
+        )
+        self.decrease_pattern: re.Pattern[str] = re.compile(
+            r"\b(decrease[ds]?|drop(?:ped)?|fall|fell|decline[ds]?|down|lower|loss|slump(?:ed)?)\b", re.IGNORECASE
+        )
 
     def _normalize_number(self, raw: str) -> Optional[float]:
-        clean = (
-            raw.replace(",", "")
-            .replace("£", "")
-            .replace("$", "")
-            .replace("€", "")
-            .strip()
-        )
+        clean = raw.replace(",", "").replace("£", "").replace("$", "").replace("€", "").strip()
         is_negative = False
 
         if clean.startswith("(") and clean.endswith(")"):
@@ -53,11 +52,9 @@ class AnswerVerifier:
             return None
 
     def _extract_numbers(self, text: str) -> List[float]:
-
         cleaned_text = re.sub(
             r"(?i)\b(page|table|figure|section|chapter|appendix)\s*\d+", "", text
         )
-
         nums: List[float] = []
         for m in self.number_pattern.finditer(cleaned_text):
             val = self._normalize_number(m.group())
@@ -67,11 +64,8 @@ class AnswerVerifier:
                 nums.append(val)
         return nums
 
-    def _find_source_snippet(
-        self, sentence: str, chunks: List[Dict[str, Any]]
-    ) -> Optional[str]:
+    def _find_source_snippet(self, sentence: str, chunks: List[Dict[str, Any]]) -> Optional[str]:
         sent_nums = self._extract_numbers(sentence)
-
         sent_words = set(re.findall(r"\b[a-zA-Z]{4,}\b", sentence.lower()))
 
         best_chunk_text: Optional[str] = None
@@ -82,12 +76,8 @@ class AnswerVerifier:
             chunk_nums = self._extract_numbers(text)
             chunk_words = set(re.findall(r"\b[a-zA-Z]{4,}\b", text.lower()))
 
-            num_matches = sum(
-                1 for n in sent_nums if any(abs(n - cn) < 0.0001 for cn in chunk_nums)
-            )
-            word_matches = len(sent_words.intersection(chunk_words))
-
-            score = (num_matches * 10) + word_matches
+            matches = sum(1 for n in sent_nums if any(abs(n - cn) < 0.0001 for cn in chunk_nums))
+            score = (matches * 10) + len(sent_words.intersection(chunk_words))
 
             if score > best_score and score > 0:
                 best_score = score
@@ -107,22 +97,19 @@ class AnswerVerifier:
                 if len(best_chunk_text) > 300
                 else best_chunk_text
             )
-
         return None
 
-    def verify_answer(
-        self, answer: str, chunks: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+    def verify_answer(self, answer: str, chunks: List[Dict[str, Any]]) -> Dict[str, Any]:
         claims: List[Dict[str, Any]] = []
-        sentences = []
-        for s in re.split(r"(?<=[.!?])\s+", answer):
-            s = s.strip()
-            if len(s) > 15 and not s.endswith(":") and not s.startswith("-"):
-                sentences.append(s)
+        sentences = [
+            s.strip() for s in re.split(r"(?<=[.!?])\s+", answer) if len(s.strip()) > 10
+        ]
 
         for sent in sentences:
             sent_nums = self._extract_numbers(sent)
             has_math_word = bool(self.math_words_pattern.search(sent))
+            has_increase = bool(self.increase_pattern.search(sent))
+            has_decrease = bool(self.decrease_pattern.search(sent))
 
             source_snippet = self._find_source_snippet(sent, chunks)
 
@@ -132,6 +119,7 @@ class AnswerVerifier:
             if not sent_nums and not has_math_word:
                 status = "✅ Grounded"
                 details = "No specific numerical claims to verify."
+                
             elif has_math_word:
                 if source_snippet:
                     status = "✅ Calculated (Verified Operands)"
@@ -139,10 +127,38 @@ class AnswerVerifier:
                 else:
                     status = "❌ Hallucination"
                     details = "Calculated numbers do not match any source operands."
+                    
             else:
-                if source_snippet:
-                    status = "✅ Verified"
-                    details = "Numbers match the source exactly."
+                
+                if len(sent_nums) >= 2 and (has_increase or has_decrease):
+                    n1, n2 = sent_nums[0], sent_nums[1]
+                    if has_increase and n2 < n1:
+                        status = "⚠️ Contradicted"
+                        details = f"Claimed increase, but {n2} is less than {n1}."
+                    elif has_decrease and n2 > n1:
+                        status = "⚠️ Contradicted"
+                        details = f"Claimed decrease, but {n2} is greater than {n1}."
+                    elif source_snippet:
+                        status = "✅ Verified"
+                        details = "Numbers match the source exactly."
+                    else:
+                        status = "❌ Hallucination"
+                        details = "Claimed numbers not found in retrieved context."
+                        
+                
+                elif source_snippet:
+                    if len(sent_nums) > 1:
+                        snippet_nums = self._extract_numbers(source_snippet)
+                        all_found = all(any(abs(n - sn) < 0.0001 for sn in snippet_nums) for n in sent_nums)
+                        if all_found:
+                            status = "✅ Verified"
+                            details = "All numbers match the source exactly."
+                        else:
+                            status = "🧮 Partially Supported"
+                            details = "Some numbers match the source, but not all."
+                    else:
+                        status = "✅ Verified"
+                        details = "Numbers match the source exactly."
                 else:
                     status = "❌ Hallucination"
                     details = "Claimed numbers not found in retrieved context."
@@ -153,9 +169,7 @@ class AnswerVerifier:
                     "status": status,
                     "details": details,
                     "source_snippet": (
-                        source_snippet
-                        if source_snippet
-                        else "No supporting text found."
+                        source_snippet if source_snippet else "No supporting text found."
                     ),
                     "numbers_found": sent_nums,
                 }

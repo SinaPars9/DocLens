@@ -5,7 +5,7 @@ from datetime import datetime
 import streamlit as st
 from typing import List, Dict, Any
 from pipeline import RAGPipeline
-
+import uuid
 
 def safe_remove(path: str) -> None:
     try:
@@ -348,7 +348,8 @@ with st.sidebar:
 
                 temp_paths = []
                 for pdf_file in pdf_files:
-                    temp_path = f"temp_{pdf_file.name}"
+                    unique_id = uuid.uuid4().hex[:6]
+                    temp_path = f"temp_{unique_id}_{pdf_file.name}"
                     with open(temp_path, "wb") as f:
                         f.write(pdf_file.getbuffer())
                     temp_paths.append(temp_path)

@@ -14,6 +14,7 @@ This project goes beyond basic RAG by implementing Hybrid Search, Smart Table Ex
 - **Parent-Child Architecture:** Retrieves using small, precise **Child** chunks. However, it deduplicates and sends the larger, full-page **Parent** chunks to the LLM. This provides complete context and reduces token usage by up to 60% while maintaining 100% retrieval accuracy.
 - **Hybrid Search (BM25 + Vector):** Combines semantic vector search (ChromaDB) with keyword-based BM25 using Reciprocal Rank Fusion (RRF) to drastically improve retrieval accuracy.
 - **Semantic Chunking:** Text is split based on semantic topic shifts, while tables remain atomic to preserve their structure for the LLM.
+- **Document & Scope-Isolated Layered Caching:** A dual-cache system (exact-match disk cache + ChromaDB semantic cache). Both caches are strictly isolated by a **content hash** of the PDF and the selected search scope. The cache is automatically invalidated if the same document name is rebuilt with new content.
 
 ### 🧠 Generation & Verification
 - **Intelligent Meta-Query Handling:** Uses strict regex to detect summarization requests (e.g., "what is this file about") and fetches initial pages directly, bypassing the reranker for generic overviews.
@@ -24,7 +25,7 @@ This project goes beyond basic RAG by implementing Hybrid Search, Smart Table Ex
 - **Intelligent Abstention Layer:** To save API costs and prevent hallucinations, the pipeline checks the absolute score of the top-ranked chunk. If the highest-scoring chunk falls below a strict irrelevance threshold, the system immediately abstains from calling the LLM.
 
 ### 🛡️ UI & Human-in-the-Loop (HITL)
-- **Verify Answer & Sources UI:** Highlights exactly which sentence is ✅ Verified, ❌ Hallucinated, or 🧮 Calculated. It displays the exact source table/text from the PDF right below the claim.
+- **Advanced Deterministic Verifier:** A pure-Python layer that audits LLM responses sentence-by-sentence. It classifies claims into `✅ Verified`, `✅ Calculated`, `🧮 Partially Supported` (some numbers found), `⚠️ Contradicted` (directionality error), or `❌ Hallucination`.
 - **Feedback Logging:** If the user flags a claim with a 👎, the system logs the query, the source snippet, and the user's reason into a local `feedback_log.json` file, building a "Golden Dataset" for future fine-tuning.
 - **Developer Mode Toggle:** Hides the verification panel and exposes internal query-rewriting steps (Query Inspector) for researchers and developers.
 - **Smart UI Controls:** Includes a sidebar toggle button fix, instant toast notifications for scope changes, and a confirmation dialog to prevent accidental data loss when changing files.
@@ -60,10 +61,12 @@ Includes a diverse set of PDF documents to stress-test the pipeline across diffe
 - `transformers_paper.pdf`: Academic paper with complex table layouts.
 - `safety_science.pdf`: Long definition tables and conceptual diagrams.
 
-The suite runs curated questions (`questions.json`) covering:
-- **Numerical Calculations:** Testing the LLM's math and the Verifier's operand checks.
-- **Table Extraction:** Testing Camelot's ability to extract clean Markdown tables.
-- **Abstention:** Testing the system's ability to say "I don't know" when information is missing.
+**Metrics Evaluated (LLM-as-a-Judge):**
+The suite uses `gpt-4o-mini` to judge the final answer against the `expected_answer` (Answer Accuracy), alongside automated checks for:
+- **Retrieval Hit Rate:** Are the correct pages retrieved?
+- **Verifier Pass Rate:** Are all non-abstention claims verified?
+- **Category Breakdown:** Metrics are split by question type (numerical, table_extraction, abstention, etc.).
+Results are saved to `eval_report.json` for version comparison.
 
 To run the evaluation suite:
 ```bash
@@ -91,7 +94,9 @@ DocLens/
 ├── verifier.py            # Pure-Python deterministic answer verification
 ├── requirements.txt
 ├── example/               # Demo scripts and sample PDF
-├── eval_suite/            # Regression testing suite (data, questions, runner)
+├── eval_suite/            # Regression testing (data, questions, run_eval.py)
+├── eval_judge_cache/      # Diskcache for LLM-as-a-Judge (ignored by git)
+├── eval_report.json       # Latest evaluation results (ignored by git)
 └── .streamlit             # for dark mode switch in streamlit
 ```
 The `example/` directory contains sample PDF and retrieval-evaluation resources.
