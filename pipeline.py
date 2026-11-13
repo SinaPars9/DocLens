@@ -1,4 +1,5 @@
 import hashlib
+import os
 from typing import Optional, List, Dict, Any, Generator, cast
 
 from vector_store import VectorStore
@@ -25,14 +26,19 @@ class RAGPipeline:
 
         self.is_built: bool = self.vector_store.collection.count() > 0
         self.document_id: str = "default"
+        self.ingested_documents: List[str] = []
         print(
             f"Pipeline ready. Vector store: {self.vector_store.collection.count()} chunks."
         )
 
-    def build(self, pdf_path: str, use_llm_context: bool = True) -> int:
-        self.document_id = hashlib.md5(pdf_path.encode()).hexdigest()[:8]
+    def build(self, pdf_paths: List[str], use_llm_context: bool = True) -> int:
+        clean_names = [os.path.basename(p).replace("temp_", "") for p in pdf_paths]
+        combined_name = "_".join(sorted(clean_names))
 
-        self.vector_store.build(pdf_path, use_llm_context=use_llm_context)
+        self.document_id = hashlib.md5(combined_name.encode()).hexdigest()[:8]
+        self.ingested_documents = clean_names
+
+        self.vector_store.build(pdf_paths, use_llm_context=use_llm_context)
         self.retriever.collection = self.vector_store.get_collection()
         self.retriever._build_bm25_index()
 
@@ -48,6 +54,7 @@ class RAGPipeline:
         self,
         question: str,
         chat_history: Optional[List[Dict[str, str]]] = None,
+        selected_documents: Optional[List[str]] = None,
         top_k_retrieve: int = TOP_K_RETRIEVE,
         top_k_final: int = TOP_K_FINAL,
     ) -> Generator[Dict[str, Any], None, None]:
@@ -67,10 +74,11 @@ class RAGPipeline:
             "expanded": expanded,
         }
 
-        cached_result = self.cache.get(standalone_query, document_id=self.document_id)
+        cache_doc_id = f"{self.document_id}_{'_'.join(sorted(selected_documents)) if selected_documents else 'all'}"
+
+        cached_result = self.cache.get(standalone_query, document_id=cache_doc_id)
         if cached_result:
             cached_answer, cached_chunks = cached_result
-
             yield {"type": "chunks", "chunks": cached_chunks}
             yield {"type": "text", "content": cached_answer}
             verification_result = self.verifier.verify_answer(
@@ -80,39 +88,144 @@ class RAGPipeline:
             return
 
         queries = [standalone_query] + [str(q) for q in expanded]
-        chunks = self.retriever.retrieve_many(queries, top_k=top_k_retrieve)
 
-        ranked_chunks = self.reranker.rerank(
-            standalone_query, chunks, top_k=top_k_final
-        )
+        queries = [standalone_query] + [str(q) for q in expanded]
+        import re
 
-        if not ranked_chunks:
-            yield {"type": "chunks", "chunks": []}
-            yield {
-                "type": "text",
-                "content": "No relevant information found in the document.",
-            }
-            return
+        query_clean = standalone_query.strip().lower().rstrip("?.!,")
 
-        top_score = ranked_chunks[0].get("rerank_score", 0.0)
-        ABSOLUTE_IRRELEVANCE_THRESHOLD = -8.0
-        if top_score < ABSOLUTE_IRRELEVANCE_THRESHOLD:
-            yield {"type": "chunks", "chunks": []}
-            yield {
-                "type": "text",
-                "content": "The provided document does not seem to contain relevant information to answer this question.",
-            }
-            return
-
-        MIN_RERANK_SCORE = -5.0
-        filtered_chunks = [
-            c for c in ranked_chunks if c.get("rerank_score", 0.0) >= MIN_RERANK_SCORE
+        meta_patterns = [
+            # "what is this file about", "what are these documents"
+            r"^(what|tell me)\s+(is|are)\s+(this|these)\s+(file|files|document|documents|pdf|pdfs)\s*(about|for)?$",
+            # "summarize this", "summarize the document", "please summarize the pdf"
+            r"^(can you\s+|please\s+)?(summarize|summarise)\s+(this|these|the)\s*(file|files|document|documents|pdf|pdfs|content)?$",
+            r"^(summarize|summarise|summary|overview)$",
+            # "give me an overview", "give me a summary of the document"
+            r"^(give me\s+)?(an?\s+)?(overview|summary)\s+(of\s+)?(this|these|the)\s*(file|files|document|documents|pdf|pdfs|content)?$",
+            # "what is in this document", "what is inside these files"
+            r"^what\s+(is|are)\s+(in|inside)\s+(this|these)\s+(file|files|document|documents|pdf|pdfs)$",
+            # "describe this file", "explain these documents"
+            r"^(describ|explain|analy[sz]e)\s+(this|these)\s+(file|files|document|documents|pdf|pdfs)$",
         ]
-        if not filtered_chunks:
-            filtered_chunks = ranked_chunks[:3]
-            print(
-                "[Context Compression] All chunks below threshold. Kept top 3 as fallback."
+
+        is_meta_query = any(re.match(pattern, query_clean) for pattern in meta_patterns)
+
+        if is_meta_query and selected_documents:
+            print(f"[Meta-Query Detected]: {standalone_query}")
+            chunks = []
+            for doc in selected_documents:
+                doc_chunks = self.retriever.get_initial_chunks(doc, limit=3)
+                chunks.extend(doc_chunks)
+
+            if chunks:
+                for c in chunks:
+                    c["rerank_score"] = 10.0
+                filtered_chunks = chunks
+            else:
+                filtered_chunks = []
+
+        elif selected_documents and len(selected_documents) > 1:
+
+            combined_ranked_chunks: List[Dict[str, Any]] = []
+
+            chunks_per_doc = max(3, top_k_final // len(selected_documents))
+
+            for doc in selected_documents:
+                doc_chunks = self.retriever.retrieve_many(
+                    queries, top_k=top_k_retrieve, selected_documents=[doc]
+                )
+                if doc_chunks:
+                    ranked_doc_chunks = self.reranker.rerank(
+                        standalone_query, doc_chunks, top_k=chunks_per_doc
+                    )
+                    combined_ranked_chunks.extend(ranked_doc_chunks)
+
+            if not combined_ranked_chunks:
+                yield {"type": "chunks", "chunks": []}
+                yield {
+                    "type": "text",
+                    "content": "No relevant information found in the selected documents.",
+                }
+                return
+
+            ranked_chunks = sorted(
+                combined_ranked_chunks,
+                key=lambda x: x.get("rerank_score", 0.0),
+                reverse=True,
             )
+
+            top_score = ranked_chunks[0].get("rerank_score", 0.0)
+            ABSOLUTE_IRRELEVANCE_THRESHOLD = -10.0
+            if top_score < ABSOLUTE_IRRELEVANCE_THRESHOLD:
+                yield {"type": "chunks", "chunks": []}
+                yield {
+                    "type": "text",
+                    "content": "The selected documents do not seem to contain relevant information to answer this question.",
+                }
+                return
+
+            guaranteed_chunks: List[Dict[str, Any]] = []
+            for doc in selected_documents:
+                doc_top = next(
+                    (
+                        c
+                        for c in ranked_chunks
+                        if c.get("metadata", {}).get("source_document") == doc
+                    ),
+                    None,
+                )
+                if doc_top:
+                    guaranteed_chunks.append(doc_top)
+
+            guaranteed_ids = {c["id"] for c in guaranteed_chunks}
+            filtered_chunks = list(guaranteed_chunks)
+
+            MIN_RERANK_SCORE = -5.0
+            for c in ranked_chunks:
+                if (
+                    c["id"] not in guaranteed_ids
+                    and c.get("rerank_score", 0.0) >= MIN_RERANK_SCORE
+                ):
+                    filtered_chunks.append(c)
+
+            filtered_chunks = filtered_chunks[:top_k_final]
+        else:
+            chunks = self.retriever.retrieve_many(
+                queries, top_k=top_k_retrieve, selected_documents=selected_documents
+            )
+            ranked_chunks = self.reranker.rerank(
+                standalone_query, chunks, top_k=top_k_final
+            )
+
+            if not ranked_chunks:
+                yield {"type": "chunks", "chunks": []}
+                yield {
+                    "type": "text",
+                    "content": "No relevant information found in the selected documents.",
+                }
+                return
+
+            top_score = ranked_chunks[0].get("rerank_score", 0.0)
+            ABSOLUTE_IRRELEVANCE_THRESHOLD = -8.0
+            if top_score < ABSOLUTE_IRRELEVANCE_THRESHOLD:
+                yield {"type": "chunks", "chunks": []}
+                yield {
+                    "type": "text",
+                    "content": "The selected document does not seem to contain relevant information to answer this question.",
+                }
+                return
+
+            MIN_RERANK_SCORE = -5.0
+            filtered_chunks = [
+                c
+                for c in ranked_chunks
+                if c.get("rerank_score", 0.0) >= MIN_RERANK_SCORE
+            ]
+            if not filtered_chunks:
+                filtered_chunks = ranked_chunks[:3]
+                print(
+                    "[Context Compression] All chunks below threshold. Kept top 3 as fallback."
+                )
 
         parent_ids_seen = set()
         generation_chunks = []
@@ -120,7 +233,6 @@ class RAGPipeline:
 
         for c in filtered_chunks:
             pid = c.get("metadata", {}).get("parent_id")
-
             unique_id = pid if pid else c.get("id", id(c))
 
             if unique_id not in parent_ids_seen:
@@ -130,7 +242,6 @@ class RAGPipeline:
                 generation_chunks.append(
                     {"text": parent_text, "metadata": c.get("metadata", {})}
                 )
-
                 ui_display_chunks.append(
                     {
                         "text": parent_text,
@@ -162,12 +273,8 @@ class RAGPipeline:
             yield {"type": "text", "content": token}
 
         self.cache.put(
-            standalone_query,
-            full_response,
-            filtered_chunks,
-            document_id=self.document_id,
+            standalone_query, full_response, filtered_chunks, document_id=cache_doc_id
         )
-
         verification_result = self.verifier.verify_answer(
             full_response, filtered_chunks
         )

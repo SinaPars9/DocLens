@@ -1,19 +1,18 @@
 import os
 import json
+import glob
 from datetime import datetime
 import streamlit as st
 from typing import List, Dict, Any
-import glob
 from pipeline import RAGPipeline
 
 
 def safe_remove(path: str) -> None:
-    """Safely remove a file, ignoring Windows file-lock errors."""
     try:
         if os.path.exists(path):
             os.remove(path)
     except PermissionError:
-        pass  # File is still locked by Camelot, Windows will clean it up later
+        pass
 
 
 st.set_page_config(page_title="DocLens", page_icon="📄", layout="wide")
@@ -30,6 +29,22 @@ st.markdown(
     [data-testid="stChatMessage"] { padding: 0.4rem 0.8rem !important; margin-bottom: 0.4rem !important; }
     .stButton>button { padding: 0.2rem 0.6rem !important; font-size: 0.8rem !important; }
     .stVerticalBlock { gap: 0.4rem !important; }
+    
+    [data-testid="stSidebarCollapsedControl"] {
+        display: flex !important;
+        visibility: visible !important;
+        color: var(--text-color) !important;
+        background-color: var(--secondary-background-color) !important;
+        border-radius: 50% !important;
+        padding: 5px !important;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3) !important;
+        z-index: 999999 !important;
+        top: 15px !important;
+        left: 15px !important;
+    }
+    [data-testid="stSidebarCollapseButton"] {
+        color: var(--text-color) !important;
+    }
 </style>
 """,
     unsafe_allow_html=True,
@@ -46,7 +61,6 @@ def get_rag_pipeline() -> RAGPipeline:
 def save_feedback(
     question: str, claim: Dict[str, Any], verdict: str, reason: str = ""
 ) -> None:
-
     feedback_entry = {
         "timestamp": datetime.now().isoformat(),
         "question": question,
@@ -78,8 +92,9 @@ def format_chunks(chunks: List[Dict[str, Any]]) -> str:
         meta = chunk.get("metadata", {})
         score = chunk.get("rerank_score", 0.0)
         chunk_type = meta.get("type", "?")
+        doc_name = meta.get("source_document", "")
 
-        markdown_text += f"<span style='font-size:0.75rem; color:gray;'>[{i}] Page {meta.get('page', '?')} | {chunk_type} | score {score:+.2f}</span>\n\n"
+        markdown_text += f"<span style='font-size:0.75rem; color:gray;'>[{i}] {doc_name} | Page {meta.get('page', '?')} | {chunk_type} | score {score:+.2f}</span>\n\n"
 
         if chunk_type == "table":
             markdown_text += f"{chunk['text']}\n\n---\n\n"
@@ -94,7 +109,6 @@ def format_chunks(chunks: List[Dict[str, Any]]) -> str:
 def render_feedback_buttons(
     claim: Dict[str, Any], question: str, msg_idx: int, claim_idx: int
 ) -> None:
-
     state_key = f"feedback_state_{msg_idx}_{claim_idx}"
 
     if state_key not in st.session_state:
@@ -122,8 +136,7 @@ def render_feedback_buttons(
 
     elif st.session_state[state_key] == "asking_reason":
         reason = st.text_input(
-            "Why is this incorrect? (e.g., Wrong year, missing context)",
-            key=f"reason_{msg_idx}_{claim_idx}",
+            "Why is this incorrect?", key=f"reason_{msg_idx}_{claim_idx}"
         )
         col1, col2 = st.columns(2)
         with col1:
@@ -158,7 +171,6 @@ def render_verification_ui(
     expanded_qs: List[str],
     dev_mode: bool,
 ) -> None:
-
     if dev_mode:
         if standalone_q:
             with st.expander("🔍 Query Inspector (Dev Mode)", expanded=True):
@@ -175,8 +187,8 @@ def render_verification_ui(
     claims = v_data["claims"]
     verified_count = sum(1 for c in claims if "✅" in c.get("status", ""))
     error_count = len(claims) - verified_count
-
     is_fully_verified = v_data.get("is_fully_verified", True)
+
     expander_title = (
         f"🛡️ Verify Answer & Sources ({verified_count} Verified, {error_count} Issues)"
     )
@@ -188,10 +200,10 @@ def render_verification_ui(
             )
 
         for idx, claim in enumerate(claims):
-            status: str = claim.get("status", "")
-            sentence: str = claim.get("sentence", "")
-            source: str = claim.get("source_snippet", "")
-            details: str = claim.get("details", "")
+            status = claim.get("status", "")
+            sentence = claim.get("sentence", "")
+            source = claim.get("source_snippet", "")
+            details = claim.get("details", "")
 
             if "✅" in status:
                 st.success(f"**{status}** — {sentence}")
@@ -202,10 +214,23 @@ def render_verification_ui(
 
             st.markdown(f"> **Source:** *{source}*")
             st.caption(f"Reasoning: {details}")
-
             render_feedback_buttons(claim, question, msg_idx, idx)
-
             st.divider()
+
+
+def on_scope_change():
+    new_scope = st.session_state.search_scope_widget
+    if not new_scope:
+        st.session_state.search_scope_widget = st.session_state.current_file_names
+        new_scope = st.session_state.current_file_names
+
+    if new_scope != st.session_state.get(
+        "last_search_scope", st.session_state.current_file_names
+    ):
+        st.session_state.messages = []
+        st.session_state.latest_chunks = []
+        st.session_state.last_search_scope = new_scope
+        st.session_state.show_scope_toast = True
 
 
 if "messages" not in st.session_state:
@@ -214,32 +239,72 @@ if "latest_chunks" not in st.session_state:
     st.session_state.latest_chunks = []
 if "rag_built" not in st.session_state:
     st.session_state.rag_built = False
-if "current_file_name" not in st.session_state:
-    st.session_state.current_file_name = None
+if "current_file_names" not in st.session_state:
+    st.session_state.current_file_names = []
+if "is_building" not in st.session_state:
+    st.session_state.is_building = False
+if "last_search_scope" not in st.session_state:
+    st.session_state.last_search_scope = []
 
 with st.sidebar:
     st.title("📄 DocLens")
-    st.caption("Upload a PDF and ask questions.")
+    st.caption("Upload PDFs and ask questions.")
 
     dev_mode = st.toggle("🛠️ Developer Mode", value=False)
 
-    pdf_file = st.file_uploader(
-        "Choose PDF", type=["pdf"], label_visibility="collapsed"
+    pdf_files = st.file_uploader(
+        "Choose PDF(s)",
+        type=["pdf"],
+        accept_multiple_files=True,
+        label_visibility="collapsed",
     )
 
-    if pdf_file is None:
+    if pdf_files and len(pdf_files) > 2:
+        st.error(
+            "⚠️ You can upload a maximum of 2 PDFs at a time. Please remove the extra files."
+        )
+        st.stop()
+
+    if not pdf_files:
         if st.session_state.rag_built:
             st.session_state.rag_built = False
-            st.session_state.current_file_name = None
+            st.session_state.current_file_names = []
+            st.session_state.messages = []
+            st.session_state.latest_chunks = []
+            st.session_state.last_search_scope = []
     else:
-        if st.session_state.current_file_name != pdf_file.name:
-            st.session_state.rag_built = False
-            st.session_state.current_file_name = pdf_file.name
+        uploaded_names = sorted([f.name for f in pdf_files])
 
-    if "is_building" not in st.session_state:
-        st.session_state.is_building = False
+        if (
+            st.session_state.rag_built
+            and st.session_state.current_file_names != uploaded_names
+        ):
+            st.warning(
+                "⚠️ File list has changed. To apply changes, the database must be rebuilt and chat history will be cleared."
+            )
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button(
+                    "Confirm & Rebuild", type="primary", use_container_width=True
+                ):
+                    st.session_state.rag_built = False
+                    st.session_state.current_file_names = uploaded_names
+                    st.session_state.messages = []
+                    st.session_state.latest_chunks = []
+                    st.session_state.last_search_scope = []
+                    st.rerun()
+            with col2:
+                if st.button("Cancel", use_container_width=True):
+                    st.info(
+                        "Please manually revert the file uploader to keep your current chat."
+                    )
+                    st.stop()
+            st.stop()
 
-    if pdf_file is not None and not st.session_state.rag_built:
+        if not st.session_state.rag_built:
+            st.session_state.current_file_names = uploaded_names
+
+    if pdf_files and not st.session_state.rag_built:
         st.divider()
         st.markdown("### ⚙️ Build Settings")
 
@@ -248,23 +313,18 @@ with st.sidebar:
 
         use_llm_context = st.toggle(
             "🧠 Enable LLM Contextualization",
-            value=st.session_state.use_llm_choice,
+            key="use_llm_choice",
             disabled=st.session_state.is_building,
             help="Toggle between Fast Mode (Free) and Accurate Mode (LLM-powered).",
         )
-        st.session_state.use_llm_choice = use_llm_context
 
         if use_llm_context:
             st.warning(
-                "**Accurate Mode (LLM):**\n"
-                "- ✅ Generates a unique summary for each chunk using GPT-4o-mini.\n"
-                "- ⚠️ Slower ingestion and API costs apply (cached per file)."
+                "**Accurate Mode (LLM):**\n- ✅ Unique summary per chunk.\n- ⚠️ Slower and API costs apply."
             )
         else:
             st.info(
-                "**Fast Mode (Free):**\n"
-                "- ✅ Uses the first 150 characters of each page as context.\n"
-                "- ⚡ Instant and zero API cost."
+                "**Fast Mode (Free):**\n- ✅ Page headers as context.\n- ⚡ Instant and zero cost."
             )
 
         st.divider()
@@ -277,7 +337,6 @@ with st.sidebar:
         )
 
         if build_clicked and not st.session_state.is_building:
-            # 🌟 قفل کردن UI
             st.session_state.is_building = True
 
             for old_temp in glob.glob("temp_*.pdf"):
@@ -285,38 +344,67 @@ with st.sidebar:
 
             with st.status("Building database...", expanded=True) as status:
                 rag = get_rag_pipeline()
+                st.write(f"Processing {len(pdf_files)} PDF(s)...")
 
-                if use_llm_context:
-                    st.write(
-                        "Processing PDF with LLM Contextualization (This may take a while)..."
-                    )
-                else:
-                    st.write("Processing PDF in Fast Mode...")
-
-                temp_path = f"temp_{pdf_file.name}"
-                with open(temp_path, "wb") as f:
-                    f.write(pdf_file.getbuffer())
+                temp_paths = []
+                for pdf_file in pdf_files:
+                    temp_path = f"temp_{pdf_file.name}"
+                    with open(temp_path, "wb") as f:
+                        f.write(pdf_file.getbuffer())
+                    temp_paths.append(temp_path)
 
                 try:
-                    count = rag.build(temp_path, use_llm_context=use_llm_context)
+                    count = rag.build(temp_paths, use_llm_context=use_llm_context)
                     st.session_state.rag_built = True
                     st.session_state.messages = []
                     st.session_state.latest_chunks = []
+                    st.session_state.last_search_scope = (
+                        st.session_state.current_file_names
+                    )
+
                     status.update(
-                        label=f"Ready! {count} chunks.",
+                        label=f"Ready! {count} chunks from {len(pdf_files)} documents.",
                         state="complete",
                         expanded=False,
                     )
-
-                    safe_remove(temp_path)
-
+                    for tp in temp_paths:
+                        safe_remove(tp)
                     st.session_state.is_building = False
                     st.rerun()
                 except Exception as e:
-                    safe_remove(temp_path)
-
+                    for tp in temp_paths:
+                        safe_remove(tp)
                     st.session_state.is_building = False
                     status.update(label=f"Error: {e}", state="error", expanded=True)
+
+    selected_docs = []
+    if st.session_state.rag_built and not st.session_state.is_building:
+        if len(st.session_state.current_file_names) > 1:
+            st.divider()
+            st.markdown("### 🔎 Search Scope")
+
+            if "search_scope_widget" not in st.session_state:
+                st.session_state.search_scope_widget = (
+                    st.session_state.current_file_names
+                )
+
+            st.multiselect(
+                "Search in:",
+                options=st.session_state.current_file_names,
+                key="search_scope_widget",
+                on_change=on_scope_change,
+                help="Select which documents to search.",
+            )
+
+            selected_docs = st.session_state.search_scope_widget
+            if not selected_docs:
+                selected_docs = st.session_state.current_file_names
+        else:
+            selected_docs = st.session_state.current_file_names
+
+    if st.session_state.get("show_scope_toast"):
+        st.toast("⚠️ Search scope changed. Chat history cleared.", icon="🔄")
+        st.session_state.show_scope_toast = False
 
     if st.session_state.rag_built and not st.session_state.is_building:
         if st.button("Clear Chat", use_container_width=True):
@@ -328,9 +416,10 @@ with st.sidebar:
     if st.session_state.is_building:
         st.info("⏳ Building database... Please wait.")
     elif st.session_state.rag_built:
-        st.success("🟢 Document loaded and ready.")
+        st.success("🟢 Document(s) loaded and ready.")
     else:
-        st.info("⚪ Waiting for document...")
+        st.info("⚪ Waiting for document(s)...")
+
 
 col1, col2 = st.columns([3, 2])
 
@@ -364,17 +453,19 @@ with col1:
 
                 with st.chat_message("assistant"):
                     rag = get_rag_pipeline()
-                    current_chunks: List[Dict[str, Any]] = []
+                    current_chunks = []
                     history = st.session_state.messages[:-1]
 
                     standalone_q = prompt
                     expanded_qs = []
-                    verification_result: Dict[str, Any] = {}
+                    verification_result = {}
 
                     response_placeholder = st.empty()
                     full_response = ""
 
-                    for event in rag.answer_stream(prompt, chat_history=history):
+                    for event in rag.answer_stream(
+                        prompt, chat_history=history, selected_documents=selected_docs
+                    ):
                         if event["type"] == "query_info":
                             standalone_q = event["standalone"]
                             expanded_qs = event["expanded"]

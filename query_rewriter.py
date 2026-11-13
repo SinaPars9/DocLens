@@ -55,6 +55,9 @@ STRICT EXPANSION RULES (VERY IMPORTANT):
 SMALL TALK RULE: 
 - If the user's input is a greeting, gratitude (e.g., "thanks", "thank you"), or farewell, do NOT resolve it against the chat history. Return the user's exact input as the standalone query and leave the expanded queries empty.
 
+TOPIC SHIFT: 
+- If the user asks a completely new question about a different topic, ignore the previous chat history and treat it as a standalone query.
+
 GENERAL EXAMPLES:
 Example 1 (Preserving specific conditions):
 Standalone Query: "What is the [Property X] of [Entity Y] in [Condition Z]?"

@@ -1,5 +1,7 @@
 from pathlib import Path
 import time
+import os
+from typing import List
 
 import chromadb
 
@@ -22,58 +24,74 @@ class VectorStore:
 
         self.embedding_model = Embeddings()
 
-    def build(self, pdf_path: str, use_llm_context: bool = True):
-        chunks = load_chunks(
-            pdf_path, self.embedding_model, use_llm_context=use_llm_context
-        )
+    def build(self, pdf_paths: List[str], use_llm_context: bool = True):
 
-        if not chunks:
-            raise ValueError("No chunks found in the source PDF.")
+        try:
+            self.client.delete_collection(COLLECTION_NAME)
+        except Exception:
+            pass
 
-        self.client.delete_collection(COLLECTION_NAME)
         self.collection = self.client.create_collection(
             name=COLLECTION_NAME,
             metadata={"hnsw:space": "cosine"},
         )
 
+        all_texts = []
+        all_metadatas = []
+        all_ids = []
+
         start = time.perf_counter()
-        print(f"Building vector store from {len(chunks)} chunks...")
 
-        texts = [chunk.page_content for chunk in chunks]
+        for pdf_path in pdf_paths:
+            doc_name = os.path.basename(pdf_path)
 
-        vectors = self.embedding_model.embed_texts(texts)
+            if doc_name.startswith("temp_"):
+                doc_name = doc_name[5:]
 
-        ids = [f"chunk_{i}" for i in range(len(chunks))]
+            print(f"Processing {doc_name}...")
 
-        metadatas = []
-        for i, chunk in enumerate(chunks):
-            metadata = dict(chunk.metadata)
-            metadata["chunk_index"] = i
+            chunks = load_chunks(
+                pdf_path, self.embedding_model, use_llm_context=use_llm_context
+            )
 
-            clean_metadata = {
-                key: value
-                for key, value in metadata.items()
-                if isinstance(value, (str, int, float, bool))
-            }
-            metadatas.append(clean_metadata)
+            if not chunks:
+                continue
+
+            for i, chunk in enumerate(chunks):
+                all_texts.append(chunk.page_content)
+
+                metadata = dict(chunk.metadata)
+                metadata["source_document"] = doc_name
+                metadata["chunk_index"] = len(all_texts) - 1
+
+                clean_metadata = {
+                    key: value
+                    for key, value in metadata.items()
+                    if isinstance(value, (str, int, float, bool))
+                }
+                all_metadatas.append(clean_metadata)
+                all_ids.append(f"chunk_{len(all_texts) - 1}")
+
+        if not all_texts:
+            raise ValueError("No chunks found in the provided PDFs.")
+
+        print(f"Embedding {len(all_texts)} chunks from {len(pdf_paths)} documents...")
+        vectors = self.embedding_model.embed_texts(all_texts)
 
         batch_size = 100
-
-        for start_idx in range(0, len(chunks), batch_size):
+        for start_idx in range(0, len(all_texts), batch_size):
             end_idx = start_idx + batch_size
 
             self.collection.add(
-                ids=ids[start_idx:end_idx],
-                documents=texts[start_idx:end_idx],
+                ids=all_ids[start_idx:end_idx],
+                documents=all_texts[start_idx:end_idx],
                 embeddings=vectors[start_idx:end_idx].tolist(),
-                metadatas=metadatas[start_idx:end_idx],
+                metadatas=all_metadatas[start_idx:end_idx],
             )
-
-            print(f"Stored {min(end_idx, len(chunks))}/{len(chunks)} chunks")
+            print(f"Stored {min(end_idx, len(all_texts))}/{len(all_texts)} chunks")
 
         elapsed = time.perf_counter() - start
         print(f"Vector store built in {elapsed:.2f} seconds")
-        print(f"Collection count: {self.collection.count()}")
 
     def get_collection(self):
         return self.collection
