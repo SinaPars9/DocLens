@@ -43,11 +43,10 @@ class VectorStore:
         start = time.perf_counter()
 
         for pdf_path in pdf_paths:
-            doc_name = os.path.basename(pdf_path)
-
-            if doc_name.startswith("temp_"):
-                doc_name = doc_name[5:]
-
+            raw_name = os.path.basename(pdf_path)
+            parts = raw_name.split("_", 2) 
+            doc_name = parts[2] if len(parts) >= 3 else raw_name
+            
             print(f"Processing {doc_name}...")
 
             chunks = load_chunks(
