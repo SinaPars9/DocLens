@@ -32,6 +32,8 @@ class RAGPipeline:
         )
 
     def build(self, pdf_paths: List[str], use_llm_context: bool = True) -> int:
+        if isinstance(pdf_paths, str):
+            pdf_paths = [pdf_paths]
         file_hasher = hashlib.md5()
         for path in pdf_paths:
             with open(path, "rb") as f:
