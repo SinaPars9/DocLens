@@ -7,6 +7,7 @@ from typing import List, Dict, Any
 from pipeline import RAGPipeline
 import uuid
 
+
 def safe_remove(path: str) -> None:
     try:
         if os.path.exists(path):
@@ -20,16 +21,43 @@ st.set_page_config(page_title="DocLens", page_icon="📄", layout="wide")
 st.markdown(
     """
 <style>
+    /* ==========================================
+       1. Global Layout & Typography
+       ========================================== */
     .block-container { padding-top: 1.5rem !important; padding-bottom: 1.5rem !important; padding-left: 2rem !important; padding-right: 2rem !important; }
-    html, body, [class*="css"] { font-size: 0.85rem !important; }
-    p, li { font-size: 0.85rem !important; line-height: 1.4 !important; }
-    h1 { font-size: 1.4rem !important; margin-bottom: 0.5rem !important; }
-    h2 { font-size: 1.1rem !important; margin-bottom: 0.5rem !important; }
-    h3 { font-size: 0.95rem !important; margin-bottom: 0.5rem !important; }
-    [data-testid="stChatMessage"] { padding: 0.4rem 0.8rem !important; margin-bottom: 0.4rem !important; }
-    .stButton>button { padding: 0.2rem 0.6rem !important; font-size: 0.8rem !important; }
+    html, body, [class*="css"] { font-size: 0.85rem !important; font-family: 'Inter', sans-serif !important; }
+    p, li { font-size: 0.85rem !important; line-height: 1.5 !important; }
+    h1 { font-size: 1.4rem !important; margin-bottom: 0.5rem !important; font-weight: 700 !important; }
+    h2 { font-size: 1.1rem !important; margin-bottom: 0.5rem !important; font-weight: 600 !important; }
+    h3 { font-size: 0.95rem !important; margin-bottom: 0.5rem !important; font-weight: 600 !important; }
+    
+    /* ==========================================
+       2. Chat Messages & Buttons
+       ========================================== */
+    [data-testid="stChatMessage"] { 
+        padding: 0.6rem 1rem !important; 
+        margin-bottom: 0.6rem !important; 
+        border-radius: 12px !important;
+        border: 1px solid var(--secondary-background-color) !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+    }
+    
+    .stButton>button { 
+        padding: 0.2rem 0.6rem !important; 
+        font-size: 0.8rem !important; 
+        border-radius: 8px !important;
+        transition: all 0.2s ease !important;
+    }
+    .stButton>button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
     .stVerticalBlock { gap: 0.4rem !important; }
     
+    /* ==========================================
+       3. Sidebar Controls
+       ========================================== */
     [data-testid="stSidebarCollapsedControl"] {
         display: flex !important;
         visibility: visible !important;
@@ -45,6 +73,111 @@ st.markdown(
     [data-testid="stSidebarCollapseButton"] {
         color: var(--text-color) !important;
     }
+
+    /* ==========================================
+       4. Expander (Capsule Card Style)
+       ========================================== */
+    [data-testid="stExpander"] {
+        background-color: var(--secondary-background-color) !important;
+        border: 1px solid rgba(128, 128, 128, 0.2) !important;
+        border-radius: 12px !important;
+        margin-bottom: 10px !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
+        overflow: hidden !important; /* Keeps content strictly inside the rounded corners */
+        transition: all 0.2s ease !important;
+    }
+    
+    [data-testid="stExpander"]:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.08) !important;
+        border-color: var(--primary-color) !important;
+    }
+
+    [data-testid="stExpander"] summary {
+        padding: 0.5rem 1rem !important;
+        font-size: 0.8rem !important;
+    }
+    
+    [data-testid="stExpander"] summary p {
+        color: var(--text-color) !important;
+        font-weight: 600 !important;
+    }
+
+    [data-testid="stExpander"] [data-testid="stExpanderDetails"] {
+        padding: 0 1rem 1rem 1rem !important;
+        border-top: 1px dashed rgba(128, 128, 128, 0.2) !important;
+        color: var(--text-color) !important;
+    }
+
+    /* Text inside the capsule */
+    [data-testid="stExpanderDetails"] p, 
+    [data-testid="stExpanderDetails"] li, 
+    [data-testid="stExpanderDetails"] td, 
+    [data-testid="stExpanderDetails"] th {
+        color: var(--text-color) !important;
+        font-family: 'Inter', sans-serif !important;
+    }
+
+    /* ==========================================
+       5. Table Scrolling & Styling (The Fix)
+       ========================================== */
+    /* Apply horizontal scroll to the wrapper, NOT the table itself */
+    [data-testid="stExpanderDetails"] [data-testid="stMarkdownContainer"] {
+        overflow-x: auto !important;
+        width: 100% !important;
+        scrollbar-width: thin !important;
+    }
+
+    /* Reset table layout so it expands naturally */
+    [data-testid="stExpanderDetails"] table {
+        border-collapse: collapse !important;
+        width: 100% !important;
+        font-size: 0.75rem !important; /* Smaller font for dense data */
+        margin-bottom: 1rem !important;
+        display: table !important; /* Ensure it behaves like a table */
+    }
+
+    /* Table Headers */
+    [data-testid="stExpanderDetails"] th {
+        background-color: rgba(128, 128, 128, 0.1) !important;
+        border: 1px solid rgba(128, 128, 128, 0.3) !important;
+        padding: 6px 10px !important;
+        text-align: left !important;
+        font-weight: 600 !important;
+        white-space: nowrap !important; /* Prevents text wrapping */
+    }
+
+    /* Table Cells */
+    [data-testid="stExpanderDetails"] td {
+        border: 1px solid rgba(128, 128, 128, 0.3) !important;
+        padding: 6px 10px !important;
+        white-space: nowrap !important; /* Prevents text/numbers wrapping */
+    }
+
+    /* ==========================================
+       6. Dev Mode Query Inspector
+       ========================================== */
+    [data-testid="stExpander"] .stInfo {
+        font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace !important;
+        background-color: var(--secondary-background-color) !important;
+        color: var(--text-color) !important;
+        border-left: 4px solid var(--primary-color) !important; 
+        border-radius: 6px !important;
+    }
+    
+    [data-testid="stExpander"] code {
+        color: var(--primary-color) !important;
+        background-color: rgba(128, 128, 128, 0.1) !important;
+        padding: 2px 4px !important;
+        border-radius: 4px !important;
+    }
+
+    /* ==========================================
+       7. Custom Scrollbar
+       ========================================== */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 </style>
 """,
     unsafe_allow_html=True,
@@ -82,28 +215,6 @@ def save_feedback(
     data.append(feedback_entry)
     with open(FEEDBACK_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
-
-
-def format_chunks(chunks: List[Dict[str, Any]]) -> str:
-    if not chunks:
-        return "No relevant chunks found."
-    markdown_text = ""
-    for i, chunk in enumerate(chunks, 1):
-        meta = chunk.get("metadata", {})
-        score = chunk.get("rerank_score", 0.0)
-        chunk_type = meta.get("type", "?")
-        doc_name = meta.get("source_document", "")
-
-        markdown_text += f"<span style='font-size:0.75rem; color:gray;'>[{i}] {doc_name} | Page {meta.get('page', '?')} | {chunk_type} | score {score:+.2f}</span>\n\n"
-
-        if chunk_type == "table":
-            markdown_text += f"{chunk['text']}\n\n---\n\n"
-        else:
-            markdown_text += (
-                f"<div style='font-size:0.8rem;'>{chunk['text']}</div>\n\n---\n\n"
-            )
-
-    return markdown_text
 
 
 def render_feedback_buttons(
@@ -507,8 +618,15 @@ with col2:
     context_container = st.container(height=500)
     with context_container:
         if st.session_state.latest_chunks:
-            st.markdown(
-                format_chunks(st.session_state.latest_chunks), unsafe_allow_html=True
-            )
+            for i, chunk in enumerate(st.session_state.latest_chunks, 1):
+                meta = chunk.get("metadata", {})
+                score = chunk.get("rerank_score", 0.0)
+                chunk_type = meta.get("type", "?")
+                doc_name = meta.get("source_document", "Unknown")
+                page = meta.get("page", "?")
+
+                expander_label = f"**[{i}]** {doc_name} &nbsp;|&nbsp; Page {page} &nbsp;|&nbsp; {chunk_type} *({score:+.2f})*"
+                with st.expander(expander_label, expanded=(i == 1)):
+                    st.markdown(chunk["text"])
         else:
             st.caption("Retrieved chunks will appear here.")
