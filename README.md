@@ -9,7 +9,8 @@ This project goes beyond basic RAG by implementing Hybrid Search, Smart Table Ex
 <summary><b>Click to expand the DocLens architecture diagram</b></summary>
 <br>
 
-```mermaid---
+```mermaid
+---
 config:
   theme: base
   themeVariables:
