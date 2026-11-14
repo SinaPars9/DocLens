@@ -14,13 +14,12 @@ This project goes beyond basic RAG by implementing Hybrid Search, Smart Table Ex
 config:
   theme: base
   themeVariables:
-    primaryColor: "#f8fafc"
-    primaryTextColor: "#0f172a"
-    lineColor: "#64748b"
+    fontSize: "16px"
+    fontFamily: "sans-serif"
 ---
 flowchart TD
 
-%% --- Custom White Background ---
+%% --- White background trick for GitHub Dark Mode ---
 node_bg[" "]
 style node_bg fill:#ffffff,stroke-width:0px,color:#ffffff
 node_bg ~~~ group_ingest
@@ -99,18 +98,23 @@ click node_generator "https://github.com/sinapars9/doclens/blob/main/generate.py
 click node_verifier "https://github.com/sinapars9/doclens/blob/main/verifier.py"
 click node_settings "https://github.com/sinapars9/doclens/blob/main/config.py"
 
-classDef toneNeutral fill:#f8fafc,stroke:#334155,stroke-width:1.5px,color:#0f172a
-classDef toneBlue fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#172554
-classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f
-classDef toneMint fill:#dcfce7,stroke:#16a34a,stroke-width:1.5px,color:#14532d
-classDef toneRose fill:#ffe4e6,stroke:#e11d48,stroke-width:1.5px,color:#881337
-classDef toneIndigo fill:#e0e7ff,stroke:#4f46e5,stroke-width:1.5px,color:#312e81
-classDef toneTeal fill:#ccfbf1,stroke:#0f766e,stroke-width:1.5px,color:#134e4a
+%% --- Bold and larger fonts for all nodes ---
+classDef toneNeutral fill:#f8fafc,stroke:#334155,stroke-width:1.5px,color:#0f172a,font-size:15px,font-weight:bold
+classDef toneBlue fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#172554,font-size:15px,font-weight:bold
+classDef toneAmber fill:#fef3c7,stroke:#d97706,stroke-width:1.5px,color:#78350f,font-size:15px,font-weight:bold
+classDef toneMint fill:#dcfce7,stroke:#16a34a,stroke-width:1.5px,color:#14532d,font-size:15px,font-weight:bold
+classDef toneRose fill:#ffe4e6,stroke:#e11d48,stroke-width:1.5px,color:#881337,font-size:15px,font-weight:bold
+classDef toneIndigo fill:#e0e7ff,stroke:#4f46e5,stroke-width:1.5px,color:#312e81,font-size:15px,font-weight:bold
+classDef toneTeal fill:#ccfbf1,stroke:#0f766e,stroke-width:1.5px,color:#134e4a,font-size:15px,font-weight:bold
+
 class node_pdf,node_chunks,node_embedding,node_context,node_settings,node_user toneBlue
 class node_store,node_retriever,node_rewriter,node_reranker,node_semantic,node_diskcache toneAmber
 class node_pipeline,node_generator,node_verifier toneMint
 class node_app,node_feedback toneRose
 class node_llm toneIndigo
+
+%% --- High contrast orange arrows ---
+linkStyle default stroke:#f59e0b,stroke-width:2px;
 ```
 </details>
 
