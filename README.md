@@ -9,17 +9,20 @@ This project goes beyond basic RAG by implementing Hybrid Search, Smart Table Ex
 <summary><b>Click to expand the DocLens architecture diagram</b></summary>
 <br>
 
-```mermaid
----
+```mermaid---
 config:
   theme: base
   themeVariables:
-    background: "#ffffff"
     primaryColor: "#f8fafc"
     primaryTextColor: "#0f172a"
     lineColor: "#64748b"
 ---
 flowchart TD
+
+%% --- Custom White Background ---
+node_bg[" "]
+style node_bg fill:#ffffff,stroke-width:0px,color:#ffffff
+node_bg ~~~ group_ingest
 
 subgraph group_ingest["PDF ingestion"]
   node_pdf["PDF extraction<br/>[inspect_pdf.py]"]
