@@ -9,7 +9,7 @@ load_dotenv()
 
 API_KEY = os.getenv("1XAI_API_KEY")
 BASE_URL = "https://1xai.ir/v1"
-MODEL = "gpt-4o-mini"
+MODEL = "gpt-6-luna"
 
 client = OpenAI(
     api_key=API_KEY or "missing_key", base_url=BASE_URL, max_retries=2, timeout=30.0

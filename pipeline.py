@@ -39,9 +39,9 @@ class RAGPipeline:
             with open(path, "rb") as f:
                 for chunk in iter(lambda: f.read(4096), b""):
                     file_hasher.update(chunk)
-        
+
         self.document_id = file_hasher.hexdigest()[:12]
-        
+
         self.cache.invalidate_document(self.document_id)
 
         clean_names = [os.path.basename(p).replace("temp_", "") for p in pdf_paths]
@@ -88,8 +88,38 @@ class RAGPipeline:
         cached_result = self.cache.get(standalone_query, document_id=cache_doc_id)
         if cached_result:
             cached_answer, cached_chunks = cached_result
-            yield {"type": "chunks", "chunks": cached_chunks}
+
+            parent_ids_seen = set()
+            ui_display_chunks = []
+
+            for c in cached_chunks:
+                pid = c.get("metadata", {}).get("parent_id")
+                unique_id = pid if pid else c.get("id", id(c))
+
+                if unique_id not in parent_ids_seen:
+                    parent_ids_seen.add(unique_id)
+                    parent_text = c.get("metadata", {}).get("parent_text", c["text"])
+
+                    ui_display_chunks.append(
+                        {
+                            "text": parent_text,
+                            "metadata": c.get("metadata", {}),
+                            "rerank_score": c.get("rerank_score", 0.0),
+                            "child_count": (
+                                sum(
+                                    1
+                                    for fc in cached_chunks
+                                    if fc.get("metadata", {}).get("parent_id") == pid
+                                )
+                                if pid
+                                else 1
+                            ),
+                        }
+                    )
+
+            yield {"type": "chunks", "chunks": ui_display_chunks}
             yield {"type": "text", "content": cached_answer}
+
             verification_result = self.verifier.verify_answer(
                 cached_answer, cached_chunks
             )
