@@ -125,12 +125,13 @@ linkStyle default stroke:#f59e0b,stroke-width:2px;
 - **Document Search Scope:** A UI feature that allows users to dynamically select which uploaded documents to target for a specific question, preventing context pollution.
 - **Advanced Hybrid Parsing (Camelot + pdfplumber):** Uses PyMuPDF for text and Camelot's `lattice` parser for bordered tables (converted to clean Markdown). A custom fallback and a **Ghost Table Filter** (regex-based) drop empty blocks and 2-column text falsely detected as tables.
 - **Contextual Retrieval:** Generates a unique summary for every chunk (using GPT-4o-mini or fast page-headers) and prepends it to the chunk text before embedding. This drastically improves retrieval accuracy for context-dependent chunks.
-- **Parent-Child Architecture:** Retrieves using small, precise **Child** chunks. However, it deduplicates and sends the larger, full-page **Parent** chunks to the LLM. This provides complete context and reduces token usage by up to 60% while maintaining 100% retrieval accuracy.
+- **Parent-Child Architecture:** Retrieves using small, precise **Child** chunks. However, it deduplicates and sends the larger, full-page **Parent** chunks to the LLM. This provides complete context and reduces token usage.
 - **Hybrid Search (BM25 + Vector):** Combines semantic vector search (ChromaDB) with keyword-based BM25 using Reciprocal Rank Fusion (RRF) to drastically improve retrieval accuracy.
 - **Semantic Chunking:** Text is split based on semantic topic shifts, while tables remain atomic to preserve their structure for the LLM.
 - **Document & Scope-Isolated Layered Caching:** A dual-cache system (exact-match disk cache + ChromaDB semantic cache). Both caches are strictly isolated by a **content hash** of the PDF and the selected search scope. The cache is automatically invalidated if the same document name is rebuilt with new content.
 
 ### 🧠 Generation & Verification
+- **Query Decomposition (Multi-Hop RAG):** For complex comparative or multi-part questions, the pipeline uses an LLM to break the query into independent sub-questions. It searches the vector store for the original query, the expanded variants, *and* the decomposed sub-queries, drastically improving recall for multi-faceted questions.
 - **Intelligent Meta-Query Handling:** Uses strict regex to detect summarization requests (e.g., "what is this file about") and fetches initial pages directly, bypassing the reranker for generic overviews.
 - **Balanced Multi-Document Retrieval:** Applies per-document quotas and deduplication, guaranteeing that each selected document contributes at least one chunk to the final context, while filtering out low-scoring noise.
 - **Streaming Responses:** Built with Streamlit, generating answers token-by-token for a ChatGPT-like experience.
@@ -154,7 +155,7 @@ linkStyle default stroke:#f59e0b,stroke-width:2px;
 
 0. **Document-Isolated Semantic Cache:** Checks if a semantically similar question was already answered for the current document and selected scope.
 1. **Document Ingestion & Hybrid Extraction:** Extracts text (PyMuPDF) and tables (Camelot). Applies Semantic Chunking to create **Child** chunks, generates context summaries, and maps them to their **Parent** pages.
-2. **Query Processing & Meta-Detection:** Resolves follow-ups and applies strict regex for meta-queries (summaries). For content queries, it filters the retrieval space based on the user's `Search Scope`.
+2. **Query Processing & Decomposition:** Resolves follow-up questions using chat history. It generates multiple expanded queries for better retrieval and uses **Query Decomposition** to break complex multi-hop questions into independent sub-queries. All generated queries (original, expanded, decomposed) are sent to the retriever.
 3. **Balanced Hybrid Retrieval:** Fetches candidates using Vector Search and BM25, filtered by `source_document`. For multi-document queries, applies per-document quotas to ensure fair representation.
 4. **Fusion & Smart Reranking:** Combines results using RRF and scores them with a local Cross-Encoder. Guarantees the top chunk from each selected document survives the compression filter.
 5. **Generation (Parent-Chunking):** Deduplicates the top-ranked child chunks by their `parent_id` and sends only the full Parent pages to Claude Haiku 5.5.
