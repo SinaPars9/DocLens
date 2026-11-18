@@ -124,7 +124,7 @@ linkStyle default stroke:#f59e0b,stroke-width:2px;
 - **Multi-Document RAG:** Upload multiple documents and query across them. Uses a unified ChromaDB with `source_document` metadata filtering to isolate documents during search.
 - **Document Search Scope:** A UI feature that allows users to dynamically select which uploaded documents to target for a specific question, preventing context pollution.
 - **Advanced Hybrid Parsing (Camelot + pdfplumber):** Uses PyMuPDF for text and Camelot's `lattice` parser for bordered tables (converted to clean Markdown). A custom fallback and a **Ghost Table Filter** (regex-based) drop empty blocks and 2-column text falsely detected as tables.
-- **Contextual Retrieval:** Generates a unique summary for every chunk (using GPT-4o-mini or fast page-headers) and prepends it to the chunk text before embedding. This drastically improves retrieval accuracy for context-dependent chunks.
+- **Contextual Retrieval:** Generates a unique summary for every chunk (using Gpt-6-luna or fast page-headers) and prepends it to the chunk text before embedding. This drastically improves retrieval accuracy for context-dependent chunks.
 - **Parent-Child Architecture:** Retrieves using small, precise **Child** chunks. However, it deduplicates and sends the larger, full-page **Parent** chunks to the LLM. This provides complete context and reduces token usage.
 - **Hybrid Search (BM25 + Vector):** Combines semantic vector search (ChromaDB) with keyword-based BM25 using Reciprocal Rank Fusion (RRF) to drastically improve retrieval accuracy.
 - **Semantic Chunking:** Text is split based on semantic topic shifts, while tables remain atomic to preserve their structure for the LLM.
@@ -135,7 +135,7 @@ linkStyle default stroke:#f59e0b,stroke-width:2px;
 - **Intelligent Meta-Query Handling:** Uses strict regex to detect summarization requests (e.g., "what is this file about") and fetches initial pages directly, bypassing the reranker for generic overviews.
 - **Balanced Multi-Document Retrieval:** Applies per-document quotas and deduplication, guaranteeing that each selected document contributes at least one chunk to the final context, while filtering out low-scoring noise.
 - **Streaming Responses:** Built with Streamlit, generating answers token-by-token for a ChatGPT-like experience.
-- **Hybrid LLM Strategy:** Uses `gpt-4o-mini` for cost-effective query rewriting, and `Claude Haiku 5.5` for final generation to ensure accurate math reasoning and strict adherence to context.
+- **Hybrid LLM Strategy:** Uses `gpt-6-luna` for cost-effective query rewriting, and `Claude Haiku 5.5` for final generation to ensure accurate math reasoning and strict adherence to context.
 - **Deterministic Answer Verification:** A zero-dependency, pure-Python verifier (`verifier.py`) that acts as a strict auditor. It normalizes numbers, extracts operands for mathematical exceptions, and mathematically proves if the LLM's answer is grounded, calculated, or hallucinated. It automatically ignores page numbers and headings to prevent false positives.
 - **Intelligent Abstention Layer:** To save API costs and prevent hallucinations, the pipeline checks the absolute score of the top-ranked chunk. If the highest-scoring chunk falls below a strict irrelevance threshold, the system immediately abstains from calling the LLM.
 
@@ -177,7 +177,7 @@ Includes a diverse set of PDF documents to stress-test the pipeline across diffe
 - `safety_science.pdf`: Long definition tables and conceptual diagrams.
 
 **Metrics Evaluated (LLM-as-a-Judge):**
-The suite uses `gpt-4o-mini` to judge the final answer against the `expected_answer` (Answer Accuracy), alongside automated checks for:
+The suite uses `gpt-6-luna` to judge the final answer against the `expected_answer` (Answer Accuracy), alongside automated checks for:
 - **Retrieval Hit Rate:** Are the correct pages retrieved?
 - **Verifier Pass Rate:** Are all non-abstention claims verified?
 - **Category Breakdown:** Metrics are split by question type (numerical, table_extraction, abstention, etc.).
@@ -272,7 +272,7 @@ Upload one or two PDFs, build the vector database, ask a question, and inspect t
 
 **Complex PDF Layouts (Nested Tables):** While Camelot handles standard bordered tables perfectly, deeply nested tables or highly irregular multi-column layouts may still require vision-based extraction (e.g., GPT-4o Vision) in future iterations.
 
-**Small Talk Handling:** The query rewriter (GPT-4o-mini) sometimes over-eagerly resolves greetings or gratitude (e.g., "thank you") back to the previous query, causing a duplicate response. A system prompt fix is planned.
+**Small Talk Handling:** The query rewriter (Gpt-6-luna) sometimes over-eagerly resolves greetings or gratitude (e.g., "thank you") back to the previous query, causing a duplicate response. A system prompt fix is planned.
 
 **Multilingual Support:** The current pipeline is optimized for English. Future iterations will focus on Persian/Arabic RTL support, requiring different embedding models (e.g., BGE-M3) and updated regex patterns for the verifier.
 
@@ -284,7 +284,7 @@ Upload one or two PDFs, build the vector database, ask a question, and inspect t
 - **Vector Store:** ChromaDB
 - **Keyword Search:** rank_bm25
 - **Local Inference:** ONNX Runtime, Tokenizers
-- **LLMs:** Claude Haiku 5.5 (Generation), GPT-4o-mini (Query Rewriting)
+- **LLMs:** Claude Haiku 5.5 (Generation), Gpt-6-luna (Query Rewriting)
 - **Verification & Evaluation:** Pure-Python (Deterministic Regex), Custom LLM Judge
 - **Caching & Data Logging:** Diskcache, JSON (for HITL Golden Dataset feedback)
 
