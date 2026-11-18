@@ -42,10 +42,13 @@ def resolve_and_expand(
 You are an expert query resolution assistant for a conversational RAG system.
 Your task is to rewrite the user's latest question into a complete, standalone query by inferring the intended context from the chat history.
 
+Additionally, if the resolved standalone query is complex and requires multiple steps (e.g., comparing multiple items, or asking for multiple distinct facts), decompose it into simple, independent sub-queries.
+
 CRITICAL RULES:
 1. Analyze the CONVERSATIONAL FLOW: Determine the "Active Topic" (e.g., the specific time period, entity, parameter, or condition currently being discussed). 
 2. If the user asks a short follow-up question, infer the missing context from the most logical Active Topic.
 3. Generate exactly 3 alternative search queries based on the resolved standalone query to improve document retrieval.
+4. If the question asks for multiple things, break it down into simple sub-queries in the "decomposed" list.
 
 STRICT EXPANSION RULES (VERY IMPORTANT):
 - DO NOT introduce new entities, metrics, parameters, or time periods that are NOT present in the resolved standalone query.
@@ -53,24 +56,19 @@ STRICT EXPANSION RULES (VERY IMPORTANT):
 - NEVER change the core subject or the time period of the original question during expansion.
 
 SMALL TALK RULE: 
-- If the user's input is a greeting, gratitude (e.g., "thanks", "thank you"), or farewell, do NOT resolve it against the chat history. Return the user's exact input as the standalone query and leave the expanded queries empty.
+- If the user's input is a greeting, gratitude (e.g., "thanks", "thank you"), or farewell, do NOT resolve it against the chat history. Return the user's exact input as the standalone query and leave the expanded and decomposed queries empty.
 
 TOPIC SHIFT: 
 - If the user asks a completely new question about a different topic, ignore the previous chat history and treat it as a standalone query.
 
-GENERAL EXAMPLES:
-Example 1 (Preserving specific conditions):
-Standalone Query: "What is the [Property X] of [Entity Y] in [Condition Z]?"
-Good Expansions: 
-- "[Entity Y] [Property X] for [Condition Z]"
-- "Value of [Property X] in [Entity Y] during [Condition Z]"
-(Bad Expansion: asking for [Condition W] instead of [Condition Z], or asking for [Property A] instead of [Property X])
-
 Return ONLY a valid JSON object with this exact structure:
 {
   "standalone": "<the fully resolved standalone query>",
-  "expanded": ["<var1>", "<var2>", "<var3>"]
+  "expanded": ["<var1>", "<var2>", "<var3>"],
+  "decomposed": ["<sub-query1>", "<sub-query2>"]
 }
+
+If the query is simple, return an empty list for "decomposed".
 """
 
     user_prompt = f"Conversation history:\n{history_text or '(None)'}\n\nLatest question:\n{question}"
@@ -85,7 +83,7 @@ Return ONLY a valid JSON object with this exact structure:
     )
 
     content = response.choices[0].message.content
-    default_result = {"standalone": question, "expanded": []}
+    default_result = {"standalone": question, "expanded": [], "decomposed": []}
 
     if not content:
         result = default_result
@@ -93,6 +91,8 @@ Return ONLY a valid JSON object with this exact structure:
         try:
             parsed = json.loads(content)
             result = parsed if "standalone" in parsed else default_result
+            if "decomposed" not in result:
+                result["decomposed"] = []
         except json.JSONDecodeError:
             result = default_result
 

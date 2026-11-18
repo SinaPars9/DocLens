@@ -62,9 +62,9 @@ def generate_answer_stream(
         meta = chunk.get("metadata", {})
         page = meta.get("page", "?")
         chunk_type = meta.get("type", "text").capitalize()
-        doc_name = meta.get("source_document", "Unknown Doc")  # 🌟 اضافه شد
+        doc_name = meta.get("source_document", "Unknown Doc")
 
-        header = f"[Source: {chunk_type} | Document: {doc_name} | Page {page}]"  # 🌟 اضافه شد
+        header = f"[Source: {chunk_type} | Document: {doc_name} | Page {page}]"
         context_parts.append(f"{header}\n{chunk['text']}")
 
     context = "\n\n---\n\n".join(context_parts)

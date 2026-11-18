@@ -23,7 +23,7 @@ JUDGE_CLIENT = OpenAI(
     max_retries=2,
     timeout=30.0,
 )
-JUDGE_MODEL = "gpt-4o-mini"
+JUDGE_MODEL = "gpt-6-luna"
 JUDGE_CACHE = Cache("eval_judge_cache")  
 
 
@@ -202,7 +202,6 @@ def run_evaluation():
             print(f"  📄 Expected: {expected_answer[:80]}...")
             print(f"  📄 Got:      {answer[:80].replace(chr(10), ' ')}...\n")
 
-    # 🌟 گزارش نهایی
     print(f"\n{'='*50}")
     print("🏁 EVALUATION SUMMARY")
     print(f"{'='*50}")

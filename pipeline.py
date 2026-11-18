@@ -76,11 +76,13 @@ class RAGPipeline:
         result = cast(Dict[str, Any], resolve_and_expand(question, history))
         standalone_query = str(result.get("standalone", question))
         expanded = result.get("expanded", [])
+        decomposed = result.get("decomposed", [])
 
         yield {
             "type": "query_info",
             "standalone": standalone_query,
             "expanded": expanded,
+            "decomposed": decomposed,
         }
 
         cache_doc_id = f"{self.document_id}_{'_'.join(sorted(selected_documents)) if selected_documents else 'all'}"
@@ -126,9 +128,11 @@ class RAGPipeline:
             yield {"type": "verification", "data": verification_result}
             return
 
-        queries = [standalone_query] + [str(q) for q in expanded]
-
-        queries = [standalone_query] + [str(q) for q in expanded]
+        queries = (
+            [standalone_query]
+            + [str(q) for q in expanded]
+            + [str(q) for q in decomposed]
+        )
         import re
 
         query_clean = standalone_query.strip().lower().rstrip("?.!,")

@@ -280,6 +280,7 @@ def render_verification_ui(
     question: str,
     standalone_q: str,
     expanded_qs: List[str],
+    decomposed_qs: List[str],
     dev_mode: bool,
 ) -> None:
     if dev_mode:
@@ -289,6 +290,10 @@ def render_verification_ui(
                 if expanded_qs:
                     st.write("**Expanded Queries:**")
                     for q in expanded_qs:
+                        st.write(f"- {q}")
+                if decomposed_qs:
+                    st.success("**Decomposed Sub-Queries:**")
+                    for q in decomposed_qs:
                         st.write(f"- {q}")
         return
 
@@ -551,6 +556,7 @@ with col1:
                         question=msg.get("original_question", ""),
                         standalone_q=msg.get("standalone_query", ""),
                         expanded_qs=msg.get("expanded_queries", []),
+                        decomposed_qs=msg.get("decomposed_queries", []),
                         dev_mode=dev_mode,
                     )
 
@@ -570,6 +576,7 @@ with col1:
 
                     standalone_q = prompt
                     expanded_qs = []
+                    decomposed_qs = []
                     verification_result = {}
 
                     response_placeholder = st.empty()
@@ -581,6 +588,7 @@ with col1:
                         if event["type"] == "query_info":
                             standalone_q = event["standalone"]
                             expanded_qs = event["expanded"]
+                            decomposed_qs = event.get("decomposed", [])
                         elif event["type"] == "chunks":
                             current_chunks = event["chunks"]
                         elif event["type"] == "text":
@@ -597,6 +605,7 @@ with col1:
                         question=prompt,
                         standalone_q=standalone_q,
                         expanded_qs=expanded_qs,
+                        decomposed_qs=decomposed_qs,
                         dev_mode=dev_mode,
                     )
 
@@ -606,6 +615,7 @@ with col1:
                             "content": full_response,
                             "standalone_query": standalone_q,
                             "expanded_queries": expanded_qs,
+                            "decomposed_queries": decomposed_qs,
                             "original_question": prompt,
                             "verification": verification_result,
                         }
