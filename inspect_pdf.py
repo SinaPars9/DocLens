@@ -6,7 +6,7 @@ import tempfile
 import pandas as pd
 import re
 from langchain_core.documents import Document
-
+from textlens import OCR
 
 def block_overlaps_table(block, table_bbox, threshold=0.5):
     """Check whether a text block substantially overlaps a table."""
@@ -122,6 +122,110 @@ def extract_page_content(pymupdf_page, plumber_page, page_number, pdf_path):
 
     return text_content, camelot_tables_text
 
+def needs_ocr(pdf_path: str, min_chars_per_page: int = 50) -> bool:
+    try:
+        with pymupdf.open(pdf_path) as doc:
+            n_pages = len(doc)
+            if n_pages == 0:
+                return False
+            total = 0
+            for page in doc:
+                txt = page.get_text()
+                if isinstance(txt, str):
+                    total += len(txt.strip())
+            return (total / n_pages) < min_chars_per_page
+    except Exception as e:
+        print(f"[needs_ocr] check failed: {e}")
+        return False
+
+
+def _page_to_text(page) -> str:
+    for method_name in ("to_markdown", "to_text"):
+        method = getattr(page, method_name, None)
+        if callable(method):
+            try:
+                value = method()
+                if isinstance(value, str) and value.strip():
+                    return value.strip()
+            except Exception:
+                pass
+
+    
+    text = getattr(page, "text", None)
+    if isinstance(text, str) and text.strip():
+        return text.strip()
+
+    
+    blocks = getattr(page, "blocks", None) or []
+    parts = []
+    for block in blocks:
+        block_text = getattr(block, "text", None)
+        if isinstance(block_text, str) and block_text.strip():
+            parts.append(block_text.strip())
+    return "\n\n".join(parts)
+
+
+def _extract_with_textlens(pdf_path: str):
+    ocr = OCR()
+    result = ocr(pdf_path)
+
+    pages = getattr(result, "pages", None) or []
+    print(f"[TextLens] Pages: {len(pages)}, page_count: {getattr(result, 'page_count', '?')}")
+
+    review_attr = getattr(result, "pages_needing_review", None)
+    if callable(review_attr):
+        try:
+            review_attr = review_attr()
+        except Exception as e:
+            print(f"[TextLens] pages_needing_review() failed: {e}")
+            review_attr = None
+    if isinstance(review_attr, (list, tuple, set)) and len(review_attr) > 0:
+        print(f"[TextLens] Pages needing review: {len(review_attr)}")
+
+    documents = []
+    for idx, page in enumerate(pages, start=1):
+        content = _page_to_text(page)
+        if not content:
+            continue
+
+        page_num = getattr(page, "number", idx)
+        try:
+            page_num = int(page_num)
+        except (TypeError, ValueError):
+            page_num = idx
+
+        documents.append(
+            Document(
+                page_content=content,
+                metadata={
+                    "source": pdf_path,
+                    "page": page_num,
+                    "type": "text",
+                    "table_count": 0,
+                    "ocr_applied": True,
+                },
+            )
+        )
+
+    if not documents:
+        md = result.to_markdown()
+        md = md.strip() if isinstance(md, str) else ""
+        if md:
+            print("[TextLens] No pages extracted, using whole markdown as fallback.")
+            documents.append(
+                Document(
+                    page_content=md,
+                    metadata={
+                        "source": pdf_path,
+                        "page": 1,
+                        "type": "text",
+                        "table_count": 0,
+                        "ocr_applied": True,
+                    },
+                )
+            )
+
+    return documents
 
 def load_pdf_documents(pdf_path):
     """
@@ -129,6 +233,17 @@ def load_pdf_documents(pdf_path):
     - One Document per page of ordinary text (metadata: type="text").
     - One Document per detected table   (metadata: type="table").
     """
+    if needs_ocr(pdf_path):
+        print(f"[TextLens] Scanned PDF detected: {os.path.basename(pdf_path)}")
+        try:
+            docs = _extract_with_textlens(pdf_path)
+            if docs:
+                print(f"[TextLens] Extracted {len(docs)} pages.")
+                return docs
+            print("[TextLens] Empty output, falling back to native extraction.")
+        except Exception as e:
+            print(f"[TextLens] Failed, falling back: {e}")
+
     documents = []
 
     with pymupdf.open(pdf_path) as pdf_text, pdfplumber.open(pdf_path) as pdf_tables:

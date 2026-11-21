@@ -124,6 +124,7 @@ linkStyle default stroke:#f59e0b,stroke-width:2px;
 - **Multi-Document RAG:** Upload multiple documents and query across them. Uses a unified ChromaDB with `source_document` metadata filtering to isolate documents during search.
 - **Document Search Scope:** A UI feature that allows users to dynamically select which uploaded documents to target for a specific question, preventing context pollution.
 - **Advanced Hybrid Parsing (Camelot + pdfplumber):** Uses PyMuPDF for text and Camelot's `lattice` parser for bordered tables (converted to clean Markdown). A custom fallback and a **Ghost Table Filter** (regex-based) drop empty blocks and 2-column text falsely detected as tables.
+- **Automatic OCR for Scanned PDFs:** Image-only PDFs (no text layer) are detected automatically by comparing extractable characters per page. When detected, the document is processed with TextLens-OCR a lightweight pure-Python engine (~31 MB model, no Ghostscript, no Tesseract, no CUDA). TextLens returns **one Markdown `Document` per page**, preserving the same page-level structure as native PDFs, so the chunking and retrieval pipeline remain fully unchanged. Mixed PDFs (some native-text pages, some scanned) are also handled correctly.
 - **Contextual Retrieval:** Generates a unique summary for every chunk (using Gpt-6-luna or fast page-headers) and prepends it to the chunk text before embedding. This drastically improves retrieval accuracy for context-dependent chunks.
 - **Parent-Child Architecture:** Retrieves using small, precise **Child** chunks. However, it deduplicates and sends the larger, full-page **Parent** chunks to the LLM. This provides complete context and reduces token usage.
 - **Hybrid Search (BM25 + Vector):** Combines semantic vector search (ChromaDB) with keyword-based BM25 using Reciprocal Rank Fusion (RRF) to drastically improve retrieval accuracy.
@@ -154,7 +155,7 @@ linkStyle default stroke:#f59e0b,stroke-width:2px;
 ## 🏗️ Architecture Pipeline
 
 0. **Document-Isolated Semantic Cache:** Checks if a semantically similar question was already answered for the current document and selected scope.
-1. **Document Ingestion & Hybrid Extraction:** Extracts text (PyMuPDF) and tables (Camelot). Applies Semantic Chunking to create **Child** chunks, generates context summaries, and maps them to their **Parent** pages.
+1. **Document Ingestion & Hybrid Extraction:** Detects whether each PDF has a native text layer (average extractable chars per page). Native PDFs go through PyMuPDF for text and Camelot for tables. Scanned PDFs go through **TextLens OCR**, which produces one page-level Markdown `Document` per page. Both paths yield the same `List[Document]` structure. Applies Semantic Chunking to create **Child** chunks, generates context summaries, and maps them to their **Parent** pages.
 2. **Query Processing & Decomposition:** Resolves follow-up questions using chat history. It generates multiple expanded queries for better retrieval and uses **Query Decomposition** to break complex multi-hop questions into independent sub-queries. All generated queries (original, expanded, decomposed) are sent to the retriever.
 3. **Balanced Hybrid Retrieval:** Fetches candidates using Vector Search and BM25, filtered by `source_document`. For multi-document queries, applies per-document quotas to ensure fair representation.
 4. **Fusion & Smart Reranking:** Combines results using RRF and scores them with a local Cross-Encoder. Guarantees the top chunk from each selected document survives the compression filter.
@@ -199,7 +200,7 @@ DocLens/
 ├── embedding.py           # ONNX Embedding model wrapper
 ├── contextualizer.py      # Generates context summaries for chunks (LLM + Diskcache)
 ├── generate.py            # LLM streaming generation & disk cache
-├── inspect_pdf.py         # PyMuPDF + Camelot extraction + Ghost Table filter
+├── inspect_pdf.py         # PDF extraction: PyMuPDF + Camelot (native) / TextLens OCR (scanned)
 ├── pipeline.py            # Main RAG orchestrator (Multi-doc logic & Meta-query)
 ├── query_rewriter.py      # Query resolution and expansion
 ├── reranker.py            # ONNX Cross-Encoder wrapper with Smart Boost
@@ -221,6 +222,7 @@ The `example/` directory contains sample PDF and retrieval-evaluation resources.
 - Python 3.14 is recommended for the current development setup.
 - The Python packages listed in `requirements.txt`.
 - Access to the local embedding and reranker model files.
+- **Tesseract is NOT required.** The OCR path uses TextLens, which ships a self-contained pure-Python engine and downloads its model (~31 MB) on first use.
 - An API endpoint and credentials compatible with the answer-generation code.
 
 ## Installation
@@ -272,6 +274,10 @@ Upload one or two PDFs, build the vector database, ask a question, and inspect t
 
 **Complex PDF Layouts (Nested Tables):** While Camelot handles standard bordered tables perfectly, deeply nested tables or highly irregular multi-column layouts may still require vision-based extraction (e.g., GPT-4o Vision) in future iterations.
 
+**Tables in Scanned PDFs:** Unlike native PDFs (where tables become separate `type="table"` documents), tables in scanned PDFs are kept inline as HTML `<table>` blocks inside the page Markdown. Semantic chunking handles them fine, but they are not isolated as atomic chunks.
+
+**Mixed-Intent Meta-Queries:** Questions that combine metadata retrieval with content explanation (e.g., "what year is this from and what is it about?") may fail the reranker threshold and trigger an abstention. Workaround: ask the two questions separately. Slated for improvement in the Adaptive Routing phase.
+
 **Small Talk Handling:** The query rewriter (Gpt-6-luna) sometimes over-eagerly resolves greetings or gratitude (e.g., "thank you") back to the previous query, causing a duplicate response. A system prompt fix is planned.
 
 **Multilingual Support:** The current pipeline is optimized for English. Future iterations will focus on Persian/Arabic RTL support, requiring different embedding models (e.g., BGE-M3) and updated regex patterns for the verifier.
@@ -279,7 +285,7 @@ Upload one or two PDFs, build the vector database, ask a question, and inspect t
 ## 🛠️ Tech Stack
 
 - **UI:** Streamlit
-- **PDF Processing:** PyMuPDF, pdfplumber, **Camelot** (for structured table extraction)
+- **PDF Processing:** PyMuPDF, pdfplumber, **Camelot** (for structured table extraction), **TextLens OCR** (for scanned PDFs)
 - **Data Transformation:** Pandas, Tabulate (for Markdown table conversion)
 - **Vector Store:** ChromaDB
 - **Keyword Search:** rank_bm25

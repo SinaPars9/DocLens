@@ -15,3 +15,4 @@ openai
 camelot-py[base]
 pandas
 tabulate
+textlens-ocr
