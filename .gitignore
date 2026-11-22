@@ -47,3 +47,6 @@ feedback_log.json
 # Temporary files
 temp_*.pdf
 test.py
+
+# Local Persian roadmap notes (untracked)
+DOCLENS_ROADMAP_FA.md
