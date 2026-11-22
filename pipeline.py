@@ -316,7 +316,11 @@ class RAGPipeline:
             yield {"type": "text", "content": token}
 
         self.cache.put(
-            standalone_query, full_response, filtered_chunks, document_id=cache_doc_id
+            standalone_query,
+            full_response,
+            filtered_chunks,
+            document_id=cache_doc_id,
+            base_document_id=self.document_id,
         )
         verification_result = self.verifier.verify_answer(
             full_response, filtered_chunks
