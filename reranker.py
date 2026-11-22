@@ -52,15 +52,21 @@ class Reranker:
         if not numbers and not keywords:
             return 0.0
 
+        # Avoid double-counting repeated words/numbers in the question.
+        numbers = list(dict.fromkeys(numbers))
+        keywords = list(dict.fromkeys(keywords))
+
         chunk_lower = chunk_text.lower()
         boost_score = 0.0
 
         for num in numbers:
-            if num in chunk_text:
+            # Digit boundaries prevent "2025" from matching inside "12025".
+            if re.search(rf"(?<!\d){re.escape(num)}(?!\d)", chunk_text):
                 boost_score += 4.0
 
         for kw in keywords:
-            if kw in chunk_lower:
+            # Word boundaries prevent "art" from matching inside "chart".
+            if re.search(rf"(?<![a-z0-9]){re.escape(kw)}(?![a-z0-9])", chunk_lower):
                 boost_score += 1.0
 
         return min(boost_score, 10.0)

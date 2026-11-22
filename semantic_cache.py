@@ -50,7 +50,12 @@ class SemanticCache:
         return None
 
     def put(
-        self, query: str, answer: str, chunks: List[Dict[str, Any]], document_id: str
+        self,
+        query: str,
+        answer: str,
+        chunks: List[Dict[str, Any]],
+        document_id: str,
+        base_document_id: Optional[str] = None,
     ):
         query_vector = self.embedding_model.embed_texts([query])[0]
         
@@ -68,6 +73,7 @@ class SemanticCache:
                     "answer": answer, 
                     "chunks": chunks_json, 
                     "document_id": document_id,
+                    "base_document_id": base_document_id or document_id,
                     "timestamp": time.time() 
                 }
             ],
@@ -76,9 +82,21 @@ class SemanticCache:
 
     
     def invalidate_document(self, document_id: str):
-        """Remove all cache entries associated with a specific document."""
+        """Remove all cache entries associated with a specific document.
+
+        Entries are stored under the scoped key f"{base_document_id}_{scope}",
+        so deleting only the exact `document_id` leaves them behind. Match both
+        the base id and the exact id to cover older unscoped entries as well.
+        """
         try:
-            self.collection.delete(where={"document_id": document_id})
+            self.collection.delete(
+                where={
+                    "$or": [
+                        {"base_document_id": document_id},
+                        {"document_id": document_id},
+                    ]
+                }
+            )
             print(f"[Semantic Cache] Invalidated cache for doc: {document_id}")
         except Exception as e:
             print(f"[Semantic Cache] Failed to invalidate: {e}")
