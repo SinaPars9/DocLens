@@ -43,7 +43,7 @@ htmlcov/
 Thumbs.db
 desktop.ini
 feedback_log.json
-
+opencode.json
 # Temporary files
 temp_*.pdf
 test.py
