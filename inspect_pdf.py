@@ -67,7 +67,9 @@ def extract_page_content(pymupdf_page, plumber_page, page_number, pdf_path):
                     continue
 
                 camelot_tables_text.append(markdown_table)
-                table_bboxes.append(table._bbox)
+                x0, y0, x1, y1 = table._bbox
+                page_height = pymupdf_page.rect.height
+                table_bboxes.append((x0, page_height - y1, x1, page_height - y0))
     except Exception as e:
         print(f"Camelot failed on page {page_number}: {e}")
 
